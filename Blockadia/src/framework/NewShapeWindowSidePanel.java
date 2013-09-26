@@ -37,11 +37,14 @@ public class NewShapeWindowSidePanel extends JPanel{
 	private JComboBox<Vec2> resolution;
 	private int currentResolutionSelection;
 	private JButton colorButton;
+	private JButton saveButton;
+	private JButton closeButton;
 
 	public NewShapeWindowSidePanel(NewShapeWindow newShapeWindow, NewShapeWindowBuildPanel buildPanel){
 		this.newShapeWindow =newShapeWindow;
 		this.buildPanel = buildPanel;
 
+		//If I don't put -5 there, the window will be screwed up by Swing =_=
 		this.setPreferredSize(new Dimension(SIDE_PANEL_WIDTH,SIDE_PANEL_HEIGHT-5));
 		initComponents();
 		addListeners();
@@ -55,7 +58,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		controlPanel.setLayout(null);
 		controlPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
 				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-		controlPanel.setBounds(5,5,190,150);
+		controlPanel.setBounds(5,5,190,385);
 
 		JLabel nameLabel = new JLabel("Shape Name:");
 		nameLabel.setBounds(10, 5, 170, 25);
@@ -106,7 +109,8 @@ public class NewShapeWindowSidePanel extends JPanel{
 		colorButton.setBounds(155,115, 25, 25);
 		controlPanel.add(colorButton);
 
-
+		saveButton = new JButton("Save");//TODO
+		
 		add(controlPanel);
 	}
 
@@ -167,8 +171,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 					buildPanel.setGridResolution((Vec2)resolution.getSelectedItem());
 					currentResolutionSelection = resolution.getSelectedIndex();				// update the buffer
 					buildPanel.setIsDirty(false);																			// set isDirty
-				}	
-
+				}
 
 			}
 		});
