@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import practice.Log;
+
 import components.Block;
 import components.BlockShape;
 
@@ -64,6 +66,7 @@ public class Config {
 		if(shapesMap.containsKey(shape.getShapeName())){
 			throw new ElementExistsException("The shape with the same name already exist");
 		}
+		shapesMap.put(shape.getShapeName(), shape);
 		shapesList.add(shape);
 	}
 	
