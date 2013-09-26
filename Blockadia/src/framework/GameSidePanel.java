@@ -18,6 +18,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EtchedBorder;
 
@@ -128,8 +129,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		JPanel optionPanel = new JPanel();
 		optionPanel.setLayout(null);
 		optionPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+				BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		optionPanel.setBounds(5,105,230,345);
+		optionPanel.setPreferredSize(new Dimension(200,500));
+		JScrollPane scroll = new JScrollPane(optionPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroll.setBounds(5,250,130,145);
 		gameNameLabel = new JLabel("Current Game:");
 		gameName = new TextFieldWithPlaceHolder("Gizmoball");
 		gameName.setColumns(10);
@@ -197,8 +202,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		previewPanel.add(shapePreview,"Center");
 		optionPanel.add(previewPanel);
 
-		add(optionPanel);
-
+    add(scroll);
+    scroll.setSize(230,345);
 	}
 
 	private void addListeners(){
