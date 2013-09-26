@@ -21,6 +21,8 @@ import javax.swing.border.EtchedBorder;
 
 import org.jbox2d.common.Vec2;
 
+import exceptions.ElementExistsException;
+
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
 
@@ -37,8 +39,8 @@ public class NewShapeWindowSidePanel extends JPanel{
 	private JComboBox<Vec2> resolution;
 	private int currentResolutionSelection;
 	private JButton colorButton;
-	private JButton saveButton;
-	private JButton closeButton;
+	private static JButton saveButton;
+	private static JButton closeButton;
 
 	public NewShapeWindowSidePanel(NewShapeWindow newShapeWindow, NewShapeWindowBuildPanel buildPanel){
 		this.newShapeWindow =newShapeWindow;
@@ -109,7 +111,14 @@ public class NewShapeWindowSidePanel extends JPanel{
 		colorButton.setBounds(155,115, 25, 25);
 		controlPanel.add(colorButton);
 
-		saveButton = new JButton("Save");//TODO
+		saveButton = new JButton("Save");
+		saveButton.setBounds(50,350, 65, 25);
+		saveButton.setEnabled(false);
+		controlPanel.add(saveButton);
+		
+		closeButton = new JButton("Close");
+		closeButton.setBounds(115,350, 65, 25);
+		controlPanel.add(closeButton);
 		
 		add(controlPanel);
 	}
@@ -176,8 +185,128 @@ public class NewShapeWindowSidePanel extends JPanel{
 			}
 		});
 
+		saveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//save button can only be pressed when the board is set to dirty
+				//but checking if the buildPanel is dirty is always a safe practice
+				if(buildPanel.checkIsDirty()){
+					boolean success = true;
+					int n = JOptionPane.showConfirmDialog(
+							newShapeWindow, "The shape has been modified. Are you sure to save it?",
+							"Confirm",
+							JOptionPane.OK_CANCEL_OPTION);
+					if(n == JOptionPane.OK_OPTION){		
+						//Save the BlockShape
+						//If the name is empty:
+						String shapeName = getNameFieldText();
+						if(shapeName.equals("")){
+							success = false;
+							JOptionPane.showMessageDialog(
+									newShapeWindow, "Please enter a shape name.",
+									"Empty Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
+					
+						if(success){
+							try {
+								//Attach settings from side panel with the BlockShape from build panel
+								buildPanel.getPaintedShape().setShapeName(shapeName);
+								
+								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
+								newShapeWindow.getParentPanel().updateComboBox();
+								JOptionPane.showMessageDialog(
+										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
+										"Save successful",
+										JOptionPane.INFORMATION_MESSAGE);
+								newShapeWindow.dispose();
+							} catch (ElementExistsException e2) {
+								success = false;
+								JOptionPane.showMessageDialog(
+										newShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+										"Duplicate Name",
+										JOptionPane.ERROR_MESSAGE);
+							}
+						}
+
+					}
+					else if(n == JOptionPane.CANCEL_OPTION){
+						//Do nothing, stay in this NewShapeWindow
+					}
+				}else{
+					//Not very likely to run here
+					System.out.println("No modifications to be saved");
+				}
+	
+			}
+		});
+		
+		closeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//Close button is similar to WindowClosing event handler
+				if(buildPanel.checkIsDirty()){
+					boolean success = true;
+					int n = JOptionPane.showConfirmDialog(
+							newShapeWindow, "The shape has been modified. Do you want to save it?",
+							"Unsaved changes",
+							JOptionPane.YES_NO_CANCEL_OPTION);
+					if(n == JOptionPane.YES_OPTION){		
+						//Save the BlockShape
+						//If the name is empty:
+						String shapeName = getNameFieldText();
+						if(shapeName.equals("")){
+							success = false;
+							JOptionPane.showMessageDialog(
+									newShapeWindow, "Please enter a shape name.",
+									"Empty Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
+
+						if(success){
+							try {
+								//Attach settings from side panel with the BlockShape from build panel
+								buildPanel.getPaintedShape().setShapeName(shapeName);
+								
+								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
+								newShapeWindow.getParentPanel().updateComboBox();
+								JOptionPane.showMessageDialog(
+										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
+										"Save successful",
+										JOptionPane.INFORMATION_MESSAGE);
+								newShapeWindow.dispose();
+							} catch (ElementExistsException e2) {
+								success = false;
+								JOptionPane.showMessageDialog(
+										newShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+										"Duplicate Name",
+										JOptionPane.ERROR_MESSAGE);
+							}
+						}
+
+					}
+					else if(n == JOptionPane.NO_OPTION){
+						newShapeWindow.dispose();
+					}
+					else if(n == JOptionPane.CANCEL_OPTION){
+						//Do nothing, stay in this NewShapeWindow
+					}
+				}else{
+					newShapeWindow.dispose();
+				}
+
+			
+				
+			}
+		});
 	}
 
+	public static void enableSaveButton(){
+		saveButton.setEnabled(true);
+	}
+	
+	public static void disableSaveButton(){
+		saveButton.setEnabled(false);
+	}
+	
 	public String getNameFieldText(){
 		String shapeName = nameField.getText();
 		if(shapeName == null){
