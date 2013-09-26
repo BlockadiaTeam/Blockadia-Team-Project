@@ -17,7 +17,7 @@ import practice.Log;
 import components.BlockShape;
 
 /**
- * This is the build panel (300x300) in New Shape window
+ * This is the build panel (400x400) in New Shape window
  * By default, it draws a 3x3 grid
  * It creates a BlockShape object while interacting with user
  * 
@@ -64,6 +64,11 @@ public class NewShapeWindowBuildPanel extends JPanel {
 	
 	public void setIsDirty(final boolean isDirty){
 		this.isDirty = isDirty;
+		if(this.isDirty){
+			NewShapeWindowSidePanel.enableSaveButton();
+		}else{
+			NewShapeWindowSidePanel.disableSaveButton();
+		}
 	}
 	
 	public boolean checkIsDirty(){
@@ -185,7 +190,7 @@ public class NewShapeWindowBuildPanel extends JPanel {
 		}
 	
 		//2nd: paint the grid corresponding to the resolution of blockShape
-		g.setColor(Color.orange);
+		g.setColor(Color.black);
 		for (int row = 0; row < numOfRows; row++) {
 			g.drawLine(0,row*gridSize ,SHAPE_WIN_SIZE, row*gridSize);
 		}

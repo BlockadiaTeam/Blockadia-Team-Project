@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import practice.Log;
-
 import components.Block;
 import components.BlockShape;
 
