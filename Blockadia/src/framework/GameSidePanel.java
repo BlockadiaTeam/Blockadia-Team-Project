@@ -134,6 +134,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		optionPanel.setPreferredSize(new Dimension(200,500));
 		JScrollPane scroll = new JScrollPane(optionPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);			//Set the vertical scroll sensitivity
 		scroll.setBounds(5,110,130,190);
 		gameNameLabel = new JLabel("Current Game:");
 		gameName = new TextFieldWithPlaceHolder("Gizmoball");

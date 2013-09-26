@@ -38,9 +38,7 @@ public class NewShapeWindow extends JDialog {
 				NewShapeWindowSidePanel.SIDE_PANEL_WIDTH,NewShapeWindowSidePanel.SIDE_PANEL_HEIGHT);
 		this.add(new JScrollPane(sidePanel), "East");
 		this.setTitle("New Shape");
-		Log.print(this.getWidth());
-		Log.print(this.getHeight());
-		//this.setResizable(false);
+		this.setResizable(false);
 		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		this.pack();
 		addWindowListener(new WindowAdapter() {
@@ -70,17 +68,17 @@ public class NewShapeWindow extends JDialog {
 							try {
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
+								
 								NewShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
 								parent.updateComboBox();
 								dispose();
 							} catch (ElementExistsException e) {
-								if(shapeName.equals("")){
-									success = false;
-									JOptionPane.showConfirmDialog(
-											NewShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
-											"Duplicate Name",
-											JOptionPane.OK_OPTION);
-								}
+								success = false;
+								JOptionPane.showConfirmDialog(
+										NewShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
+										"Duplicate Name",
+										JOptionPane.OK_OPTION);
+
 							}
 						}
 
