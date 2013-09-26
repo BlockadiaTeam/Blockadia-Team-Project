@@ -134,15 +134,15 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		optionPanel.setPreferredSize(new Dimension(200,500));
 		JScrollPane scroll = new JScrollPane(optionPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scroll.setBounds(5,250,130,145);
+		scroll.setBounds(5,110,130,190);
 		gameNameLabel = new JLabel("Current Game:");
 		gameName = new TextFieldWithPlaceHolder("Gizmoball");
 		gameName.setColumns(10);
 		gameName.setEditable(false);
 		gameName.setToolTipText("To change a game, please click File-> Open/New");
 		gameNameLabel.setToolTipText("To change a game, please click File-> Open/New");
-		gameNameLabel.setBounds(10,5,210,20);
-		gameName.setBounds(10,25,210,25);
+		gameNameLabel.setBounds(10,5,180,20);
+		gameName.setBounds(10,25,188,25);
 		gameNameLabel.setLabelFor(gameName);
 		optionPanel.add(gameNameLabel);
 		optionPanel.add(gameName);
@@ -152,7 +152,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		components = new JComboBox<BlockShape>(model.getComboModel());
 		components.setMaximumRowCount(30);
 		components.addActionListener(this);
-		components.setBounds(10,70,140,25);
+		components.setBounds(10,70,130,25);
 		components.setSelectedItem(new BlockShape("Select a shape"));
 		components.setRenderer(new ListCellRenderer<BlockShape>(){
 			JLabel shapeLabel = null;
@@ -179,21 +179,21 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		});
 		addButton = new JButton("Add");
 		addButton.setToolTipText("Click to add the selected block shape into the game board");
-		addButton.setBounds(150,70,70,25);
+		addButton.setBounds(140,70,65,25);
 		optionPanel.add(chooseAShape);
 		optionPanel.add(components);
 		optionPanel.add(addButton);
 		
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(0,3));
-		buttonPanel.setBounds(10,97,210,25);
+		buttonPanel.setBounds(10,97,195,25);
 		buttonPanel.add(newButton);
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
 		optionPanel.add(buttonPanel);
 		
 		JPanel previewPanel = new JPanel();
-		previewPanel.setBounds(10, 125, 210, 210);
+		previewPanel.setBounds(10, 125, 190, 210);
 		previewPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
 				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 		previewPanel.setLayout(new BorderLayout());
