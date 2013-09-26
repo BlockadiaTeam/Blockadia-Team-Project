@@ -127,29 +127,36 @@ public class NewShapeWindowBuildPanel extends JPanel {
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseDragged(MouseEvent e) {
-      	
+
 				if(SwingUtilities.isLeftMouseButton(e)){				//if left click
-					if(e.getX() < SHAPE_WIN_SIZE && e.getY() < SHAPE_WIN_SIZE){
+					try{
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(paintColor, row, col);
 						setIsDirty(true);
 						repaint();
-					}	
+					}
+					catch(ArrayIndexOutOfBoundsException e2){
+						System.out.println("Index out of bounds");
+					}
+
 				}
 				else if(SwingUtilities.isRightMouseButton(e)){	//if right click
-					if(e.getX() < SHAPE_WIN_SIZE && e.getY() < SHAPE_WIN_SIZE){
+					try{
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(BlockShape.DEFAULT_COLOR, row, col);
 						setIsDirty(true);
 						repaint();
-					}			
-				}
+					}
+					catch(ArrayIndexOutOfBoundsException e2){
+						System.out.println("Index out of bounds");
+					}
+				}		
 
-      }
+			}
     });
     
 
