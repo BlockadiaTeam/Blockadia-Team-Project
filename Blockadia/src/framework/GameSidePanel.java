@@ -193,14 +193,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		buttonPanel.add(deleteButton);
 		optionPanel.add(buttonPanel);
 		
-		JPanel previewPanel = new JPanel();
-		previewPanel.setBounds(10, 125, 190, 210);
-		previewPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-		previewPanel.setLayout(new BorderLayout());
-		shapePreview = new JLabel("No block shape selected");
-		shapePreview.setHorizontalAlignment(JButton.CENTER);
-		previewPanel.add(shapePreview,"Center");
+		PreviewPanel previewPanel = new PreviewPanel();
 		optionPanel.add(previewPanel);
 
     add(scroll);
