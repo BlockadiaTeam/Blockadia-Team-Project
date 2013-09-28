@@ -36,18 +36,6 @@ public class Config {
 		} catch (ElementExistsException e) {
 			e.printStackTrace();
 		}
-		//TODO:for testing purpose:
-		try {
-			addGameShape(new BlockShape());
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
-		try {
-			addGameShape(new BlockShape("New Name"));
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
-		
 	}
 	
 	public void setGameShapes(final Map<String, BlockShape> shapes){

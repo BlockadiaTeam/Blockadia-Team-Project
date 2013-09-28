@@ -354,14 +354,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		}
 	}
   public void actionPerformed(ActionEvent e) {
-
-  	if (((BlockShape)(components.getSelectedItem())).getShapeName() != Config.INITIAL_BLOCK_NAME) {
-  		System.out.println("Shape currently selected: "+ ((BlockShape)(components.getSelectedItem())).getShapeName());	
   		previewPanel.UpdatePreviewPanel((BlockShape)(components.getSelectedItem()));
   	}
-  	//add condition for when it is initial block name
-
-    
-    
-  }
+  
 }

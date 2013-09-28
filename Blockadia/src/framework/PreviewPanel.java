@@ -6,7 +6,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.border.EtchedBorder;
 
 import components.BlockShape;
 
@@ -38,6 +40,8 @@ public class PreviewPanel extends JPanel{
 	
 	public void paintComponent(Graphics g){
 		final int BIG_SIZE = 1900;
+		setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
+				BorderFactory.createEmptyBorder(10, 10, 10, 10))); 
   	// repaint the proper background color (controlled by the windowing system)
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
@@ -60,8 +64,6 @@ public class PreviewPanel extends JPanel{
 				}
 			}
 		}
-		//setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-		//		BorderFactory.createEmptyBorder(10, 10, 10, 10))); add this border later
 	} 
 	
 }
