@@ -17,7 +17,7 @@ public class GameModel {
 
 	private final DefaultComboBoxModel<BlockShape> components = new DefaultComboBoxModel<BlockShape>();
 	private final Vec2 mouse = new Vec2();
-	
+
 	private Config config;
 	private double panelWidth;
 	private double calculatedFPS;

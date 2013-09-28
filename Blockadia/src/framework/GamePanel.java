@@ -1,5 +1,6 @@
 package framework;
 
+import fromTestBed.DebugDrawJ2D;
 import interfaces.IGamePanel;
 
 import java.awt.AWTError;
@@ -43,12 +44,14 @@ public class GamePanel extends JPanel implements IGamePanel{
 	private int panelHeight;
 	
 	private final GameModel model;
+  private final DebugDrawJ2D draw;
 	
 	private final Vec2 draggingMouse = new Vec2();
 	private boolean drag = false;
 
 	public GamePanel(GameModel argModel){
 		this.setBackground(Color.black);
+    draw = new DebugDrawJ2D(this);
 		this.model = argModel;
     //updateSize(INIT_WIDTH, INIT_HEIGHT);
     setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
@@ -104,6 +107,10 @@ public class GamePanel extends JPanel implements IGamePanel{
    // draw.getViewportTranform().setExtents(argWidth / 2, argHeight / 2);
   }
 	
+  public Graphics2D getGraphics(){
+  	return g;
+  }
+  
 	@Override
 	public boolean render() {
 
