@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import components.Block;
+import components.BlockShape;
 import javax.swing.ComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -21,6 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EtchedBorder;
+
+import org.jbox2d.common.Vec2;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
@@ -55,8 +59,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private JButton newButton = new JButton("New");
 	private JButton editButton = new JButton("Edit");
   private JLabel gameNameLabel = new JLabel();
-  private JLabel shapePreview = new JLabel();
+	private JPanel optionPanel = new JPanel();
   private TextFieldWithPlaceHolder gameName = new TextFieldWithPlaceHolder("Gizmoball",StringType.PLACEHOLDER);
+  private PreviewPanel previewPanel;
 	public static boolean test =true;//TODO:DELETE LATER
 	private ButtonType buttonType;
 	private NewShapeWindow window;
@@ -126,7 +131,6 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		add(controlPanel);
 		
 		//center panel: option panel
-		JPanel optionPanel = new JPanel();
 		optionPanel.setLayout(null);
 		optionPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
 				BorderFactory.createEmptyBorder(1, 1, 1, 1)));
@@ -192,8 +196,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
 		optionPanel.add(buttonPanel);
+		previewPanel = new PreviewPanel(new BlockShape(((BlockShape)(components.getSelectedItem())).getShapeName()));
 		
-		PreviewPanel previewPanel = new PreviewPanel();
 		optionPanel.add(previewPanel);
 
     add(scroll);
@@ -350,7 +354,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		}
 	}
   public void actionPerformed(ActionEvent e) {
-  	//TODO:display a preview of the selected block shape
-    System.out.println("Shape changed into: "+ ((BlockShape)(components.getSelectedItem())).getShapeName());
+
+  	if (((BlockShape)(components.getSelectedItem())).getShapeName() != Config.INITIAL_BLOCK_NAME) {
+  		System.out.println("Shape currently selected: "+ ((BlockShape)(components.getSelectedItem())).getShapeName());	
+  		previewPanel.UpdatePreviewPanel((BlockShape)(components.getSelectedItem()));
+  	}
+  	//add condition for when it is initial block name
+
+    
+    
   }
 }

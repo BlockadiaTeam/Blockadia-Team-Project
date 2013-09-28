@@ -190,7 +190,7 @@ public class NewShapeWindowBuildPanel extends JPanel {
 		}
 	
 		//2nd: paint the grid corresponding to the resolution of blockShape
-		g.setColor(Color.black);
+		g.setColor(Color.darkGray);
 		for (int row = 0; row < numOfRows; row++) {
 			g.drawLine(0,row*gridSize ,SHAPE_WIN_SIZE, row*gridSize);
 		}

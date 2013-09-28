@@ -21,6 +21,8 @@ import javax.swing.border.EtchedBorder;
 
 import org.jbox2d.common.Vec2;
 
+import components.BlockShape;
+
 import exceptions.ElementExistsException;
 
 import utility.TextFieldWithPlaceHolder;
@@ -214,6 +216,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 								
 								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
 								newShapeWindow.getParentPanel().updateComboBox();
+								
 								JOptionPane.showMessageDialog(
 										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
