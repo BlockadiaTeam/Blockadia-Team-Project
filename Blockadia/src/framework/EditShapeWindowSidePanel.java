@@ -32,10 +32,12 @@ import utility.TextFieldWithPlaceHolder.StringType;
 public class EditShapeWindowSidePanel extends JPanel{
 	
 	/* TODO:
-	 *  1. Load the selected block into editor
-	 *  2. Load the name
-	 *  3. Can edit everything 
+	 *  1. Load the selected block into editor (DONE)
+	 *  2. Load the name (DONE)
+	 *  3. Can edit everything (DONE)
 	 *  4. Special case: Can't edit if no blocks are selected
+	 *  5. Verify and check shape names
+	 *  6. Update messages
 	 */
 
 	final EditShapeWindow editShapeWindow;
