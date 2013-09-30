@@ -36,7 +36,7 @@ import components.BlockShape;
  * The sources of data for all the JComponents are from GameModel.java
  * eg: JComboBox
  * 
- * @author alex.yang
+ * @author alex.yang, patrick.lam
  **/
 
 @SuppressWarnings("serial")
@@ -58,13 +58,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private JButton deleteButton = new JButton("Delete");
 	private JButton newButton = new JButton("New");
 	private JButton editButton = new JButton("Edit");
-  private JLabel gameNameLabel = new JLabel();
+	private JLabel gameNameLabel = new JLabel();
 	private JPanel optionPanel = new JPanel();
-  private TextFieldWithPlaceHolder gameName = new TextFieldWithPlaceHolder("Gizmoball",StringType.PLACEHOLDER);
-  private PreviewPanel previewPanel;
-	public static boolean test =true;//TODO:DELETE LATER
+	private TextFieldWithPlaceHolder gameName;
+	private PreviewPanel previewPanel;
+	public static boolean test =true; // TODO:DELETE LATER
 	private ButtonType buttonType;
-	private NewShapeWindow window;
+	private NewShapeWindow newWindow;
+	private EditShapeWindow editWindow;
 
   public JComboBox<BlockShape> components;
   
@@ -244,7 +245,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
         if (test) {
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Stop", "Click to pause the game.", 
-								"res/side/Pause.png", new Rectangle(0,0,25,25));
+								"res/side/Stop.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
@@ -275,17 +276,25 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				showNewShapeWindow();
 			}
 		});
+		
+		editButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				showEditShapeWindow();
+			}
+		});
 
 	}
 	
 	private void showNewShapeWindow(){
-		window = new NewShapeWindow(frame,model,this,new BlockShape());
-		window.setLocationRelativeTo(frame);
-		window.setVisible(true);
+		newWindow = new NewShapeWindow(frame,model,this,new BlockShape());
+		newWindow.setLocationRelativeTo(frame);
+		newWindow.setVisible(true);
 	}
 	
 	private void showEditShapeWindow(){
-		//TODO
+		editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName());
+		editWindow.setLocationRelativeTo(frame);
+		editWindow.setVisible(true);
 	}
 	
 	/**
