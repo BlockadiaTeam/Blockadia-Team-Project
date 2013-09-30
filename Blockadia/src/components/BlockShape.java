@@ -11,6 +11,7 @@ import org.jbox2d.common.Vec2;
  * */
 public class BlockShape {
 
+	public static final String DEFAULT_NAME = "NONAME";
 	public static final Vec2 DEFAULT_RESOLUTION = new Vec2(3,3);
 	public static final Color DEFAULT_COLOR = Color.DARK_GRAY;
 	private String blockShapeName;
@@ -20,7 +21,7 @@ public class BlockShape {
 																									{DEFAULT_COLOR,DEFAULT_COLOR,DEFAULT_COLOR},
 																									{DEFAULT_COLOR,DEFAULT_COLOR,DEFAULT_COLOR}};
 	public BlockShape(){
-		this("NONAME",DEFAULT_SHAPE);
+		this(DEFAULT_NAME,DEFAULT_SHAPE);
 	}
 	
 	public BlockShape(final String shapeName){

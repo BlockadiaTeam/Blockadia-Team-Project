@@ -55,7 +55,7 @@ public class ColorPool {
 }
 
 class ColorKey{
-	float r,g,b,a; // red gren blue alpha
+	float r,g,b,a; // red green blue alpha
 	
 	public void set(float argR, float argG, float argB){
 		set(argR, argG, argB,1);

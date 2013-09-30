@@ -199,7 +199,8 @@ public class NewShapeWindowSidePanel extends JPanel{
 						//Save the BlockShape
 						//If the name is empty:
 						String shapeName = getNameFieldText();
-						if(shapeName.equals("")){
+						shapeName = shapeName.trim();
+						if(shapeName.isEmpty()){
 							success = false;
 							JOptionPane.showMessageDialog(
 									newShapeWindow, "Please enter a shape name.",
@@ -253,7 +254,8 @@ public class NewShapeWindowSidePanel extends JPanel{
 						//Save the BlockShape
 						//If the name is empty:
 						String shapeName = getNameFieldText();
-						if(shapeName.equals("")){
+						shapeName = shapeName.trim();
+						if(shapeName.isEmpty()){
 							success = false;
 							JOptionPane.showMessageDialog(
 									newShapeWindow, "Please enter a shape name.",

@@ -26,7 +26,6 @@ public class NewShapeWindow extends JDialog {
 
 	public NewShapeWindow(GameFrame frame,GameModel model, GameSidePanel parentPanel, final BlockShape shape){
 		super(frame,true);
-		
 		this.model = model;
 		this.parent = parentPanel;
 		
@@ -58,7 +57,8 @@ public class NewShapeWindow extends JDialog {
 						//Save the BlockShape
 						//If the name is empty:
 						String shapeName = sidePanel.getNameFieldText();
-						if(shapeName.equals("")){
+						shapeName = shapeName.trim();
+						if(shapeName.isEmpty()){
 							success = false;
 							JOptionPane.showMessageDialog(
 									NewShapeWindow.this, "Please enter a shape name.",
@@ -66,7 +66,7 @@ public class NewShapeWindow extends JDialog {
 									JOptionPane.ERROR_MESSAGE);
 						}
 
-						if(success){
+						if(success){	
 							try {
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
