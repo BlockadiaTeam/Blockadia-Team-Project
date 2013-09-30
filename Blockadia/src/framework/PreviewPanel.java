@@ -40,8 +40,6 @@ public class PreviewPanel extends JPanel{
 	
 	public void paintComponent(Graphics g){
 		final int BIG_SIZE = 1900;
-		setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10))); 
   	// repaint the proper background color (controlled by the windowing system)
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
@@ -64,6 +62,16 @@ public class PreviewPanel extends JPanel{
 				}
 			}
 		}
-	} 
+		
+		// 2nd: paint the border
+		g.setColor(Color.black);
+		for (int i = 0; i < BIG_SIZE; i = i+50){
+			g.fillRect(i, 0, 50, 50); // top border
+			g.fillRect(i, BIG_SIZE-50, 50, 50); // top border
+			g.fillRect(0,i, 50, 50);  // left border
+			g.fillRect(BIG_SIZE-50,i, 50, 50);  // right border
+			} 
+
+		} 
 	
 }
