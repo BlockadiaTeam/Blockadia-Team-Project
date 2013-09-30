@@ -29,26 +29,37 @@ import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
 
 @SuppressWarnings("serial")
-public class NewShapeWindowSidePanel extends JPanel{
+public class EditShapeWindowSidePanel extends JPanel{
+	
+	/* TODO:
+	 *  1. Load the selected block into editor (DONE)
+	 *  2. Load the name (DONE)
+	 *  3. Can edit everything (DONE)
+	 *  4. Special case: Can't edit if no blocks are selected
+	 *  5. Verify and check shape names
+	 *  6. Update messages
+	 */
 
-	final NewShapeWindow newShapeWindow;
-	final NewShapeWindowBuildPanel buildPanel;
+	final EditShapeWindow editShapeWindow;
+	final EditShapeWindowBuildPanel buildPanel;
 
-	public static final int SIDE_PANEL_WIDTH = NewShapeWindowBuildPanel.SHAPE_WIN_SIZE/2;
-	public static final int SIDE_PANEL_HEIGHT = NewShapeWindowBuildPanel.SHAPE_WIN_SIZE;
+	public static final int SIDE_PANEL_WIDTH = EditShapeWindowBuildPanel.SHAPE_WIN_SIZE/2;
+	public static final int SIDE_PANEL_HEIGHT = EditShapeWindowBuildPanel.SHAPE_WIN_SIZE;
 
-	private TextFieldWithPlaceHolder nameField;
+	private TextFieldWithPlaceHolder shapeNameField;
 	private JComboBox<Vec2> resolution;
 	private int currentResolutionSelection;
 	private JButton colorButton;
 	private static JButton saveButton;
 	private static JButton closeButton;
+	private BlockShape blockShape;
+	private String shapeName;
 
-	public NewShapeWindowSidePanel(NewShapeWindow newShapeWindow, NewShapeWindowBuildPanel buildPanel){
-		this.newShapeWindow =newShapeWindow;
+	public EditShapeWindowSidePanel(EditShapeWindow editShapeWindow, EditShapeWindowBuildPanel buildPanel, String shapeName){
+		this.editShapeWindow = editShapeWindow;
 		this.buildPanel = buildPanel;
+		this.shapeName = shapeName;
 
-		//If I don't put -5 there, the window will be screwed up by Swing =_=
 		this.setPreferredSize(new Dimension(SIDE_PANEL_WIDTH,SIDE_PANEL_HEIGHT-5));
 		initComponents();
 		addListeners();
@@ -68,9 +79,10 @@ public class NewShapeWindowSidePanel extends JPanel{
 		nameLabel.setBounds(10, 5, 170, 25);
 		controlPanel.add(nameLabel);
 
-		nameField = new TextFieldWithPlaceHolder("Please enter a shape name",StringType.PLACEHOLDER);
-		nameField.setBounds(10,30, 170, 25);
-		controlPanel.add(nameField);
+		// Shape name field
+		shapeNameField = new TextFieldWithPlaceHolder(shapeName);
+		shapeNameField.setBounds(10,30, 170, 25);
+		controlPanel.add(shapeNameField);
 
 		JLabel resolutionLabel = new JLabel("Grid resolution:");
 		resolutionLabel.setBounds(10,55, 170, 25);
@@ -144,7 +156,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		colorButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-						newShapeWindow,
+						editShapeWindow,
 						"Choose Paint Color",
 						colorButton.getBackground());
 
@@ -165,7 +177,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 				if(buildPanel.checkIsDirty()){
 
 					int n = JOptionPane.showConfirmDialog(
-							newShapeWindow, "The shape has been modified. Are you sure to change the grid Resolution?",
+							editShapeWindow, "The shape has been modified. Are you sure to change the grid Resolution?",
 							"Unsaved changes",
 							JOptionPane.YES_NO_OPTION);
 
@@ -194,7 +206,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 				if(buildPanel.checkIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
-							newShapeWindow, "The shape has been modified. Are you sure to save it?",
+							editShapeWindow, "The shape has been modified. Are you sure to save it?",
 							"Confirm",
 							JOptionPane.OK_CANCEL_OPTION);
 					if(n == JOptionPane.OK_OPTION){		
@@ -204,7 +216,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
-									newShapeWindow, "Please enter a shape name.",
+									editShapeWindow, "Please enter a shape name.",
 									"Empty Name",
 									JOptionPane.ERROR_MESSAGE);
 						}
@@ -214,18 +226,18 @@ public class NewShapeWindowSidePanel extends JPanel{
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
 								
-								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								newShapeWindow.getParentPanel().updateComboBox();
+								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
+								editShapeWindow.getParentPanel().updateComboBox();
 								
 								JOptionPane.showMessageDialog(
-										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
+										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
-								newShapeWindow.dispose();
+								editShapeWindow.dispose();
 							} catch (ElementExistsException e2) {
 								success = false;
 								JOptionPane.showMessageDialog(
-										newShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+										editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
 										"Duplicate Name",
 										JOptionPane.ERROR_MESSAGE);
 							}
@@ -233,7 +245,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 
 					}
 					else if(n == JOptionPane.CANCEL_OPTION){
-						//Do nothing, stay in this NewShapeWindow
+						//Do nothing, stay in this EditShapeWindow
 					}
 				}else{
 					//Not very likely to run here
@@ -249,7 +261,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 				if(buildPanel.checkIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
-							newShapeWindow, "The shape has been modified. Do you want to save it?",
+							editShapeWindow, "The shape has been modified. Do you want to save it?",
 							"Unsaved changes",
 							JOptionPane.YES_NO_CANCEL_OPTION);
 					if(n == JOptionPane.YES_OPTION){		
@@ -259,7 +271,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
-									newShapeWindow, "Please enter a shape name.",
+									editShapeWindow, "Please enter a shape name.",
 									"Empty Name",
 									JOptionPane.ERROR_MESSAGE);
 						}
@@ -269,17 +281,17 @@ public class NewShapeWindowSidePanel extends JPanel{
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
 								
-								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								newShapeWindow.getParentPanel().updateComboBox();
+								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
+								editShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(
-										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
+										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
-								newShapeWindow.dispose();
+								editShapeWindow.dispose();
 							} catch (ElementExistsException e2) {
 								success = false;
 								JOptionPane.showMessageDialog(
-										newShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+										editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
 										"Duplicate Name",
 										JOptionPane.ERROR_MESSAGE);
 							}
@@ -287,13 +299,13 @@ public class NewShapeWindowSidePanel extends JPanel{
 
 					}
 					else if(n == JOptionPane.NO_OPTION){
-						newShapeWindow.dispose();
+						editShapeWindow.dispose();
 					}
 					else if(n == JOptionPane.CANCEL_OPTION){
-						//Do nothing, stay in this NewShapeWindow
+						//Do nothing, stay in this EditShapeWindow
 					}
 				}else{
-					newShapeWindow.dispose();
+					editShapeWindow.dispose();
 				}
 
 			
@@ -311,7 +323,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 	}
 	
 	public String getNameFieldText(){
-		String shapeName = nameField.getText();
+		String shapeName = shapeNameField.getText();
 		if(shapeName == null){
 			return "";
 		}else{

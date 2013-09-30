@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import components.Block;
+import components.BlockShape;
 import javax.swing.ComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -22,6 +24,8 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EtchedBorder;
 
+import org.jbox2d.common.Vec2;
+
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
 
@@ -32,7 +36,7 @@ import components.BlockShape;
  * The sources of data for all the JComponents are from GameModel.java
  * eg: JComboBox
  * 
- * @author alex.yang
+ * @author alex.yang, patrick.lam
  **/
 
 @SuppressWarnings("serial")
@@ -54,12 +58,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private JButton deleteButton = new JButton("Delete");
 	private JButton newButton = new JButton("New");
 	private JButton editButton = new JButton("Edit");
-  private JLabel gameNameLabel = new JLabel();
-  private JLabel shapePreview = new JLabel();
-  private TextFieldWithPlaceHolder gameName = new TextFieldWithPlaceHolder("Gizmoball",StringType.PLACEHOLDER);
-	public static boolean test =true;//TODO:DELETE LATER
+	private JLabel gameNameLabel = new JLabel();
+	private JPanel optionPanel = new JPanel();
+	private TextFieldWithPlaceHolder gameName;
+	private PreviewPanel previewPanel;
+	public static boolean test =true; // TODO:DELETE LATER
 	private ButtonType buttonType;
-	private NewShapeWindow window;
+	private NewShapeWindow newWindow;
+	private EditShapeWindow editWindow;
 
   public JComboBox<BlockShape> components;
   
@@ -90,8 +96,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		ImageIcon icon = null;
 		Image image=null;
 
-		icon = new ImageIcon("res/side/Build-Icon.png");
-		image=icon.getImage().getScaledInstance(70, 50,java.awt.Image.SCALE_SMOOTH);
+		icon = new ImageIcon("res/side/Build.png");
+		image=icon.getImage().getScaledInstance(60, 50,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
 		modeButton=new JButton("Build Mode",icon);
 		modeButton.setHorizontalTextPosition(JButton.CENTER);
@@ -99,12 +105,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		modeButton.setToolTipText("Click to enter game mode");
 		modeButton.setPreferredSize(new Dimension(80,80));
 		
-		icon = new ImageIcon("res/side/Play-Icon.png");
+		icon = new ImageIcon("res/side/Play.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
 		playPauseButton=new JButton("  Play",icon);
 		playPauseButton.setToolTipText("Click to start the game.");
-		icon = new ImageIcon("res/side/Reset-Icon.png");
+		icon = new ImageIcon("res/side/Reset.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
 		resetButton=new JButton("Reset",icon);
@@ -126,7 +132,6 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		add(controlPanel);
 		
 		//center panel: option panel
-		JPanel optionPanel = new JPanel();
 		optionPanel.setLayout(null);
 		optionPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
 				BorderFactory.createEmptyBorder(1, 1, 1, 1)));
@@ -192,15 +197,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
 		optionPanel.add(buttonPanel);
+		previewPanel = new PreviewPanel(new BlockShape(((BlockShape)(components.getSelectedItem())).getShapeName()));
 		
-		JPanel previewPanel = new JPanel();
-		previewPanel.setBounds(10, 125, 190, 210);
-		previewPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-		previewPanel.setLayout(new BorderLayout());
-		shapePreview = new JLabel("No block shape selected");
-		shapePreview.setHorizontalAlignment(JButton.CENTER);
-		previewPanel.add(shapePreview,"Center");
 		optionPanel.add(previewPanel);
 
     add(scroll);
@@ -214,7 +212,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				if(!test){
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.", 
-								"res/side/Build-Icon.png", new Rectangle(0,0,65, 50));
+								"res/side/Build.png", new Rectangle(0,0,60, 50));
 						playPauseButton.setEnabled(true);
 						resetButton.setEnabled(true);
 					} catch (Exception e1) {
@@ -225,11 +223,11 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				}else{
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.", 
-								"res/side/Game-Icon.png", new Rectangle(0,0,65,50));
+								"res/side/Game.png", new Rectangle(0,0,60,50));
 						//1st: stop the game if it is running
 						//2nd: reset the looks of playPauseButton
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
-								"res/side/Play-Icon.png", new Rectangle(0,0,25,25));
+								"res/side/Play.png", new Rectangle(0,0,25,25));
 						playPauseButton.setEnabled(false);
 						resetButton.setEnabled(false);
 					} catch (Exception e1) {
@@ -247,7 +245,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
         if (test) {
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Stop", "Click to pause the game.", 
-								"res/side/Pause-Icon.png", new Rectangle(0,0,25,25));
+								"res/side/Stop.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
@@ -256,7 +254,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
         } else {
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
-								"res/side/Play-Icon.png", new Rectangle(0,0,25,25));
+								"res/side/Play.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
@@ -278,17 +276,25 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				showNewShapeWindow();
 			}
 		});
+		
+		editButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				showEditShapeWindow();
+			}
+		});
 
 	}
 	
 	private void showNewShapeWindow(){
-		window = new NewShapeWindow(frame,model,this,new BlockShape());
-		window.setLocationRelativeTo(frame);
-		window.setVisible(true);
+		newWindow = new NewShapeWindow(frame,model,this,new BlockShape());
+		newWindow.setLocationRelativeTo(frame);
+		newWindow.setVisible(true);
 	}
 	
 	private void showEditShapeWindow(){
-		//TODO
+		editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName());
+		editWindow.setLocationRelativeTo(frame);
+		editWindow.setVisible(true);
 	}
 	
 	/**
@@ -357,7 +363,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		}
 	}
   public void actionPerformed(ActionEvent e) {
-  	//TODO:display a preview of the selected block shape
-    System.out.println("Shape changed into: "+ ((BlockShape)(components.getSelectedItem())).getShapeName());
-  }
+  		previewPanel.UpdatePreviewPanel((BlockShape)(components.getSelectedItem()));
+  	}
+  
 }

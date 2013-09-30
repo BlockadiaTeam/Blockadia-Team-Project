@@ -20,32 +20,22 @@ import exceptions.ElementNotExistException;
  * */
 public class Config {
 
+	public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
+	
 	private Map<String, BlockShape> shapesMap;
 	private List<BlockShape> shapesList;
 	private List<Block> blocks;
+	
 	
 	public Config(){
 		shapesMap = new HashMap<String, BlockShape>();
 		shapesList = new ArrayList<BlockShape>();
 		blocks = new ArrayList<Block>();
-		//TODO:for testing purpose:
 		try {
-			addGameShape(new BlockShape());
+			addGameShape(new BlockShape(INITIAL_BLOCK_NAME));
 		} catch (ElementExistsException e) {
 			e.printStackTrace();
 		}
-		try {
-			addGameShape(new BlockShape("New Name"));
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
-		
-		try {
-			addGameShape(new BlockShape("New name"));
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
-		
 	}
 	
 	public void setGameShapes(final Map<String, BlockShape> shapes){

@@ -16,15 +16,8 @@ import practice.Log;
 
 import components.BlockShape;
 
-/**
- * This is the build panel (400x400) in New Shape window
- * By default, it draws a 3x3 grid
- * It creates a BlockShape object while interacting with user
- * 
- * @author alex.yang
- * */
 @SuppressWarnings("serial")
-public class NewShapeWindowBuildPanel extends JPanel {
+public class EditShapeWindowBuildPanel extends JPanel {
 	
 	public static final Color DEFAULT_PAINT_COLOR = Color.green;
 	public static final int SHAPE_WIN_SIZE = 400;
@@ -32,11 +25,11 @@ public class NewShapeWindowBuildPanel extends JPanel {
 	private Color paintColor;
 	private boolean isDirty;
 	
-	public NewShapeWindowBuildPanel(){
+	public EditShapeWindowBuildPanel(){
 		this(new BlockShape());
 	}
 	
-	public NewShapeWindowBuildPanel(BlockShape blockShape){
+	public EditShapeWindowBuildPanel(BlockShape blockShape){
 		this.blockShape = blockShape;
 		this.setPreferredSize(new Dimension(SHAPE_WIN_SIZE,SHAPE_WIN_SIZE));
 		setBackground(Color.black);
@@ -65,9 +58,9 @@ public class NewShapeWindowBuildPanel extends JPanel {
 	public void setIsDirty(final boolean isDirty){
 		this.isDirty = isDirty;
 		if(this.isDirty){
-			NewShapeWindowSidePanel.enableSaveButton();
+			EditShapeWindowSidePanel.enableSaveButton();
 		}else{
-			NewShapeWindowSidePanel.disableSaveButton();
+			EditShapeWindowSidePanel.disableSaveButton();
 		}
 	}
 	

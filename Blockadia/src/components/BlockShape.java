@@ -12,7 +12,7 @@ import org.jbox2d.common.Vec2;
 public class BlockShape {
 
 	public static final Vec2 DEFAULT_RESOLUTION = new Vec2(3,3);
-	public static final Color DEFAULT_COLOR = Color.DARK_GRAY;
+	public static final Color DEFAULT_COLOR = Color.BLACK;
 	private String blockShapeName;
 	private Color[][] shape;								//2D map of the game shape
 	
