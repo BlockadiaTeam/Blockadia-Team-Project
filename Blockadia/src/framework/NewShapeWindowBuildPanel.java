@@ -77,14 +77,6 @@ public class NewShapeWindowBuildPanel extends JPanel {
 	
 	public void setPaintedShape(BlockShape newShape){
 		this.blockShape = newShape;
-		BlockShape newShape2 = new BlockShape();//TODO
-		Color[][] testshape = newShape2.getShape();
-		for(int i = 0 ; i <testshape.length ; i++){
-			for(int j = 0 ; j< testshape[0].length;j++){
-				System.out.println(testshape[i][j].toString());
-			}
-		}
-		
 		repaint();
 	}
 	
