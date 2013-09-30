@@ -60,9 +60,16 @@ public class Config {
 		return this.shapesList;
 	}
 	
+	public BlockShape getGameShape(String shapeName) throws ElementNotExistException {
+		if(!shapesMap.containsKey(shapeName)){
+			throw new ElementNotExistException("The shape named: "+ shapeName+ " does not exist");
+		}
+		return this.shapesMap.get(shapeName);
+	}
+	
 	public void addGameShape(BlockShape shape) throws ElementExistsException{
 		if(shapesMap.containsKey(shape.getShapeName())){
-			throw new ElementExistsException("The shape with the same name already exist");
+			throw new ElementExistsException("The shape with the same name: "+ shape.getShapeName()+" already exist!");
 		}
 		shapesMap.put(shape.getShapeName(), shape);
 		shapesList.add(shape);
@@ -70,7 +77,7 @@ public class Config {
 	
 	public void deleteGameShape(BlockShape shape) throws ElementNotExistException{
 		if(!shapesMap.containsValue(shape)){
-			throw new ElementNotExistException("The shape does not exist");
+			throw new ElementNotExistException("The shape named: "+ shape.getShapeName()+ " does not exist");
 		}
 		shapesMap.remove(shape);
 		shapesList.remove(shape);
@@ -78,7 +85,7 @@ public class Config {
 	
 	public void deleteGameShape(String shapeName) throws ElementNotExistException{
 		if(!shapesMap.containsKey(shapeName)){
-			throw new ElementNotExistException("The shape with name: "+ shapeName +" does not exist");
+			throw new ElementNotExistException("The shape named: "+ shapeName+ " does not exist");
 		}
 		shapesMap.remove(shapesMap.get(shapeName));
 		for(BlockShape shapeToDelete : shapesList){

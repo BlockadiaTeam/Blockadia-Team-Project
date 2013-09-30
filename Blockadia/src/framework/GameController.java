@@ -1,5 +1,8 @@
 package framework;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 import interfaces.IGamePanel;
 
 /**
@@ -11,6 +14,9 @@ import interfaces.IGamePanel;
 public class GameController implements Runnable{
 
 	public static final int DEFAULT_FPS = 60;
+	
+	private Config currConfig = null;
+	private Config nextConfig = null;
 	
 	private long startTime;
 	private long frameCount;
@@ -26,13 +32,55 @@ public class GameController implements Runnable{
 		this.model = model;
 		this.panel = panel;
 		setFPS(DEFAULT_FPS);
-		animator = new Thread(this,"Blockadia Thread 1");
+		animator = new Thread(this,"Blockadia");
 		//by default, the game is in game mode:
 		addListeners();
 	}
 	
 	private void addListeners(){
 		//TODO: add listeners to the panel
+    panel.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {/*
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+        if (key != KeyEvent.CHAR_UNDEFINED) {
+          model.getKeys()[key] = false;
+        }
+        model.getCodedKeys()[code] = false;
+        if (model.getCurrTest() != null) {
+          model.getCurrTest().queueKeyReleased(key, code);
+        }
+      */}
+
+      @Override
+      public void keyPressed(KeyEvent e) {/*
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+        if (key != KeyEvent.CHAR_UNDEFINED) {
+          model.getKeys()[key] = true;
+        }
+        model.getCodedKeys()[code] = true;
+
+        if (key == ' ' && model.getCurrTest() != null) {
+          model.getCurrTest().lanchBomb();
+        } else if (key == '[') {
+          lastTest();
+        } else if (key == ']') {
+          nextTest();
+        } else if (key == 'r') {
+          resetTest();
+        }
+        else if (model.getCurrTest() != null) {
+          model.getCurrTest().queueKeyPressed(key, code);
+        }
+      */}
+    });
+
 		
 	}
   
