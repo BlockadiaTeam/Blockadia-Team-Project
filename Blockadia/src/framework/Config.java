@@ -20,73 +20,61 @@ import exceptions.ElementNotExistException;
  * */
 public class Config {
 
+	public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
+
 	private Map<String, BlockShape> shapesMap;
 	private List<BlockShape> shapesList;
 	private List<Block> blocks;
-	
+
+
 	public Config(){
 		shapesMap = new HashMap<String, BlockShape>();
 		shapesList = new ArrayList<BlockShape>();
 		blocks = new ArrayList<Block>();
-		//TODO:for testing purpose:
-		try {
-			addGameShape(new BlockShape());
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
-		try {
-			addGameShape(new BlockShape("New Name"));
-		} catch (ElementExistsException e) {
-			e.printStackTrace();
-		}
 		
 		try {
-			addGameShape(new BlockShape("New name"));
+			addGameShape(new BlockShape(INITIAL_BLOCK_NAME));
 		} catch (ElementExistsException e) {
 			e.printStackTrace();
 		}
-		
 	}
-	
-	public void setGameShapes(final Map<String, BlockShape> shapes){
-		this.shapesMap = shapes;
-	}
-	
+
 	public Map<String, BlockShape> getGameShapesMap(){
 		return this.shapesMap;
 	}
-	
+
 	public List<BlockShape> getGameShapesList(){
 		return this.shapesList;
 	}
-	
+
 	public void addGameShape(BlockShape shape) throws ElementExistsException{
 		if(shapesMap.containsKey(shape.getShapeName())){
-			throw new ElementExistsException("The shape with the same name already exist");
+			throw new ElementExistsException("The shape with the same name: "+ shape.getShapeName()+" already exist!");
 		}
 		shapesMap.put(shape.getShapeName(), shape);
 		shapesList.add(shape);
 	}
-	
-	public void deleteGameShape(BlockShape shape) throws ElementNotExistException{
-		if(!shapesMap.containsValue(shape)){
-			throw new ElementNotExistException("The shape does not exist");
-		}
-		shapesMap.remove(shape);
-		shapesList.remove(shape);
-	}
-	
+
+	/**Delete the BlockShape specified by the shapeName*/
 	public void deleteGameShape(String shapeName) throws ElementNotExistException{
 		if(!shapesMap.containsKey(shapeName)){
-			throw new ElementNotExistException("The shape with name: "+ shapeName +" does not exist");
+			throw new ElementNotExistException("The shape with name: " + shapeName + " does not exist");
 		}
-		shapesMap.remove(shapesMap.get(shapeName));
+		
+		shapesMap.remove(shapeName);
 		for(BlockShape shapeToDelete : shapesList){
 			if(shapeToDelete.getShapeName().equals(shapeName)){
 				shapesList.remove(shapeToDelete);
 				return;
 			}
-		}
+		}	                                                                                                
 	}
-	
+
+	public BlockShape getGameShape(String shapeName) throws ElementNotExistException {
+		if(!shapesMap.containsKey(shapeName)){
+			throw new ElementNotExistException("The shape named: "+ shapeName+ " does not exist");
+		}
+		return this.shapesMap.get(shapeName);
+	}
+
 }

@@ -1,7 +1,6 @@
 package framework;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -10,33 +9,35 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
-import utility.Log;
-
+import utility.TextFieldWithPlaceHolder;
+import utility.TextFieldWithPlaceHolder.StringType;
 import components.BlockShape;
-
 import exceptions.ElementExistsException;
+import exceptions.ElementNotExistException;
 
 @SuppressWarnings("serial")
-public class NewShapeWindow extends JDialog {
+public class EditShapeWindow extends JDialog {
 
 	final GameModel model;
 	final GameSidePanel parent;
-	private NewShapeWindowBuildPanel buildPanel;
-	private NewShapeWindowSidePanel sidePanel;
+	private EditShapeWindowBuildPanel buildPanel;
+	private EditShapeWindowSidePanel sidePanel;
+	private TextFieldWithPlaceHolder shapeNameField;
 
-	public NewShapeWindow(GameFrame frame,GameModel model, GameSidePanel parentPanel, final BlockShape shape){
+	public EditShapeWindow(GameFrame frame,GameModel model, GameSidePanel parentPanel, final BlockShape shape){
 		super(frame,true);
 		
+		this.shapeNameField = new TextFieldWithPlaceHolder(shape.getShapeName());
 		this.model = model;
 		this.parent = parentPanel;
 		
 		setLayout(new BorderLayout());
 
-		buildPanel = new NewShapeWindowBuildPanel(shape);
-		buildPanel.setBounds(0,0,NewShapeWindowBuildPanel.SHAPE_WIN_SIZE,NewShapeWindowBuildPanel.SHAPE_WIN_SIZE);
+		buildPanel = new EditShapeWindowBuildPanel(shape);
+		buildPanel.setBounds(0,0,EditShapeWindowBuildPanel.SHAPE_WIN_SIZE,NewShapeWindowBuildPanel.SHAPE_WIN_SIZE);
 		this.add((Component) buildPanel, "Center");
 		
-		sidePanel = new NewShapeWindowSidePanel(this,buildPanel);
+		sidePanel = new EditShapeWindowSidePanel(this,buildPanel, shape);
 		sidePanel.setBounds(NewShapeWindowBuildPanel.SHAPE_WIN_SIZE,0,
 				NewShapeWindowSidePanel.SIDE_PANEL_WIDTH,NewShapeWindowSidePanel.SIDE_PANEL_HEIGHT);
 		this.add(new JScrollPane(sidePanel), "East");
@@ -51,7 +52,7 @@ public class NewShapeWindow extends JDialog {
 				if(buildPanel.checkIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
-							NewShapeWindow.this, "The shape has been modified. Do you want to save it?",
+							EditShapeWindow.this, "The shape has been modified. Do you want to save it?",
 							"Unsaved changes",
 							JOptionPane.YES_NO_CANCEL_OPTION);
 					if(n == JOptionPane.YES_OPTION){		
@@ -61,27 +62,31 @@ public class NewShapeWindow extends JDialog {
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
-									NewShapeWindow.this, "Please enter a shape name.",
+									EditShapeWindow.this, "Please enter a shape name.",
 									"Empty Name",
 									JOptionPane.ERROR_MESSAGE);
 						}
 
 						if(success){
 							try {
-								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
-								
-								NewShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
+								// update the shape (must do it this way otherwise you can't save with the same name)
+								try {
+									EditShapeWindow.this.model.removeShapeFromGame(shape);
+								} catch (ElementNotExistException e1) {
+									e1.printStackTrace();
+								}
+								EditShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
 								parent.updateComboBox();
 								JOptionPane.showMessageDialog(
-										NewShapeWindow.this, "The new block shape named as: "+shapeName+" has been saved!",
+										EditShapeWindow.this, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
 								dispose();
 							} catch (ElementExistsException e) {
 								success = false;
 								JOptionPane.showMessageDialog(
-										NewShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
+										EditShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
 										"Duplicate Name",
 										JOptionPane.ERROR_MESSAGE);
 							}
