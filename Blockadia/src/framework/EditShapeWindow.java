@@ -13,6 +13,7 @@ import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
 import components.BlockShape;
 import exceptions.ElementExistsException;
+import exceptions.ElementNotExistException;
 
 @SuppressWarnings("serial")
 public class EditShapeWindow extends JDialog {
@@ -36,7 +37,7 @@ public class EditShapeWindow extends JDialog {
 		buildPanel.setBounds(0,0,EditShapeWindowBuildPanel.SHAPE_WIN_SIZE,NewShapeWindowBuildPanel.SHAPE_WIN_SIZE);
 		this.add((Component) buildPanel, "Center");
 		
-		sidePanel = new EditShapeWindowSidePanel(this,buildPanel, shapeName);
+		sidePanel = new EditShapeWindowSidePanel(this,buildPanel, shape, shapeName);
 		sidePanel.setBounds(NewShapeWindowBuildPanel.SHAPE_WIN_SIZE,0,
 				NewShapeWindowSidePanel.SIDE_PANEL_WIDTH,NewShapeWindowSidePanel.SIDE_PANEL_HEIGHT);
 		this.add(new JScrollPane(sidePanel), "East");
@@ -68,9 +69,13 @@ public class EditShapeWindow extends JDialog {
 
 						if(success){
 							try {
-								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
-								
+								// update the shape (must do it this way otherwise you can't save with the same name)
+								try {
+									EditShapeWindow.this.model.removeShapeFromGame(shape, shape.getShapeName());
+								} catch (ElementNotExistException e1) {
+									e1.printStackTrace();
+								}
 								EditShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
 								parent.updateComboBox();
 								JOptionPane.showMessageDialog(

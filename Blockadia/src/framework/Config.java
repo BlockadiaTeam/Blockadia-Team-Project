@@ -68,15 +68,19 @@ public class Config {
 	
 	public void deleteGameShape(String shapeName) throws ElementNotExistException{
 		if(!shapesMap.containsKey(shapeName)){
-			throw new ElementNotExistException("The shape with name: "+ shapeName +" does not exist");
+			throw new ElementNotExistException("The shape with name: " + shapeName + " does not exist");
 		}
-		shapesMap.remove(shapesMap.get(shapeName));
+		shapesMap.remove(shapeName);
+		/* TESTING
+		for (Map.Entry<String, BlockShape> sshape : shapesMap.entrySet()){
+			System.out.println(sshape.getKey());
+		} */
 		for(BlockShape shapeToDelete : shapesList){
 			if(shapeToDelete.getShapeName().equals(shapeName)){
 				shapesList.remove(shapeToDelete);
 				return;
 			}
-		}
+		}	                                                                                                
 	}
 	
 }

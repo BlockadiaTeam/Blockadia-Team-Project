@@ -24,6 +24,7 @@ import org.jbox2d.common.Vec2;
 import components.BlockShape;
 
 import exceptions.ElementExistsException;
+import exceptions.ElementNotExistException;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
@@ -54,11 +55,13 @@ public class EditShapeWindowSidePanel extends JPanel{
 	private static JButton closeButton;
 	private BlockShape blockShape;
 	private String shapeName;
+	private BlockShape shape;
 
-	public EditShapeWindowSidePanel(EditShapeWindow editShapeWindow, EditShapeWindowBuildPanel buildPanel, String shapeName){
+	public EditShapeWindowSidePanel(EditShapeWindow editShapeWindow, EditShapeWindowBuildPanel buildPanel, BlockShape shape, String shapeName){
 		this.editShapeWindow = editShapeWindow;
 		this.buildPanel = buildPanel;
 		this.shapeName = shapeName;
+		this.shape = shape;
 
 		this.setPreferredSize(new Dimension(SIDE_PANEL_WIDTH,SIDE_PANEL_HEIGHT-5));
 		initComponents();
@@ -222,15 +225,22 @@ public class EditShapeWindowSidePanel extends JPanel{
 						}
 					
 						if(success){
+							
+							try {
+								// Delete shape first
+								editShapeWindow.model.removeShapeFromGame(shape, shape.getShapeName());
+							} catch (ElementNotExistException e1) {
+								// This will never fail
+							}
+							
 							try {
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
-								
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
 								editShapeWindow.getParentPanel().updateComboBox();
 								
 								JOptionPane.showMessageDialog(
-										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
+										editShapeWindow, "The new block shape named as: " + shapeName + " has been saved!",
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
 								editShapeWindow.dispose();
@@ -277,10 +287,15 @@ public class EditShapeWindowSidePanel extends JPanel{
 						}
 
 						if(success){
+							
+							try {
+								editShapeWindow.model.removeShapeFromGame(shape, shape.getShapeName());
+							} catch (ElementNotExistException e1) {
+							}
+							
 							try {
 								//Attach settings from side panel with the BlockShape from build panel
 								buildPanel.getPaintedShape().setShapeName(shapeName);
-								
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
 								editShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(

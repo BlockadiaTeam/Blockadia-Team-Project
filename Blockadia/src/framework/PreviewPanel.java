@@ -6,25 +6,18 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.border.EtchedBorder;
 
 import components.BlockShape;
 
+@SuppressWarnings("serial")
 public class PreviewPanel extends JPanel{
 
 	private Color paintColor;
 	private BlockShape blockShape;
 	private final int SIZE = 190;
-
-	public PreviewPanel(){
-		setBounds(10, 125, SIZE, SIZE);
-		setLayout(new BorderLayout());
-	}
 	
 	public PreviewPanel(BlockShape blockShape){
-		//this.blockShape = blockShape;
 		setBounds(10, 125, SIZE, SIZE);
 		setLayout(new BorderLayout());
 		this.blockShape = blockShape;
@@ -67,7 +60,7 @@ public class PreviewPanel extends JPanel{
 		g.setColor(Color.black);
 		for (int i = 0; i < BIG_SIZE; i = i+50){
 			g.fillRect(i, 0, 50, 50); // top border
-			g.fillRect(i, BIG_SIZE-50, 50, 50); // top border
+			g.fillRect(i, BIG_SIZE-50, 50, 50); // bottom border
 			g.fillRect(0,i, 50, 50);  // left border
 			g.fillRect(BIG_SIZE-50,i, 50, 50);  // right border
 			} 

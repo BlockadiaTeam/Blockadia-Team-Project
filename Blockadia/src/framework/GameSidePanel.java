@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
@@ -30,6 +31,7 @@ import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
 
 import components.BlockShape;
+import exceptions.ElementNotExistException;
 
 /**
  * This class has all the GUI rendering about the side panel
@@ -283,6 +285,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			}
 		});
 
+		deleteButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteShape((BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName(), model);
+			}
+		});
+		
 	}
 	
 	private void showNewShapeWindow(){
@@ -292,9 +300,41 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	}
 	
 	private void showEditShapeWindow(){
-		editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName());
-		editWindow.setLocationRelativeTo(frame);
-		editWindow.setVisible(true);
+		if (((BlockShape)(components.getSelectedItem())).getShapeName() != Config.INITIAL_BLOCK_NAME) {
+			editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName());
+			editWindow.setLocationRelativeTo(frame);
+			editWindow.setVisible(true);
+		}
+		else {
+			JOptionPane.showMessageDialog(
+					GameSidePanel.this, "Please select a block to edit.",
+					"No Shape Selected",
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	private void deleteShape(BlockShape shape, String shapeName, GameModel model){
+		
+		if (shapeName != Config.INITIAL_BLOCK_NAME) {
+			int deleteConfirmation = JOptionPane.showConfirmDialog(
+					GameSidePanel.this, "Are you sure you want to delete shape '" + shapeName + "'?",
+					"Confirm",
+					JOptionPane.OK_CANCEL_OPTION);
+			if (deleteConfirmation == JOptionPane.OK_OPTION) {
+				try {
+					model.removeShapeFromGame(shape, shapeName);
+				} catch (ElementNotExistException e) {
+					// TODO Auto-generated catch block
+				}
+			}
+		}
+		else {
+			JOptionPane.showMessageDialog(
+					GameSidePanel.this, "Please select a block to delete.",
+					"No Shape Selected",
+					JOptionPane.ERROR_MESSAGE);
+		}
+		
 	}
 	
 	/**
@@ -303,6 +343,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	public void updateComboBox(){
 		components = new JComboBox<BlockShape>(model.getComboModel());
 	}
+	
 	/**
 	 * This is a helper class to be used to conveniently update the looks of button
 	 * @param theButtonType - the type of button to be updated(see GameSidePanel.ButtonType)

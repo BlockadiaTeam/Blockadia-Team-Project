@@ -7,6 +7,7 @@ import org.jbox2d.common.Vec2;
 import components.BlockShape;
 
 import exceptions.ElementExistsException;
+import exceptions.ElementNotExistException;
 
 /**
  * Model of the Blockadia game
@@ -74,6 +75,16 @@ public class GameModel {
 		}
 	}
 	
+	public void removeShapeFromGame (BlockShape blockShape, String shapeName) throws ElementNotExistException{
+		try {
+			config.deleteGameShape(shapeName);
+		} catch (ElementNotExistException e) {
+			throw new ElementNotExistException("This shape does not exist");
+		}
+		components.removeElement(blockShape);
+		
+	}
+	
 	public void attachShapeToGame(BlockShape shape) throws ElementExistsException{
 
 		try {
@@ -84,4 +95,5 @@ public class GameModel {
 			throw new ElementExistsException("The shape with the same name already exist.");
 		}
 	}
+
 }
