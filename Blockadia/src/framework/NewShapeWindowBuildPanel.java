@@ -15,7 +15,6 @@ import javax.swing.SwingUtilities;
 import org.jbox2d.common.Vec2;
 
 import utility.ElementPos;
-import utility.Log;
 
 import components.BlockShape;
 
@@ -49,6 +48,9 @@ public class NewShapeWindowBuildPanel extends JPanel {
 	}
 
 	public void setGridResolution(final Vec2 newResolution){
+		if(!blockShape.getResolution().equals(newResolution)){
+			this.clearPaintedShape();
+		}
 		blockShape.setResolution(newResolution);
 		this.repaint();
 	}
@@ -67,19 +69,27 @@ public class NewShapeWindowBuildPanel extends JPanel {
 
 	public void setIsDirty(final boolean isDirty){
 		this.isDirty = isDirty;
-		if(this.isDirty){
-			NewShapeWindowSidePanel.enableSaveButton();
+	}
+
+	public boolean getIsDirty(){
+		return this.isDirty;
+	}
+	
+	public void updateIsDirty(){
+		if(blockShape.getShape().isEmpty()){
+			this.isDirty = false;
 		}else{
-			NewShapeWindowSidePanel.disableSaveButton();
+			this.isDirty = true;
 		}
 	}
 
-	public boolean checkIsDirty(){
-		return this.isDirty;
-	}
-
 	public void setPaintedShape(BlockShape newShape){
-		this.blockShape = newShape;		
+		blockShape = newShape;		
+		repaint();
+	}
+	
+	public void clearPaintedShape(){
+		blockShape.removeAllShapeElements();
 		repaint();
 	}
 
@@ -95,10 +105,9 @@ public class NewShapeWindowBuildPanel extends JPanel {
 				if(SwingUtilities.isLeftMouseButton(e)){				//if left click
 					try{
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
-						int col = (int)(e.getX()/gridSize);					//which row is the clicked position
-						int row = (int)(e.getY()/gridSize);					//which col is the clicked position
+						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
+						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(paintColor, row, col);
-						setIsDirty(true);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -111,8 +120,7 @@ public class NewShapeWindowBuildPanel extends JPanel {
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
-						blockShape.removeShapeElmeent(row, col);
-						setIsDirty(true);
+						blockShape.removeShapeElement(row, col);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -134,7 +142,6 @@ public class NewShapeWindowBuildPanel extends JPanel {
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(paintColor, row, col);
-						setIsDirty(true);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -147,8 +154,7 @@ public class NewShapeWindowBuildPanel extends JPanel {
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
-						blockShape.removeShapeElmeent(row, col);
-						setIsDirty(true);
+						blockShape.removeShapeElement(row, col);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){

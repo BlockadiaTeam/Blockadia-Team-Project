@@ -77,4 +77,11 @@ public class Config {
 		return this.shapesMap.get(shapeName);
 	}
 
+	public boolean containsShape(String shapeName){
+		if(shapesMap.containsKey(shapeName)){
+			return true;
+		}else{
+			return false;
+		}
+	}
 }

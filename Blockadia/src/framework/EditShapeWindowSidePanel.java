@@ -21,7 +21,6 @@ import javax.swing.border.EtchedBorder;
 
 import org.jbox2d.common.Vec2;
 
-import utility.Log;
 import utility.TextFieldWithPlaceHolder;
 
 import components.BlockShape;
@@ -42,16 +41,15 @@ public class EditShapeWindowSidePanel extends JPanel{
 	private JComboBox<Vec2> resolution;
 	private int currentResolutionSelection;
 	private JButton colorButton;
+	private JButton clearButton;
 	private static JButton saveButton;
 	private static JButton closeButton;
-	private String shapeName;
 	private BlockShape shape;
 
 	public EditShapeWindowSidePanel(EditShapeWindow editShapeWindow, EditShapeWindowBuildPanel buildPanel, BlockShape shape){
 		this.editShapeWindow = editShapeWindow;
 		this.buildPanel = buildPanel;
-		this.shape = shape;
-		this.shapeName = shape.getShapeName();
+		this.shape = shape.clone();
 
 		this.setPreferredSize(new Dimension(SIDE_PANEL_WIDTH,SIDE_PANEL_HEIGHT-5));
 		initComponents();
@@ -73,7 +71,7 @@ public class EditShapeWindowSidePanel extends JPanel{
 		controlPanel.add(nameLabel);
 
 		// Shape name field
-		shapeNameField = new TextFieldWithPlaceHolder(shapeName);
+		shapeNameField = new TextFieldWithPlaceHolder(shape.getShapeName());
 		shapeNameField.setBounds(10,30, 170, 25);
 		controlPanel.add(shapeNameField);
 
@@ -113,14 +111,17 @@ public class EditShapeWindowSidePanel extends JPanel{
 		controlPanel.add(colorLabel);
 
 		colorButton = new JButton();
-		colorButton.setBackground(Color.green);
+		colorButton.setBackground(NewShapeWindowBuildPanel.DEFAULT_PAINT_COLOR);
 		buildPanel.setPaintColor(colorButton.getBackground());
 		colorButton.setBounds(155,115, 25, 25);
 		controlPanel.add(colorButton);
 
+		clearButton = new JButton("Clear");
+		clearButton.setBounds(115,325,65,25);
+		controlPanel.add(clearButton);
+
 		saveButton = new JButton("Save");
 		saveButton.setBounds(50,350, 65, 25);
-		saveButton.setEnabled(false);
 		controlPanel.add(saveButton);
 
 		closeButton = new JButton("Close");
@@ -162,33 +163,26 @@ public class EditShapeWindowSidePanel extends JPanel{
 
 		resolution.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//1. Check if the buildPanel is dirty
-				//	 Yes- Message(Y/N)
-				// 		 		Yes - change the resolution(create new buildShape)
-				//				No - Stay here
-				//   No- change the resolution
-				if(buildPanel.checkIsDirty()){
-
-					int n = JOptionPane.showConfirmDialog(
-							editShapeWindow, "The shape has been modified. Are you sure to change the grid Resolution?",
-							"Unsaved changes",
-							JOptionPane.YES_NO_OPTION);
-
-					if(n == JOptionPane.YES_OPTION){
-						buildPanel.setGridResolution((Vec2)resolution.getSelectedItem());
-						currentResolutionSelection = resolution.getSelectedIndex();			// update the buffer
-						buildPanel.setIsDirty(false);																		// set isDirty
-					}
-					else if(n == JOptionPane.NO_OPTION){
-						resolution.setSelectedIndex(currentResolutionSelection);
-					}
-
-				}else{
-					buildPanel.setGridResolution((Vec2)resolution.getSelectedItem());
-					currentResolutionSelection = resolution.getSelectedIndex();				// update the buffer
-					buildPanel.setIsDirty(false);																			// set isDirty
+				//Message(Y/N)
+				// 		 Yes - change the resolution(create new buildShape)
+				//		 No - Stay here
+				if(buildPanel.getGridResolution().equals((Vec2)resolution.getSelectedItem())){
+					return;
 				}
+				resolution.setPopupVisible(false);
+				int n = JOptionPane.showConfirmDialog(
+						editShapeWindow, "All the painted shape will be gone. Are you sure to change the grid Resolution?",
+						"Warning",
+						JOptionPane.YES_NO_OPTION);
 
+				if(n == JOptionPane.YES_OPTION){
+					buildPanel.setGridResolution((Vec2)resolution.getSelectedItem());
+					currentResolutionSelection = resolution.getSelectedIndex();			// update the buffer
+					buildPanel.setIsDirty(false);																		// set isDirty
+				}
+				else if(n == JOptionPane.NO_OPTION){
+					resolution.setSelectedIndex(currentResolutionSelection);
+				}
 			}
 		});
 
@@ -196,7 +190,12 @@ public class EditShapeWindowSidePanel extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				//save button can only be pressed when the board is set to dirty
 				//but checking if the buildPanel is dirty is always a safe practice
-				if(buildPanel.checkIsDirty()){
+				buildPanel.updateIsDirty();
+				String shapeName  =getNameFieldText();
+				if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName())){
+					buildPanel.setIsDirty(true);
+				}
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							editShapeWindow, "The shape has been modified. Are you sure to save it?",
@@ -205,7 +204,6 @@ public class EditShapeWindowSidePanel extends JPanel{
 					if(n == JOptionPane.OK_OPTION){		
 						//Save the BlockShape
 						//If the name is empty:
-						String shapeName = getNameFieldText();
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
@@ -214,42 +212,47 @@ public class EditShapeWindowSidePanel extends JPanel{
 									JOptionPane.ERROR_MESSAGE);
 						}
 
+						if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName()) &&
+								editShapeWindow.model.checkIfShapeExists(shapeName)){
+							success = false;
+							JOptionPane.showMessageDialog(
+									editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+									"Duplicate Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
+						
 						if(success){
-
-							// Delete shape first
 							try {
+								//1. delete the old shape
 								editShapeWindow.model.removeShapeFromGame(shape);
-							} catch (ElementNotExistException e1) {
-							// This will never fail
-								Log.print("Unexpected error: "+e1.getMessage());						
-							}
-
-							try {
-								//Attach settings from side panel with the BlockShape from build panel
+								
+								//2. set the new name to painted shape
 								buildPanel.getPaintedShape().setShapeName(shapeName);
+
+								//3. save the painted shape
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
 								editShapeWindow.getParentPanel().updateComboBox();
-
 								JOptionPane.showMessageDialog(
-										editShapeWindow, "The new block shape named as: " + shapeName + " has been saved!",
+										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
 								editShapeWindow.dispose();
-							} catch (ElementExistsException e2) {
-								success = false;
-								JOptionPane.showMessageDialog(
-										editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
-										"Duplicate Name",
-										JOptionPane.ERROR_MESSAGE);
+								
+							} catch (ElementNotExistException e1) {
+								// This is triggered by editShapeWindow.model.removeShapeFromGame(shape);
+								// Not very likely to run here
+								e1.printStackTrace();					
+							} catch (ElementExistsException e1) {
+								// This is triggered by editShapeWindow.model.attachShapeToGame(shape);
+								// Not very likely to run here
+								e1.printStackTrace();
 							}
 						}
-
 					}
 					else if(n == JOptionPane.CANCEL_OPTION){
 						//Do nothing, stay in this EditShapeWindow
 					}
 				}else{
-					//Not very likely to run here
 					System.out.println("No modifications to be saved");
 				}
 
@@ -259,7 +262,12 @@ public class EditShapeWindowSidePanel extends JPanel{
 		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//Close button is similar to WindowClosing event handler
-				if(buildPanel.checkIsDirty()){
+				buildPanel.updateIsDirty();
+				String shapeName  =getNameFieldText();
+				if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName())){
+					buildPanel.setIsDirty(true);
+				}
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							editShapeWindow, "The shape has been modified. Do you want to save it?",
@@ -268,7 +276,6 @@ public class EditShapeWindowSidePanel extends JPanel{
 					if(n == JOptionPane.YES_OPTION){		
 						//Save the BlockShape
 						//If the name is empty:
-						String shapeName = getNameFieldText();
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
@@ -277,15 +284,24 @@ public class EditShapeWindowSidePanel extends JPanel{
 									JOptionPane.ERROR_MESSAGE);
 						}
 
+						if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName()) &&
+								editShapeWindow.model.checkIfShapeExists(shapeName)){
+							success = false;
+							JOptionPane.showMessageDialog(
+									editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
+									"Duplicate Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
+						
 						if(success){
 							try {
+								//1. delete the old shape
 								editShapeWindow.model.removeShapeFromGame(shape);
-							} catch (ElementNotExistException e1) {
-							}
-
-							try {
-								//Attach settings from side panel with the BlockShape from build panel
+								
+								//2. set the new name to painted shape
 								buildPanel.getPaintedShape().setShapeName(shapeName);
+
+								//3. save the painted shape
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
 								editShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(
@@ -293,15 +309,17 @@ public class EditShapeWindowSidePanel extends JPanel{
 										"Save successful",
 										JOptionPane.INFORMATION_MESSAGE);
 								editShapeWindow.dispose();
-							} catch (ElementExistsException e2) {
-								success = false;
-								JOptionPane.showMessageDialog(
-										editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
-										"Duplicate Name",
-										JOptionPane.ERROR_MESSAGE);
+								
+							} catch (ElementNotExistException e1) {
+								// This is triggered by editShapeWindow.model.removeShapeFromGame(shape);
+								// Not very likely to run here
+								e1.printStackTrace();					
+							} catch (ElementExistsException e1) {
+								// This is triggered by editShapeWindow.model.attachShapeToGame(shape);
+								// Not very likely to run here
+								e1.printStackTrace();
 							}
 						}
-
 					}
 					else if(n == JOptionPane.NO_OPTION){
 						editShapeWindow.dispose();
@@ -312,11 +330,28 @@ public class EditShapeWindowSidePanel extends JPanel{
 				}else{
 					editShapeWindow.dispose();
 				}
+			}
+		});
 
-
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//Message(Y/N)
+				// 	Yes - clear all
+				//	No - do nothing
+				int n = JOptionPane.showConfirmDialog(
+						editShapeWindow, "The shape has been modified. Are you sure to clear it?",
+						"Confirm",
+						JOptionPane.OK_CANCEL_OPTION);
+				if(n == JOptionPane.OK_OPTION){
+					buildPanel.clearPaintedShape();
+				}
+				else if(n == JOptionPane.CANCEL_OPTION){
+					//Do nothing
+				}
 
 			}
 		});
+
 	}
 
 	public static void enableSaveButton(){

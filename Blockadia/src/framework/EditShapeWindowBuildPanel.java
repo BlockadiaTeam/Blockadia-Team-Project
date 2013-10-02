@@ -7,12 +7,14 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.jbox2d.common.Vec2;
 
+import utility.ElementPos;
 import utility.Log;
 
 import components.BlockShape;
@@ -20,26 +22,28 @@ import components.BlockShape;
 @SuppressWarnings("serial")
 public class EditShapeWindowBuildPanel extends JPanel {
 	
-	public static final Color DEFAULT_PAINT_COLOR = Color.green;
-	public static final int SHAPE_WIN_SIZE = 400;
+	public static final Color DEFAULT_PAINT_COLOR = NewShapeWindowBuildPanel.DEFAULT_PAINT_COLOR;
+	public static final int SHAPE_WIN_SIZE = NewShapeWindowBuildPanel.SHAPE_WIN_SIZE;
 	private BlockShape blockShape;
+	private BlockShape originalShape;
 	private Color paintColor;
 	private boolean isDirty;
 	
-	public EditShapeWindowBuildPanel(){
-		this(new BlockShape());
-	}
-	
 	public EditShapeWindowBuildPanel(BlockShape blockShape){
-		this.blockShape = blockShape;
+		this.blockShape = blockShape.clone();
+		this.originalShape = blockShape.clone();
 		this.setPreferredSize(new Dimension(SHAPE_WIN_SIZE,SHAPE_WIN_SIZE));
-		setBackground(Color.black);
+		setBackground(BlockShape.DEFAULT_COLOR);
 		paintColor = DEFAULT_PAINT_COLOR;
 		
 		addListeners();
 	}
 	
+	/**When the grid resolution is set, everything will be cleared first*/
 	public void setGridResolution(final Vec2 newResolution){
+		if(!blockShape.getResolution().equals(newResolution)){
+			this.clearPaintedShape();
+		}
 		blockShape.setResolution(newResolution);
 		this.repaint();
 	}
@@ -58,27 +62,28 @@ public class EditShapeWindowBuildPanel extends JPanel {
 	
 	public void setIsDirty(final boolean isDirty){
 		this.isDirty = isDirty;
-		if(this.isDirty){
-			EditShapeWindowSidePanel.enableSaveButton();
-		}else{
-			EditShapeWindowSidePanel.disableSaveButton();
-		}
 	}
 	
-	public boolean checkIsDirty(){
+	public boolean getIsDirty(){
 		return this.isDirty;
 	}
 	
-	public void setPaintedShape(BlockShape newShape){
-		this.blockShape = newShape;
-		BlockShape newShape2 = new BlockShape();//TODO
-		Color[][] testshape = newShape2.getShape();
-		for(int i = 0 ; i <testshape.length ; i++){
-			for(int j = 0 ; j< testshape[0].length;j++){
-				System.out.println(testshape[i][j].toString());
-			}
+	public void updateIsDirty(){
+		if(blockShape.equals(originalShape)){
+			isDirty = false;
+		}else{
+			isDirty = true;
 		}
-		
+	}
+	
+	public void setPaintedShape(BlockShape newShape){
+		blockShape = newShape;		
+		originalShape = newShape.clone();
+		repaint();
+	}
+	
+	public void clearPaintedShape(){
+		blockShape.removeAllShapeElements();
 		repaint();
 	}
 	
@@ -97,7 +102,6 @@ public class EditShapeWindowBuildPanel extends JPanel {
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(paintColor, row, col);
-						setIsDirty(true);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -110,8 +114,7 @@ public class EditShapeWindowBuildPanel extends JPanel {
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
-						blockShape.setShapeElement(BlockShape.DEFAULT_COLOR, row, col);
-						setIsDirty(true);
+						blockShape.removeShapeElement(row, col);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -133,7 +136,6 @@ public class EditShapeWindowBuildPanel extends JPanel {
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
 						blockShape.setShapeElement(paintColor, row, col);
-						setIsDirty(true);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -146,8 +148,7 @@ public class EditShapeWindowBuildPanel extends JPanel {
 						int gridSize =  (int)(SHAPE_WIN_SIZE/(int)blockShape.getResolution().x);
 						int col = (int)(e.getX()/gridSize);					//which col is the clicked position
 						int row = (int)(e.getY()/gridSize);					//which row is the clicked position
-						blockShape.setShapeElement(BlockShape.DEFAULT_COLOR, row, col);
-						setIsDirty(true);
+						blockShape.removeShapeElement(row, col);
 						repaint();
 					}
 					catch(ArrayIndexOutOfBoundsException e2){
@@ -157,38 +158,35 @@ public class EditShapeWindowBuildPanel extends JPanel {
 
 			}
     });
-    
-
 	}
 	
 	public void paintComponent(Graphics g){
 		final int BIG_SIZE = 4000;
-  	// repaint the proper background color (controlled by the windowing system)
+		// repaint the proper background color (controlled by the windowing system)
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
-		
+
 		int numOfRows = (int)blockShape.getResolution().x;
 		int numOfCols = (int)blockShape.getResolution().y;
-		int gridSize = (int)(BIG_SIZE/numOfRows);
-		
+		int gridHeight = (int)(BIG_SIZE/numOfRows);
+		int gridWidth = (int)(BIG_SIZE/numOfCols);
+
 		//1st: paint each element in the BlockShape -> shape(Color[][])
 		g2.scale(0.1, 0.1);
-		for(int i=0; i< numOfRows;i++){
-			for(int j=0; j< numOfCols; j++){
-				g2.setColor(blockShape.getShapeElement(i, j));
-				g2.fillRect(j*gridSize, i*gridSize, gridSize, gridSize);
-			}
+		for(Map.Entry<ElementPos, Color> entry: blockShape.getShape().entrySet()){
+			g2.setColor(entry.getValue());
+			g2.fillRect(entry.getKey().col * gridWidth, entry.getKey().row * gridHeight, gridWidth, gridHeight);
 		}
-	
+
 		//2nd: paint the grid corresponding to the resolution of blockShape
 		g2.setColor(Color.darkGray);
 		for (int row = 0; row < numOfRows; row++) {
-			g2.drawLine(0,row*gridSize ,BIG_SIZE, row*gridSize);
+			g2.drawLine(0,row*gridHeight ,BIG_SIZE, row*gridHeight);
 		}
 		g2.drawLine(0,BIG_SIZE, BIG_SIZE, BIG_SIZE);
 
 		for (int col = 0; col < numOfCols; col++) {
-			g2.drawLine(col*gridSize, 0 , col*gridSize , BIG_SIZE);
+			g2.drawLine(col*gridWidth, 0 , col*gridWidth , BIG_SIZE);
 		}
 		g2.drawLine(BIG_SIZE-1, 0, BIG_SIZE-1, BIG_SIZE);
 	}

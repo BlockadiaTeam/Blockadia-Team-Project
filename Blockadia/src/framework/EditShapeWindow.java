@@ -9,12 +9,31 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
-import utility.TextFieldWithPlaceHolder;
-import utility.TextFieldWithPlaceHolder.StringType;
 import components.BlockShape;
+
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 
+/**
+ * This is the edit shape window
+ * 
+ * On start up, the window should display:
+ * 1. The block shape name to be edited
+ * 2. The shape with correct resolution
+ * 3. The colorButton to be set to the default paint color
+ *  
+ * The following actions will make the window dirty:
+ * 1. Change the name
+ * 2. Change the grid resolution(everything is wiped)- need to give them a warning
+ * 3. Change the paint(add or delete)
+ * 
+ * The following actions will trigger alert message
+ * 1. Saving when it's dirty
+ * 2. Closing window when it's dirty
+ * 3. Changing the grid resolution(doesn't matter if it's dirty or not) 
+ * 4. Clearing the build panel(doesn't matter if it's dirty or not) 
+ * 
+ * */
 @SuppressWarnings("serial")
 public class EditShapeWindow extends JDialog {
 
@@ -22,12 +41,10 @@ public class EditShapeWindow extends JDialog {
 	final GameSidePanel parent;
 	private EditShapeWindowBuildPanel buildPanel;
 	private EditShapeWindowSidePanel sidePanel;
-	private TextFieldWithPlaceHolder shapeNameField;
-
+	
 	public EditShapeWindow(GameFrame frame,GameModel model, GameSidePanel parentPanel, final BlockShape shape){
 		super(frame,true);
 		
-		this.shapeNameField = new TextFieldWithPlaceHolder(shape.getShapeName());
 		this.model = model;
 		this.parent = parentPanel;
 		
@@ -42,14 +59,19 @@ public class EditShapeWindow extends JDialog {
 				NewShapeWindowSidePanel.SIDE_PANEL_WIDTH,NewShapeWindowSidePanel.SIDE_PANEL_HEIGHT);
 		this.add(new JScrollPane(sidePanel), "East");
 		
-		this.setTitle("New Shape");
+		this.setTitle("Edit Shape");
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		this.pack();
 		
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
-				if(buildPanel.checkIsDirty()){
+				buildPanel.updateIsDirty();
+				String shapeName  =sidePanel.getNameFieldText();
+				if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName())){
+					buildPanel.setIsDirty(true);
+				}
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							EditShapeWindow.this, "The shape has been modified. Do you want to save it?",
@@ -58,7 +80,6 @@ public class EditShapeWindow extends JDialog {
 					if(n == JOptionPane.YES_OPTION){		
 						//Save the BlockShape
 						//If the name is empty:
-						String shapeName = sidePanel.getNameFieldText();
 						if(shapeName.equals("")){
 							success = false;
 							JOptionPane.showMessageDialog(
@@ -66,16 +87,25 @@ public class EditShapeWindow extends JDialog {
 									"Empty Name",
 									JOptionPane.ERROR_MESSAGE);
 						}
+						
+						if(!shapeName.equals(buildPanel.getPaintedShape().getShapeName()) &&
+								EditShapeWindow.this.model.checkIfShapeExists(shapeName)){
+							success = false;
+							JOptionPane.showMessageDialog(
+									EditShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
+									"Duplicate Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
 
 						if(success){
 							try {
+								//1. delete the old shape
+								EditShapeWindow.this.model.removeShapeFromGame(shape);
+								
+								//2. set the new name to painted shape
 								buildPanel.getPaintedShape().setShapeName(shapeName);
-								// update the shape (must do it this way otherwise you can't save with the same name)
-								try {
-									EditShapeWindow.this.model.removeShapeFromGame(shape);
-								} catch (ElementNotExistException e1) {
-									e1.printStackTrace();
-								}
+
+								//3. save the painted shape
 								EditShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
 								parent.updateComboBox();
 								JOptionPane.showMessageDialog(
@@ -89,6 +119,10 @@ public class EditShapeWindow extends JDialog {
 										EditShapeWindow.this, "There exists a shape with the same shape name.\nPlease enter another one.",
 										"Duplicate Name",
 										JOptionPane.ERROR_MESSAGE);
+							} catch (ElementNotExistException e) {
+								// This is triggered by EditShapeWindow.this.model.removeShapeFromGame(shape);
+								// Not very likely to run here
+								e.printStackTrace();
 							}
 						}
 

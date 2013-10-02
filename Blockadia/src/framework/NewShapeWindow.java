@@ -48,7 +48,8 @@ public class NewShapeWindow extends JDialog {
 		
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
-				if(buildPanel.checkIsDirty()){
+				buildPanel.updateIsDirty();
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							NewShapeWindow.this, "The shape has been modified. Do you want to save it?",

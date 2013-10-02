@@ -38,6 +38,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 	private JComboBox<Vec2> resolution;
 	private int currentResolutionSelection;
 	private JButton colorButton;
+	private JButton clearButton;
 	private static JButton saveButton;
 	private static JButton closeButton;
 
@@ -105,14 +106,17 @@ public class NewShapeWindowSidePanel extends JPanel{
 		controlPanel.add(colorLabel);
 
 		colorButton = new JButton();
-		colorButton.setBackground(Color.green);
+		colorButton.setBackground(NewShapeWindowBuildPanel.DEFAULT_PAINT_COLOR);
 		buildPanel.setPaintColor(colorButton.getBackground());
 		colorButton.setBounds(155,115, 25, 25);
 		controlPanel.add(colorButton);
 
+		clearButton = new JButton("Clear");
+		clearButton.setBounds(115,325,65,25);
+		controlPanel.add(clearButton);
+		
 		saveButton = new JButton("Save");
 		saveButton.setBounds(50,350, 65, 25);
-		saveButton.setEnabled(false);
 		controlPanel.add(saveButton);
 		
 		closeButton = new JButton("Close");
@@ -154,13 +158,20 @@ public class NewShapeWindowSidePanel extends JPanel{
 
 		resolution.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//1. Check if the buildPanel is dirty
-				//	 Yes- Message(Y/N)
-				// 		 		Yes - change the resolution(create new buildShape)
+				//1. Check if the resolution is changed, eg: 3x3 changed to 3x3
+				//	 Yes- proceed
+				//	 No- return
+				//2. Check if the buildPanel is dirty
+				//	 Yes- Message(Y/N) - Also set the popup to be invisible
+				// 		 		Yes - change the resolution(create new buildShape) and clear the painted shape
 				//				No - Stay here
 				//   No- change the resolution 
-				if(buildPanel.checkIsDirty()){
-
+				if(buildPanel.getGridResolution().equals((Vec2)resolution.getSelectedItem())){
+					return;
+				}
+				buildPanel.updateIsDirty();
+				if(buildPanel.getIsDirty()){
+					resolution.setPopupVisible(false);
 					int n = JOptionPane.showConfirmDialog(
 							newShapeWindow, "The shape has been modified. Are you sure to change the grid Resolution?",
 							"Unsaved changes",
@@ -186,9 +197,8 @@ public class NewShapeWindowSidePanel extends JPanel{
 
 		saveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//save button can only be pressed when the board is set to dirty
-				//but checking if the buildPanel is dirty is always a safe practice
-				if(buildPanel.checkIsDirty()){
+				buildPanel.updateIsDirty();
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							newShapeWindow, "The shape has been modified. Are you sure to save it?",
@@ -242,8 +252,9 @@ public class NewShapeWindowSidePanel extends JPanel{
 		
 		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				buildPanel.updateIsDirty();
 				//Close button is similar to WindowClosing event handler
-				if(buildPanel.checkIsDirty()){
+				if(buildPanel.getIsDirty()){
 					boolean success = true;
 					int n = JOptionPane.showConfirmDialog(
 							newShapeWindow, "The shape has been modified. Do you want to save it?",
@@ -292,21 +303,35 @@ public class NewShapeWindowSidePanel extends JPanel{
 				}else{
 					newShapeWindow.dispose();
 				}
-
-			
-				
+			}
+		});
+		
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//1. Check if the buildPanel is dirty
+				//	 Yes- Message(Y/N)
+				// 		 		Yes - clear all
+				//				No - do nothing
+				//   No- do nothing
+				buildPanel.updateIsDirty();
+				if(buildPanel.getIsDirty()){
+					int n = JOptionPane.showConfirmDialog(
+							newShapeWindow, "The shape has been modified. Are you sure to clear it?",
+							"Confirm",
+							JOptionPane.OK_CANCEL_OPTION);
+					if(n == JOptionPane.OK_OPTION){
+						buildPanel.clearPaintedShape();
+					}
+					else if(n == JOptionPane.CANCEL_OPTION){
+						//Do nothing
+					}
+				}else{
+					//Do nothing
+				}
 			}
 		});
 	}
 
-	public static void enableSaveButton(){
-		saveButton.setEnabled(true);
-	}
-	
-	public static void disableSaveButton(){
-		saveButton.setEnabled(false);
-	}
-	
 	public String getNameFieldText(){
 		String shapeName = nameField.getText();
 		if(shapeName == null){

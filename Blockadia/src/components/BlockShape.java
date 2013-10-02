@@ -46,11 +46,11 @@ public class BlockShape {
 	public void setResolution(final Vec2 resolution){
 		this.resolution = resolution;
 	}
-	
+
 	public Vec2 getResolution(){
 		return this.resolution;
 	}
-	
+
 	public void setShapeName(final String shapeName){
 		this.blockShapeName = shapeName;
 	}
@@ -85,14 +85,18 @@ public class BlockShape {
 		}
 		return element;
 	}
-	
+
 	/**Remove the shape mapping if it exists*/
-	public void removeShapeElmeent(int row, int col){
+	public void removeShapeElement(int row, int col){
 		ElementPos pos = new ElementPos(row,col);
-		
+
 		if(shape.containsKey(pos)){
 			shape.remove(pos);
 		}
+	}
+
+	public void removeAllShapeElements(){
+		shape.clear();
 	}
 
 	public void setShapeElement(final Color newColor,int row,int col) throws IllegalArgumentException{
@@ -116,11 +120,45 @@ public class BlockShape {
 
 		BlockShape anotherShape = (BlockShape)otherShape;
 		//compare the name of the shape object
-		if(anotherShape.getShapeName().equals(this.getShapeName())){
-			return true;
-		}else{
+		if(!anotherShape.getShapeName().equals(this.getShapeName())){
 			return false;
 		}
+		if(!anotherShape.getResolution().equals(this.getResolution())){
+			return false;
+		}
+		
+		//compare the shape
+		//1. Compare all the keys between this and anotherShape
+		//   Different: return false
+		//   Same: Compare all the values between this and anotherShape
+		//				Different: return false
+		//				Same: return true
+		if(!this.getShape().equals(anotherShape.getShape())){
+			//compare the mapping key and the map size
+			return false;
+		}
+		
+		for(Map.Entry<ElementPos, Color> entry: shape.entrySet()){
+			if(!entry.getValue().equals(shape.get(entry.getKey()))){
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	/**
+	 * Creates and returns a copy of this object. The precise meaning of "copy" may 
+	 * depend on the class of the object. The general intent is that, for any object x, the expression: 
+	 * 				x.clone() != x
+	 * will be true, and that the expression: 
+	 * 				x.clone().getClass() == x.getClass()
+	 * will be true
+	 * */
+	public BlockShape clone(){
+		BlockShape newShape = new BlockShape(this.blockShapeName,this.shape);
+		newShape.setResolution(this.resolution);
+		return newShape;
 	}
 }
 

@@ -301,7 +301,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	}
 
 	private void showEditShapeWindow(){
-		if (((BlockShape)(components.getSelectedItem())).getShapeName() != Config.INITIAL_BLOCK_NAME) {
+		if (!((BlockShape)(components.getSelectedItem())).getShapeName().equals(Config.INITIAL_BLOCK_NAME)) {
 			editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()));
 			editWindow.setLocationRelativeTo(frame);
 			editWindow.setVisible(true);

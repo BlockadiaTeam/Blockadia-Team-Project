@@ -134,6 +134,15 @@ public class GameModel {
 			components.addElement(shape);
 		}
 	}
+	
+	/**Check if block shape with the same name exists*/
+	public boolean checkIfShapeExists(String shapeName){
+		if(config.containsShape(shapeName)){
+			return true;
+		}else{
+			return false;
+		}
+	}
 
 	public void removeShapeFromGame (BlockShape shape) throws ElementNotExistException{
 		try {
