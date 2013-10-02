@@ -4,8 +4,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.Map;
 
 import javax.swing.JPanel;
+
+import utility.ElementPos;
 
 import components.BlockShape;
 
@@ -39,17 +42,15 @@ public class PreviewPanel extends JPanel{
 
 		int numOfRows = (int)blockShape.getResolution().x;
 		int numOfCols = (int)blockShape.getResolution().y;
-		int gridSize = (int)(BIG_SIZE/numOfRows);
+		int gridHeight = (int)(BIG_SIZE/numOfRows);
+		int gridWidth = (int)(BIG_SIZE/numOfCols);
 
 		//paint each element in the BlockShape -> shape(Color[][])
 		g2.scale(0.1, 0.1);
-		for(int i=0; i< numOfRows;i++){
-			for(int j=0; j< numOfCols; j++){
-				g2.setColor(blockShape.getShapeElement(i, j));
-				g2.fillRect(j*gridSize, i*gridSize, gridSize, gridSize);
-			}
+		for(Map.Entry<ElementPos, Color> entry: blockShape.getShape().entrySet()){
+			g2.setColor(entry.getValue());
+			g2.fillRect(entry.getKey().col * gridWidth, entry.getKey().row * gridHeight, gridWidth, gridHeight);
 		}
-
 	} 
 
 }

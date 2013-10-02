@@ -158,7 +158,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 				//	 Yes- Message(Y/N)
 				// 		 		Yes - change the resolution(create new buildShape)
 				//				No - Stay here
-				//   No- change the resolution
+				//   No- change the resolution 
 				if(buildPanel.checkIsDirty()){
 
 					int n = JOptionPane.showConfirmDialog(
