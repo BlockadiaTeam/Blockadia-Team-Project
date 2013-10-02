@@ -221,6 +221,15 @@ public class EditShapeWindowSidePanel extends JPanel{
 									JOptionPane.ERROR_MESSAGE);
 						}
 						
+						//if the shape is cleared, don't save
+						if(buildPanel.getPaintedShape().getShape().isEmpty()){
+							success = false;
+							JOptionPane.showMessageDialog(
+									editShapeWindow, "The shape cannot be empty!",
+									"Error",
+									JOptionPane.ERROR_MESSAGE);
+						}
+						
 						if(success){
 							try {
 								//1. delete the old shape
@@ -290,6 +299,15 @@ public class EditShapeWindowSidePanel extends JPanel{
 							JOptionPane.showMessageDialog(
 									editShapeWindow, "There exists a shape with the same shape name.\nPlease enter another one.",
 									"Duplicate Name",
+									JOptionPane.ERROR_MESSAGE);
+						}
+						
+						//if the shape is cleared, don't save
+						if(buildPanel.getPaintedShape().getShape().isEmpty()){
+							success = false;
+							JOptionPane.showMessageDialog(
+									editShapeWindow, "The shape cannot be empty!",
+									"Error",
 									JOptionPane.ERROR_MESSAGE);
 						}
 						

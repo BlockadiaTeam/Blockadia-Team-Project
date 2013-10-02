@@ -97,6 +97,15 @@ public class EditShapeWindow extends JDialog {
 									JOptionPane.ERROR_MESSAGE);
 						}
 
+						//if the shape is cleared, don't save
+						if(buildPanel.getPaintedShape().getShape().isEmpty()){
+							success = false;
+							JOptionPane.showMessageDialog(
+									EditShapeWindow.this, "The shape cannot be empty!",
+									"Error",
+									JOptionPane.ERROR_MESSAGE);
+						}
+						
 						if(success){
 							try {
 								//1. delete the old shape
