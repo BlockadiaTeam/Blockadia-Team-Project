@@ -32,7 +32,7 @@ import exceptions.ElementNotExistException;
  * This class has all the GUI rendering about the side panel
  * The sources of data for all the JComponents are from GameModel.java
  * eg: JComboBox
- * 
+ *
  * @author alex.yang, patrick.lam
  **/
 
@@ -57,13 +57,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private JButton editButton = new JButton("Edit");
 	private JLabel gameNameLabel = new JLabel();
 	private JPanel optionPanel = new JPanel();
-	private TextFieldWithPlaceHolder gameName;
+	private static TextFieldWithPlaceHolder gameName;
 	private PreviewPanel previewPanel;
 	public static boolean test =true; // TODO:DELETE LATER
 	private ButtonType buttonType;
 	private NewShapeWindow newWindow;
 	private EditShapeWindow editWindow;
-
 	public JComboBox<BlockShape> components;
 
 	public GameSidePanel(GameFrame frame, GameModel model, GameController controller){
@@ -105,7 +104,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		icon = new ImageIcon("res/side/Play.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
-		playPauseButton=new JButton("  Play",icon);
+		playPauseButton=new JButton(" Play",icon);
 		playPauseButton.setToolTipText("Click to start the game.");
 		icon = new ImageIcon("res/side/Reset.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
@@ -136,10 +135,10 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		optionPanel.setPreferredSize(new Dimension(200,500));
 		JScrollPane scroll = new JScrollPane(optionPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scroll.getVerticalScrollBar().setUnitIncrement(16);			//Set the vertical scroll sensitivity
+		scroll.getVerticalScrollBar().setUnitIncrement(16);	//Set the vertical scroll sensitivity
 		scroll.setBounds(5,110,130,190);
 		gameNameLabel = new JLabel("Current Game:");
-		gameName = new TextFieldWithPlaceHolder("Gizmoball");
+		gameName = new TextFieldWithPlaceHolder("Placeholder Game Name");
 		gameName.setColumns(10);
 		gameName.setEditable(false);
 		gameName.setToolTipText("To change a game, please click File-> Open/New");
@@ -194,19 +193,20 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
 		optionPanel.add(buttonPanel);
-		
+
 		previewPanel = new PreviewPanel((BlockShape)(components.getSelectedItem()));
 		JPanel borderPanel = new JPanel();
 		borderPanel.setLayout(new BorderLayout());
 		borderPanel.setBackground(BlockShape.DEFAULT_COLOR);
 		borderPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		borderPanel.setBounds(10, 125, 190, 190);
-		borderPanel.add(previewPanel);		
+		borderPanel.add(previewPanel);	
 		optionPanel.add(borderPanel);
 
 		add(scroll);
 		scroll.setSize(230,345);
 	}
+
 
 	private void addListeners(){
 		modeButton.addActionListener(new ActionListener() {
@@ -214,7 +214,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				//TODO
 				if(!test){
 					try {
-						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.", 
+						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.",
 								"res/side/Build.png", new Rectangle(0,0,60, 50));
 						playPauseButton.setEnabled(true);
 						resetButton.setEnabled(true);
@@ -225,11 +225,11 @@ public class GameSidePanel extends JPanel implements ActionListener{
 					test=true;
 				}else{
 					try {
-						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.", 
+						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.",
 								"res/side/Game.png", new Rectangle(0,0,60,50));
 						//1st: stop the game if it is running
 						//2nd: reset the looks of playPauseButton
-						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
+						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
 								"res/side/Play.png", new Rectangle(0,0,25,25));
 						playPauseButton.setEnabled(false);
 						resetButton.setEnabled(false);
@@ -247,7 +247,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				//TODO
 				if (test) {
 					try {
-						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Stop", "Click to pause the game.", 
+						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Stop", "Click to pause the game.",
 								"res/side/Stop.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
@@ -256,7 +256,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 					test = false;
 				} else {
 					try {
-						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
+						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
 								"res/side/Play.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
@@ -301,7 +301,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	}
 
 	private void showEditShapeWindow(){
-		if (!((BlockShape)(components.getSelectedItem())).getShapeName().equals(Config.INITIAL_BLOCK_NAME)) {
+		if (((BlockShape)(components.getSelectedItem())).getShapeName() != Config.INITIAL_BLOCK_NAME) {
 			editWindow = new EditShapeWindow(frame,model,this,(BlockShape)(components.getSelectedItem()));
 			editWindow.setLocationRelativeTo(frame);
 			editWindow.setVisible(true);
@@ -354,7 +354,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	 * @param filePath - (required for IMAGE_ONLY and TEXT_IMAGE)
 	 * @param imageBound - (required for IMAGE_ONLY and TEXT_IMAGE)
 	 * */
-	private void buttonRenderer(ButtonType theButtonType, JButton button,String buttonText, 
+	private void buttonRenderer(ButtonType theButtonType, JButton button,String buttonText,
 			String tooltip,String filePath, Rectangle imageBound) throws Exception{
 		this.buttonType = theButtonType;
 
@@ -404,7 +404,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			}
 		}
 	}
-	
+
+	public static void updateName(String name){
+		gameName.setText(name);
+	}
+
+
 	public void actionPerformed(ActionEvent e) {
 		previewPanel.UpdatePreviewPanel((BlockShape)(components.getSelectedItem()));
 	}
