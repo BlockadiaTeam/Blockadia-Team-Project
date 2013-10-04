@@ -102,11 +102,11 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		modeButton.setToolTipText("Click to enter game mode");
 		modeButton.setPreferredSize(new Dimension(80,80));
 
-		icon = new ImageIcon("res/side/Play.png");
+		icon = new ImageIcon("res/side/Stop.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
-		playPauseButton=new JButton("  Play",icon);
-		playPauseButton.setToolTipText("Click to start the game.");
+		playPauseButton=new JButton("  Stop",icon);
+		playPauseButton.setToolTipText("Click to pause the game.");
 		icon = new ImageIcon("res/side/Reset.png");
 		image=icon.getImage().getScaledInstance(25,25,java.awt.Image.SCALE_SMOOTH);
 		icon.setImage(image);
@@ -228,6 +228,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.", 
 								"res/side/Game.png", new Rectangle(0,0,60,50));
 						//1st: stop the game if it is running
+						model.pause = true;
 						//2nd: reset the looks of playPauseButton
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
 								"res/side/Play.png", new Rectangle(0,0,25,25));
@@ -245,24 +246,22 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		playPauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//TODO
-				if (test) {
+				if (model.pause) {
+					model.pause = false; //start running
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Stop", "Click to pause the game.", 
 								"res/side/Stop.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
-
-					test = false;
 				} else {
+					model.pause = true; //stop running
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
 								"res/side/Play.png", new Rectangle(0,0,25,25));
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
-
-					test = true;
 				}
 
 			}

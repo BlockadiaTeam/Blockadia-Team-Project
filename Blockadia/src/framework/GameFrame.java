@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 
 @SuppressWarnings("serial")
 public class GameFrame  extends JFrame {
-	
+
 	private GameMenuBar menu;
 	private GameInfoBar infoBar;
 	private GameSidePanel side;
@@ -32,15 +32,16 @@ public class GameFrame  extends JFrame {
 	public GameFrame(final GameModel argModel, final IGamePanel argPanel) {
 		super("Blockadia");
 		setLayout(new BorderLayout());
-		
+
 		model = argModel;
 		panel = argPanel;
-		
+		model.setGamePanelRenderer(panel.getGamePanelRenderer());
+
 		menu = new GameMenuBar();//TODO: rework on the GameMenuBar constructor
 		setJMenuBar(menu);
 		infoBar = new GameInfoBar();
 		add(infoBar,"South");
-		
+
 		controller = new GameController(model,panel);
 		side = new GameSidePanel(this,model,controller);
 		add((Component) panel, "Center");
@@ -48,6 +49,8 @@ public class GameFrame  extends JFrame {
 		pack();
 
 		//controller.playTest(0);
-		//controller.start();
+		//The game is running on start-up
+		controller.start();
+
 	}
 }

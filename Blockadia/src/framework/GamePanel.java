@@ -19,8 +19,12 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPanel;
 
+import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Mat22;
+import org.jbox2d.common.OBBViewportTransform;
 import org.jbox2d.common.Vec2;
+
+import utility.GamePanelRenderer;
 
 /**
  * This is the main game panel. Silimar to AnimationWindow in gizmoball
@@ -43,14 +47,16 @@ public class GamePanel extends JPanel implements IGamePanel{
 	private int panelHeight;
 	
 	private final GameModel model;
+  private final GamePanelRenderer renderer;
 	
 	private final Vec2 draggingMouse = new Vec2();
 	private boolean drag = false;
 
 	public GamePanel(GameModel argModel){
 		this.setBackground(Color.black);
+		renderer = new GamePanelRenderer(this);
 		this.model = argModel;
-    //updateSize(INIT_WIDTH, INIT_HEIGHT);
+    updateSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 
     addMouseWheelListener(new MouseWheelListener() {
@@ -62,15 +68,31 @@ public class GamePanel extends JPanel implements IGamePanel{
     	
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
+				DebugDraw d = renderer;
 				int notches = e.getWheelRotation();
+				Config currConfig = model.getCurrGameConfig();
+				if(currConfig == null){
+					return;
+				}
+        OBBViewportTransform trans = (OBBViewportTransform) d.getViewportTranform();
+        oldCenter.set(model.getCurrGameConfig().getWorldMouse());
+        
 				if(notches < 0){
-					//TODO zoom in
+          trans.mulByTransform(upScale);
+          currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_IN_SCALE);
 					System.out.println("Zoom in "+ Math.abs(notches)+ " time");
 				}else if(notches > 0){
-					//TODO zoom out
+          trans.mulByTransform(downScale);
+          currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_OUT_SCALE);
 					System.out.println("Zoom out "+ Math.abs(notches)+ " time");
 				}
-				//TODO
+
+        d.getScreenToWorldToOut(model.getMouse(), newCenter);
+        Vec2 transformedMove = oldCenter.subLocal(newCenter);
+        d.getViewportTranform().setCenter(
+            d.getViewportTranform().getCenter().addLocal(transformedMove));
+
+        currConfig.setCachedCameraPos(d.getViewportTranform().getCenter());
 			}   	
     });
     
@@ -89,21 +111,26 @@ public class GamePanel extends JPanel implements IGamePanel{
       }
     });
     
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        updateSize(getWidth(), getHeight());
-        gImage = null;
-      }
-    });
 	}
 	
+  public DebugDraw getGamePanelRenderer() {
+    return renderer;
+  }
+  
+  public Graphics2D getGamePanelGraphics() {
+    return g;
+  }
+  
   private void updateSize(int argWidth, int argHeight) {
     panelWidth = argWidth;
     panelHeight = argHeight;
    // draw.getViewportTranform().setExtents(argWidth / 2, argHeight / 2);
   }
 	
+  public void grabFocus(){
+  	this.requestFocus();
+  }
+  
 	@Override
 	public boolean render() {
 
@@ -128,6 +155,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 	public void paintScreen() {
     try {
       Graphics g = this.getGraphics();
+      g.fillRect(100,100, 50, 50);
       if ((g != null) && gImage != null) {
         g.drawImage(gImage, 0, 0, null);
         Toolkit.getDefaultToolkit().sync();
