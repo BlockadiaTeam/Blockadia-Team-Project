@@ -95,6 +95,7 @@ public class GameController implements Runnable{
 	
 	@Override
 	public void run() {
+
     long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
     float timeInSecs;
     beforeTime = startTime = updateTime = System.nanoTime();
@@ -140,7 +141,6 @@ public class GameController implements Runnable{
         } catch (InterruptedException ex) {
         }
       }
-
       beforeTime = System.nanoTime();
     } // end of run loop
   }

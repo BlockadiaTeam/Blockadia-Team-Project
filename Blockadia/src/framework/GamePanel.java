@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -128,7 +126,7 @@ public class GamePanel extends JPanel implements IGamePanel{
   }
 	
   public void grabFocus(){
-  	this.requestFocus();
+  	//this.requestFocus();
   }
   
 	@Override
@@ -154,12 +152,12 @@ public class GamePanel extends JPanel implements IGamePanel{
 	@Override
 	public void paintScreen() {
     try {
-      Graphics g = this.getGraphics();
-      g.fillRect(100,100, 50, 50);
-      if ((g != null) && gImage != null) {
-        g.drawImage(gImage, 0, 0, null);
+      Graphics graphics = this.getGraphics();
+      graphics.fillRect(100,100, 50, 50);
+      if ((graphics != null) && gImage != null) {
+        graphics.drawImage(gImage, 0, 0, null);
         Toolkit.getDefaultToolkit().sync();
-        g.dispose();
+        graphics.dispose();
       }
     } catch (AWTError e) {
     	System.out.println("Graphics context error "+ e);

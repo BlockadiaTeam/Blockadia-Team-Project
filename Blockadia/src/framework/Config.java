@@ -5,15 +5,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.callbacks.ContactImpulse;
+import org.jbox2d.callbacks.ContactListener;
+import org.jbox2d.callbacks.DebugDraw;
+import org.jbox2d.collision.Collision;
+import org.jbox2d.collision.Collision.PointState;
+import org.jbox2d.collision.Manifold;
+import org.jbox2d.collision.WorldManifold;
+import org.jbox2d.collision.shapes.CircleShape;
+import org.jbox2d.collision.shapes.EdgeShape;
 import org.jbox2d.common.Color3f;
+import org.jbox2d.common.Settings;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
+import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
+import org.jbox2d.dynamics.contacts.Contact;
 
-import utility.Log;
+import utility.ContactPoint;
 
 import components.Block;
 import components.BlockShape;
@@ -28,20 +40,30 @@ import exceptions.ElementNotExistException;
  * 
  * @author alex.yang
  * */
-public class Config {
+public class Config implements ContactListener{
 
 	public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
+	public static final int MAX_CONTACT_POINTS = 4048;
+
+	// keep these static so we don't have to recreate them every time
+	public final static ContactPoint[] points = new ContactPoint[MAX_CONTACT_POINTS];
+	static {
+		for (int i = 0; i < MAX_CONTACT_POINTS; i++) {
+			points[i] = new ContactPoint();
+		}
+	}
 
 	private World world;
 	private Body groundBody;
 
 	private final Vec2 mouseWorld = new Vec2();
+	private int pointCount;
 
 	private GameModel model;
 
 	private String configName = "HelloWorld";//TODO:Testing
 
-	private Vec2 defaultCameraPos = new Vec2(0, 0);
+	private Vec2 defaultCameraPos = new Vec2(-40, 40);
 	private float defaultCameraScale = 10;
 	private float cachedCameraScale;
 	private final Vec2 cachedCameraPos = new Vec2();
@@ -78,8 +100,10 @@ public class Config {
 	}
 
 	public void init(World world){
+		pointCount = 0;
+		world.setContactListener(this);
 		world.setDebugDraw(model.getGamePanelRenderer());
-
+		
 		if(hasCachedCamera){
 			setCamera(cachedCameraPos, cachedCameraScale);
 		}else{
@@ -96,56 +120,77 @@ public class Config {
 	public void initConfig(){
 		setConfigName("HelloWorld");
 
-		getWorld().setGravity(new Vec2());
+		{
+			BodyDef bd = new BodyDef();
+			Body ground = getWorld().createBody(bd);
 
-		for (int i = 0; i < 2; i++) {
-			PolygonShape polygonShape = new PolygonShape();
-			polygonShape.setAsBox(1, 1);
+			EdgeShape shape = new EdgeShape();
+			shape.set(new Vec2(-40.0f, 0.0f), new Vec2(40.0f, 0.0f));
+			ground.createFixture(shape, 0.0f);
+		}
 
-			BodyDef bodyDef = new BodyDef();
-			bodyDef.type = BodyType.DYNAMIC;
-			bodyDef.position.set(5 * i, 0);
-			bodyDef.angle = (float) (Math.PI / 4 * i);
-			bodyDef.allowSleep = false;
-			Body body = getWorld().createBody(bodyDef);
-			body.createFixture(polygonShape, 5.0f);
+		{
+			CircleShape shape = new CircleShape();
+			shape.m_radius = 1.0f;
 
-			body.applyForce(new Vec2(-10000 * (i - 1), 0), new Vec2());
+			FixtureDef fd = new FixtureDef();
+			fd.shape = shape;
+			fd.density = 1.0f;
+
+			float restitution[] = {0.0f, 0.1f, 0.3f, 0.5f, 0.75f, 0.9f, 1.0f};
+
+			for (int i = 0; i < 7; ++i) {
+				BodyDef bd = new BodyDef();
+				bd.type = BodyType.DYNAMIC;
+				bd.position.set(-10.0f + 3.0f * i, 20.0f);
+
+				Body body = getWorld().createBody(bd);
+
+				fd.restitution = restitution[i];
+				body.createFixture(fd);
+			}
 		}
 	}
 
 	public void update() {
-    if (configName != null) {
-      model.getGamePanelRenderer().drawString(model.getPanelWidth() / 2, 15, configName, Color3f.WHITE);
-    }
-    
-    step();
+		if (configName != null) {
+			model.getGamePanelRenderer().drawString(model.getPanelWidth() / 2, 15, configName, Color3f.WHITE);
+		}
+
+		step();
 	}
 
-  public synchronized void step() {
-    float hz = 60;
-    float timeStep = hz > 0f ? 1f / hz : 0;
-    
-    world.setAllowSleep(true);
-    world.setWarmStarting(true);
-    world.setSubStepping(false);
-    world.setContinuousPhysics(true);
+	public synchronized void step() {
+		float hz = 60;
+		float timeStep = hz > 0f ? 1f / hz : 0;
 
-    world.step(timeStep, 8,3);
+    final DebugDraw debugDraw = model.getGamePanelRenderer();
+    //using int to act as binary number
+    //eg: 1= 0001 , 2 = 0010 , 4 = 0100...
+    int flags = 0;
+    flags += DebugDraw.e_shapeBit;
+    flags += DebugDraw.e_jointBit;
+    debugDraw.setFlags(flags);
 
-    world.drawDebugData();
+		world.setAllowSleep(true);
+		world.setWarmStarting(true);
+		world.setSubStepping(false);
+		world.setContinuousPhysics(true);
 
-  }
+		world.step(timeStep, 8,3);
 
-  /**
-   * Gets the ground body of the world, used for some joints
-   * 
-   * @return
-   */
-  public Body getGroundBody() {
-    return groundBody;
-  }
-	
+		world.drawDebugData();
+	}
+
+	/**
+	 * Gets the ground body of the world, used for some joints
+	 * 
+	 * @return
+	 */
+	public Body getGroundBody() {
+		return groundBody;
+	}
+
 	/**
 	 * Sets the name of the config
 	 *
@@ -270,6 +315,56 @@ public class Config {
 		}else{
 			return false;
 		}
+	}
+
+	@Override
+	public void beginContact(Contact contact) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void endContact(Contact contact) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private final PointState[] state1 = new PointState[Settings.maxManifoldPoints];
+	private final PointState[] state2 = new PointState[Settings.maxManifoldPoints];
+	private final WorldManifold worldManifold = new WorldManifold();
+
+	@Override
+	public void preSolve(Contact contact, Manifold oldManifold) {
+		Manifold manifold = contact.getManifold();
+
+		if (manifold.pointCount == 0) {
+			return;
+		}
+
+		Fixture fixtureA = contact.getFixtureA();
+		Fixture fixtureB = contact.getFixtureB();
+
+		Collision.getPointStates(state1, state2, oldManifold, manifold);
+
+		contact.getWorldManifold(worldManifold);
+
+		for (int i = 0; i < manifold.pointCount && pointCount < MAX_CONTACT_POINTS; i++) {
+			ContactPoint cp = points[pointCount];
+			cp.fixtureA = fixtureA;
+			cp.fixtureB = fixtureB;
+			cp.position.set(worldManifold.points[i]);
+			cp.normal.set(worldManifold.normal);
+			cp.state = state2[i];
+			cp.normalImpulse = manifold.points[i].normalImpulse;
+			cp.tangentImpulse = manifold.points[i].tangentImpulse;
+			++pointCount;
+		}
+	}
+
+	@Override
+	public void postSolve(Contact contact, ContactImpulse impulse) {
+		// TODO Auto-generated method stub
+
 	}
 
 

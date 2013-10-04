@@ -8,6 +8,8 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
+import utility.Log;
+
 /**
  * The Blockadia frame. Contains all stuff. Make sure you in the GameMain.java call 
  * {@link #setVisible(boolean)} and
