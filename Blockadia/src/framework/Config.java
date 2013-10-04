@@ -22,7 +22,7 @@ public class Config {
 
 	public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
 	public final static String DEFAULT_GAME_SCHEMA ="src/system/gb_level.xsd";	
-	public final static String DEFAULT_GAME_CONFIG ="Save/test123.xml";
+	public final static String DEFAULT_GAME_CONFIG ="save/test123.xml";
 	public static String loadedConfig = DEFAULT_GAME_CONFIG;
 
 	private Map<String, BlockShape> shapesMap;

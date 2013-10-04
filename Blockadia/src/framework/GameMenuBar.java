@@ -19,8 +19,8 @@ import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import utility.SaveFileManager;
-import utility.XMLWriter;
+import xmlParsers.SaveFileManager;
+import xmlParsers.BlockShapeXMLWriter;
 
 /**
  * The menu bar on top
@@ -168,7 +168,7 @@ public class GameMenuBar extends JMenuBar{
 						"New", JOptionPane.QUESTION_MESSAGE);
 				if (name != null) {
 					if (name.length() > 0) {
-						GameSidePanel.updateName(name);
+						GameSidePanel.setGameName(name);
 					}
 					else {
 						JOptionPane.showMessageDialog(
@@ -192,7 +192,7 @@ public class GameMenuBar extends JMenuBar{
 		saveItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Save");
-				// TODO
+				SaveFileManager.save();
 			}
 		});
 
@@ -200,11 +200,7 @@ public class GameMenuBar extends JMenuBar{
 		saveAsItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Save As...");
-				/*if(animationWindow.getMode()==true){
-//stop the game if it is running
-animationWindow.setMode(false);
-}*/
-				//Configuration.loadedConfig = null;
+				Config.loadedConfig = null;
 				SaveFileManager.save();
 			}
 		});

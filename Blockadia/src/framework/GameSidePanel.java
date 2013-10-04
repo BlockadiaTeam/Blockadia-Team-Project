@@ -405,10 +405,13 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		}
 	}
 
-	public static void updateName(String name){
+	public static void setGameName(String name){
 		gameName.setText(name);
 	}
-
+	
+	public static String getGameName(){
+		return gameName.getText();
+	}
 
 	public void actionPerformed(ActionEvent e) {
 		previewPanel.UpdatePreviewPanel((BlockShape)(components.getSelectedItem()));

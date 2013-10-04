@@ -8,7 +8,7 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
-import utility.SaveFileManager;
+import xmlParsers.SaveFileManager;
 
 /**
  * The Blockadia frame. Contains all stuff. Make sure you in the GameMain.java call
