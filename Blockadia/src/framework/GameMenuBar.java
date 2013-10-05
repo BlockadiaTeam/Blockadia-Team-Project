@@ -37,6 +37,8 @@ public class GameMenuBar extends JMenuBar{
 	final JMenu settingsMenu = new JMenu("Settings ");
 	final JMenu helpMenu =	new JMenu("Help ");
 	final JFrame frame = new JFrame();
+	private Config config;
+	private GameSidePanel gameSidePanel;
 	SaveFileManager save;
 	JMenuItem newItem;
 	JMenuItem openItem;
@@ -48,8 +50,10 @@ public class GameMenuBar extends JMenuBar{
 	JMenuItem creditItem;
 
 
-	public GameMenuBar(Config config){
+	public GameMenuBar(Config config, GameSidePanel gameSidePanel){
 		setPreferredSize(new Dimension(GamePanel.DEFAULT_WIDTH, 22));
+		this.config = config;
+		this.gameSidePanel = gameSidePanel;
 		save = new SaveFileManager(config);
 		initComponents();
 		addListeners();
@@ -169,6 +173,9 @@ public class GameMenuBar extends JMenuBar{
 				if (name != null) {
 					if (name.length() > 0) {
 						GameSidePanel.setGameName(name);
+						//TODO: 
+						//config = new Config();
+						//gameSidePanel.updateComboBox();
 					}
 					else {
 						JOptionPane.showMessageDialog(
@@ -201,7 +208,7 @@ public class GameMenuBar extends JMenuBar{
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Save As...");
 				Config.loadedConfig = null;
-				SaveFileManager.save();
+				SaveFileManager.saveAs();
 			}
 		});
 

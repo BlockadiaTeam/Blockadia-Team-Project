@@ -2,15 +2,12 @@ package xmlParsers;
 
 import java.awt.Frame;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map.Entry;
 
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import components.BlockShape;
-
 
 import framework.Config;
 import framework.GameSidePanel;
@@ -26,34 +23,56 @@ public class SaveFileManager {
 	private static Config configs;
 	private static JFileChooser fc;
 	private static Frame frame;
+	private static int saveState;
+	private static String path;
 
 	public SaveFileManager(Config configs){
 		this.configs = configs;
-		fc = new JFileChooser();
+		saveState = 0;
+		fc = new JFileChooser("");
 	}
 
-	public static void save(){
+	public static void saveAs(){
 
 		if(Config.loadedConfig == null){
 			// set default directory
 			fc.setCurrentDirectory(new File("./save/"));	
 
 			// show Save window
-			int returnVal = fc.showSaveDialog(null);
-			if (returnVal == JFileChooser.APPROVE_OPTION) { // SAVE button
-				System.out.println("getSelectedFile() : " + fc.getSelectedFile());
+			File defaultName = new File(GameSidePanel.getGameName());
+			fc.setSelectedFile(defaultName);
+			int returnVal = fc.showSaveDialog(frame);
+
+			if (returnVal == JFileChooser.APPROVE_OPTION) { 
+	
+				//System.out.println("getSelectedFile() : " + fc.getSelectedFile() + "    exist: " + fc.getSelectedFile().exists());
 
 				// Create a new folder for the game
 				File mainFolder = new File(fc.getSelectedFile().toString());
 				mainFolder.mkdir();
+				
+				// Create folder for Game Board
+				String boardDir = fc.getSelectedFile() + "/Game Board/";
+				File boardFolder = new File(boardDir);
+				boardFolder.mkdir();
+				// TODO: Add save function for board
+				
+				//Create folder for Settings
+				String settingsDir = fc.getSelectedFile() + "/Settings/";
+				File settingsFolder = new File(settingsDir);
+				settingsFolder.mkdir(); 
+			  // TODO: Add save function for settings
 
-				//gameName = GameSidePanel.getGameName()  //this will be the placeholder
-
-				//Create folder for BlockShapes
+				// Create folder for BlockShapes
 				String blockShapesDir = fc.getSelectedFile() + "/BlockShapes/";
 				File blockShapesFolder = new File(blockShapesDir);
 				blockShapesFolder.mkdir();
-				saveShapes(blockShapesDir);
+				// Save shapes in the BlockShapes folder
+				saveShapes(blockShapesDir); 
+				
+				// Update state
+				path = fc.getSelectedFile().toString();
+				saveState = 1;
 
 			} else {
 				System.out.println("Cancelled");
@@ -62,7 +81,86 @@ public class SaveFileManager {
 
 		}
 	}
+	
+	public static void save(){
+		
+		if (saveState == 0) {
+			Config.loadedConfig = null;
+			saveAs();
+		}
+		else {
 
+			File game = new File(path);
+
+			System.out.println(game.toString());
+			
+			// Delete existing game from file
+			if(!game.exists()){
+				System.out.println("Game does not exist.");
+			}else{
+				try{
+					delete(game);
+				}catch(IOException e){
+					System.out.println("Unable to delete game due to an unknown error.");
+				}
+			}
+			
+			// Update Game
+			// Create a new folder for the game
+			File mainFolder = new File(game.toString());
+			mainFolder.mkdir();
+			
+			// Create folder for Game Board
+			String boardDir = game.toString() + "/Game Board/";
+			File boardFolder = new File(boardDir);
+			boardFolder.mkdir();
+			// TODO: Add save function for board
+			
+			//Create folder for Settings
+			String settingsDir = game.toString() + "/Settings/";
+			File settingsFolder = new File(settingsDir);
+			settingsFolder.mkdir(); 
+		  // TODO: Add save function for settings
+
+			// Create folder for BlockShapes
+			String blockShapesDir = game.toString() + "/BlockShapes/";
+			File blockShapesFolder = new File(blockShapesDir);
+			blockShapesFolder.mkdir();
+			// Save shapes in the BlockShapes folder
+			saveShapes(blockShapesDir); 
+		}
+
+	}
+	
+  private static void delete(File file) throws IOException{
+ 	 
+  	if(file.isDirectory()){
+  		//directory is empty, then delete it
+  		if(file.list().length==0){
+  		   file.delete();
+  		   //System.out.println("Directory is deleted : " + file.getAbsolutePath());
+  		}else{
+  		   //list all the directory contents
+      	   String files[] = file.list();
+      	   for (String temp : files) {
+      	      //construct the file structure
+      	      File fileDelete = new File(file, temp);
+      	      //recursive delete
+      	     delete(fileDelete);
+      	   }
+      	   //check the directory again, if empty then delete it
+      	   if(file.list().length==0){
+         	     file.delete();
+      	     //System.out.println("Directory is deleted : " + file.getAbsolutePath());
+      	   }
+  		}
+
+  	}else{
+  		//if file, then delete it
+  		file.delete();
+  		//System.out.println("File is deleted : " + file.getAbsolutePath());
+  	}
+  }
 		
 	public static void saveShapes(String dir){
 		for (Entry<String, BlockShape> shapes : configs.getGameShapesMap().entrySet()) {

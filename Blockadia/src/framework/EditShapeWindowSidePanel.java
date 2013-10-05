@@ -81,6 +81,7 @@ public class EditShapeWindowSidePanel extends JPanel{
 
 		resolution = new JComboBox<Vec2>(this.getComboModel());
 		resolution.setMaximumRowCount(30);
+		resolution.setSelectedItem(buildPanel.getGridResolution());
 		currentResolutionSelection = resolution.getSelectedIndex();
 		resolution.setBounds(10,80, 170, 25);
 		resolution.setRenderer(new ListCellRenderer<Vec2>(){
