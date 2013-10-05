@@ -12,8 +12,7 @@ import org.jbox2d.collision.Collision;
 import org.jbox2d.collision.Collision.PointState;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.WorldManifold;
-import org.jbox2d.collision.shapes.CircleShape;
-import org.jbox2d.collision.shapes.EdgeShape;
+import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Color3f;
 import org.jbox2d.common.Settings;
 import org.jbox2d.common.Vec2;
@@ -56,14 +55,14 @@ public class Config implements ContactListener{
 	private World world;
 	private Body groundBody;
 
-	private final Vec2 mouseWorld = new Vec2();
+	private final Vec2 mouseWorld = new Vec2(-30,30);//This is a temporary value
 	private int pointCount;
 
 	private GameModel model;
 
 	private String configName = "HelloWorld";//TODO:Testing
 
-	private Vec2 defaultCameraPos = new Vec2(-40, 40);
+	private Vec2 defaultCameraPos = new Vec2(-30,30);
 	private float defaultCameraScale = 10;
 	private float cachedCameraScale;
 	private final Vec2 cachedCameraPos = new Vec2();
@@ -118,39 +117,61 @@ public class Config implements ContactListener{
 	 * Initialize the game!
 	 * */
 	public void initConfig(){
-		setConfigName("HelloWorld");
+    { // Floor
+      FixtureDef fd = new FixtureDef();
+      PolygonShape sd = new PolygonShape();
+      sd.setAsBox(50.0f, 10.0f);
+      fd.shape = sd;
 
-		{
-			BodyDef bd = new BodyDef();
-			Body ground = getWorld().createBody(bd);
+      BodyDef bd = new BodyDef();
+      bd.position = new Vec2(0.0f, -10.0f);
+      getWorld().createBody(bd).createFixture(fd);
 
-			EdgeShape shape = new EdgeShape();
-			shape.set(new Vec2(-40.0f, 0.0f), new Vec2(40.0f, 0.0f));
-			ground.createFixture(shape, 0.0f);
-		}
+    }
 
-		{
-			CircleShape shape = new CircleShape();
-			shape.m_radius = 1.0f;
+    { // Platforms
+      for (int i = 0; i < 4; i++) {
+        FixtureDef fd = new FixtureDef();
+        PolygonShape sd = new PolygonShape();
+        sd.setAsBox(15.0f, 0.125f);
+        fd.shape = sd;
 
-			FixtureDef fd = new FixtureDef();
-			fd.shape = shape;
-			fd.density = 1.0f;
+        BodyDef bd = new BodyDef();
+        bd.position = new Vec2(0.0f, 5f + 5f * i);
+        getWorld().createBody(bd).createFixture(fd);
+      }
+    }
 
-			float restitution[] = {0.0f, 0.1f, 0.3f, 0.5f, 0.75f, 0.9f, 1.0f};
+    {
+      FixtureDef fd = new FixtureDef();
+      PolygonShape sd = new PolygonShape();
+      sd.setAsBox(0.125f, 2f);
+      fd.shape = sd;
+      fd.density = 25.0f;
 
-			for (int i = 0; i < 7; ++i) {
-				BodyDef bd = new BodyDef();
-				bd.type = BodyType.DYNAMIC;
-				bd.position.set(-10.0f + 3.0f * i, 20.0f);
+      BodyDef bd = new BodyDef();
+      bd.type = BodyType.DYNAMIC;
+      float friction = .5f;
+      int numPerRow = 25;
 
-				Body body = getWorld().createBody(bd);
-
-				fd.restitution = restitution[i];
-				body.createFixture(fd);
-			}
-		}
-	}
+      for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < numPerRow; j++) {
+          fd.friction = friction;
+          bd.position = new Vec2(-14.75f + j * (29.5f / (numPerRow - 1)), 7.3f + 5f * i);
+          if (i == 2 && j == 0) {
+            bd.angle = -0.1f;
+            bd.position.x += .1f;
+          } else if (i == 3 && j == numPerRow - 1) {
+            bd.angle = .1f;
+            bd.position.x -= .1f;
+          } else
+            bd.angle = 0f;
+          Body myBody = getWorld().createBody(bd);
+          myBody.createFixture(fd);
+        }
+      }
+    }
+  }
 
 	public void update() {
 		if (configName != null) {
@@ -161,6 +182,7 @@ public class Config implements ContactListener{
 	}
 
 	public synchronized void step() {
+
 		float hz = 60;
 		float timeStep = hz > 0f ? 1f / hz : 0;
 
@@ -176,9 +198,11 @@ public class Config implements ContactListener{
 		world.setWarmStarting(true);
 		world.setSubStepping(false);
 		world.setContinuousPhysics(true);
-
-		world.step(timeStep, 8,3);
-
+		
+		if(!model.pause){
+			world.step(timeStep, 8,3);
+		}
+	
 		world.drawDebugData();
 	}
 

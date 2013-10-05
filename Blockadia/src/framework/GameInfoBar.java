@@ -21,7 +21,8 @@ public class GameInfoBar extends JPanel {
 	private static JLabel info;
 	public GameInfoBar(){
 		setLayout(new BorderLayout());
-		setPreferredSize(new Dimension(GamePanel.DEFAULT_WIDTH + GameSidePanel.SIDE_PANEL_WIDTH,20));
+		//setPreferredSize(new Dimension(GamePanel.DEFAULT_WIDTH + GameSidePanel.SIDE_PANEL_WIDTH,20));
+		this.setBounds(0,GamePanel.DEFAULT_HEIGHT,GamePanel.DEFAULT_WIDTH + GameSidePanel.SIDE_PANEL_WIDTH,20);
 		JLabel space = new JLabel(" ");
 		space.setPreferredSize(new Dimension(10,20));
 		add(space,BorderLayout.WEST);

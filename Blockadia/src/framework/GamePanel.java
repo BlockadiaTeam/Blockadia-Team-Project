@@ -56,6 +56,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 		this.model = argModel;
     updateSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+    //setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 
     addMouseWheelListener(new MouseWheelListener() {
 
@@ -78,13 +79,10 @@ public class GamePanel extends JPanel implements IGamePanel{
 				if(notches < 0){
           trans.mulByTransform(upScale);
           currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_IN_SCALE);
-					System.out.println("Zoom in "+ Math.abs(notches)+ " time");
 				}else if(notches > 0){
           trans.mulByTransform(downScale);
           currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_OUT_SCALE);
-					System.out.println("Zoom out "+ Math.abs(notches)+ " time");
 				}
-
         d.getScreenToWorldToOut(model.getMouse(), newCenter);
         Vec2 transformedMove = oldCenter.subLocal(newCenter);
         d.getViewportTranform().setCenter(
@@ -145,7 +143,7 @@ public class GamePanel extends JPanel implements IGamePanel{
       g = (Graphics2D) gImage.getGraphics();
     }
     g.setColor(Color.black);
-    g.fillRect(0, 0, panelWidth, panelHeight);
+    g.fillRect(0, 0, this.getWidth(),  this.getHeight());
     return true;
 	}
 
@@ -153,9 +151,8 @@ public class GamePanel extends JPanel implements IGamePanel{
 	public void paintScreen() {
     try {
       Graphics graphics = this.getGraphics();
-      graphics.fillRect(100,100, 50, 50);
       if ((graphics != null) && gImage != null) {
-        graphics.drawImage(gImage, 0, 0, null);
+        graphics.drawImage(gImage, 0, 0, null);  
         Toolkit.getDefaultToolkit().sync();
         graphics.dispose();
       }

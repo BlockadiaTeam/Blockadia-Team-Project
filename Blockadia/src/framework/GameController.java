@@ -31,13 +31,12 @@ public class GameController implements Runnable{
 		this.panel = panel;
 		setFPS(DEFAULT_FPS);
 		animator = new Thread(this,"Blockadia Thread 1");
-		//by default, the game is in game mode:
+    loopInit();
 		addListeners();
 	}
 
 	private void addListeners(){
-		//TODO: add run-time listeners to the panel
-
+		
 	}
 
 	protected void loopInit() {
@@ -59,7 +58,7 @@ public class GameController implements Runnable{
 	public void resetTest(){//TODO
 		// model.getCurrGameConfig().reset();
 	}
-
+	
 	public boolean isRunning() {
 		return running;
 	}
@@ -102,7 +101,7 @@ public class GameController implements Runnable{
     sleepTime = 0;
 
     running = true;
-    loopInit();
+    //loopInit();
     while (running) {
 
       /*if (nextTest != null) {

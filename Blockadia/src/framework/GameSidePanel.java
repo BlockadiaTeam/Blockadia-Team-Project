@@ -70,7 +70,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		this.frame = frame;
 		this.model = model;
 		this.controller = controller;
-		setPreferredSize(new Dimension(SIDE_PANEL_WIDTH, GamePanel.DEFAULT_HEIGHT));
+		setPreferredSize(new Dimension(SIDE_PANEL_WIDTH, GamePanel.DEFAULT_HEIGHT-50));
+		
 		initComponents();
 		addListeners();
 	}
@@ -227,8 +228,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.", 
 								"res/side/Game.png", new Rectangle(0,0,60,50));
-						//1st: stop the game if it is running
+						//1st: stop the game if it is running//TODO
 						model.pause = true;
+						controller.loopInit();
 						//2nd: reset the looks of playPauseButton
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
 								"res/side/Play.png", new Rectangle(0,0,25,25));
@@ -245,9 +247,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 		playPauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO
 				if (model.pause) {
-					model.pause = false; //start running
+					model.pause=false; //start running
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Stop", "Click to pause the game.", 
 								"res/side/Stop.png", new Rectangle(0,0,25,25));
@@ -255,7 +256,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 						System.out.println(e1);
 					}
 				} else {
-					model.pause = true; //stop running
+					model.pause=true;; //stop running
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, "  Play", "Click to start the game.", 
 								"res/side/Play.png", new Rectangle(0,0,25,25));
@@ -269,7 +270,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 		resetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO
+				controller.loopInit();
 			}
 		});
 

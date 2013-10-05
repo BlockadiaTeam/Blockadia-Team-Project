@@ -29,30 +29,28 @@ public class GameFrame  extends JFrame {
 	private GameSidePanel side;
 	private GameModel model;
 	private GameController controller;
-	private IGamePanel panel;
 
 	public GameFrame(final GameModel argModel, final IGamePanel argPanel) {
 		super("Blockadia");
 		setLayout(new BorderLayout());
 
 		model = argModel;
-		panel = argPanel;
-		model.setGamePanelRenderer(panel.getGamePanelRenderer());
+		model.setGamePanelRenderer(argPanel.getGamePanelRenderer());
 
 		menu = new GameMenuBar();//TODO: rework on the GameMenuBar constructor
 		setJMenuBar(menu);
 		infoBar = new GameInfoBar();
 		add(infoBar,"South");
 
-		controller = new GameController(model,panel);
+		controller = new GameController(model,argPanel);
 		side = new GameSidePanel(this,model,controller);
-		add((Component) panel, "Center");
+		add((Component) argPanel, "Center");
 		add(new JScrollPane(side),"East");
+		setResizable(false);
 		pack();
 
 		//controller.playTest(0);
 		//The game is running on start-up
 		controller.start();
-
 	}
 }
