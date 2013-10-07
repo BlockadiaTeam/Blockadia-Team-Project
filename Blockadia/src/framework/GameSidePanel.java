@@ -6,11 +6,13 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EtchedBorder;
@@ -51,12 +54,27 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private JButton modeButton = new JButton("Game");
 	private JButton playPauseButton = new JButton("Play");
 	private JButton resetButton = new JButton("Reset");
+	private JRadioButton noSpeed = new JRadioButton("No");
+	private JRadioButton speed = new JRadioButton("Yes");
+	private JRadioButton noForce = new JRadioButton("No");
+	private JRadioButton force = new JRadioButton("Yes");
+	
 	private JButton addButton = new JButton("Add");
 	private JButton deleteButton = new JButton("Delete");
 	private JButton newButton = new JButton("New");
 	private JButton editButton = new JButton("Edit");
-	private JLabel gameNameLabel = new JLabel();
+	private JButton newGameButton = new JButton("New Game");
+	private JLabel chooseAShape = new JLabel("Choose a Shape:");
+	private JLabel gameNameLabel = new JLabel("Current Game:");
+	private JLabel score = new JLabel("Score:");
+	private JLabel lives = new JLabel("Lives:");
+	private JLabel initialSpeed = new JLabel("Set Initial Speed?");
+	private JLabel initialForce = new JLabel("Set Initial Force?");
+	private TextField scoreBox  = new TextField();;
 	private JPanel optionPanel = new JPanel();
+	private JPanel borderPanel = new JPanel();
+	private JPanel buttonPanel = new JPanel();
+	private JPanel speedPanel = new JPanel();
 	private static TextFieldWithPlaceHolder gameName;
 	private PreviewPanel previewPanel;
 	public static boolean test =true; // TODO:DELETE LATER
@@ -64,6 +82,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private NewShapeWindow newWindow;
 	private EditShapeWindow editWindow;
 	public JComboBox<BlockShape> components;
+	private boolean expand = false;
 
 	public GameSidePanel(GameFrame frame, GameModel model, GameController controller){
 		this.frame = frame;
@@ -78,6 +97,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 		setLayout(null);
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    initControlPanel();
+    initOptionPanel();
+
+	}
+	
+	public void initControlPanel() {
 
 		//top panel: control panel
 		JPanel controlPanel = new JPanel();
@@ -126,18 +151,20 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		buttonGroups.add(buttons2);
 		controlPanel.add(buttonGroups);
 		add(controlPanel);
+		
+	}
 
+	public void initOptionPanel() {
 		//center panel: option panel
 		optionPanel.setLayout(null);
 		optionPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
 				BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		optionPanel.setBounds(5,105,230,345);
-		optionPanel.setPreferredSize(new Dimension(200,500));
+		optionPanel.setPreferredSize(new Dimension(200,450));
 		JScrollPane scroll = new JScrollPane(optionPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);	//Set the vertical scroll sensitivity
-		scroll.setBounds(5,110,130,190);
-		gameNameLabel = new JLabel("Current Game:");
+		scroll.setBounds(5,110,230,190);
 		gameName = new TextFieldWithPlaceHolder("Placeholder Game Name");
 		gameName.setColumns(10);
 		gameName.setEditable(false);
@@ -148,8 +175,46 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		gameNameLabel.setLabelFor(gameName);
 		optionPanel.add(gameNameLabel);
 		optionPanel.add(gameName);
+		
+		score.setBounds(10,90,180,20);
+		optionPanel.add(score);
+		
+		lives.setBounds(10,145,150,20);
+		optionPanel.add(lives);
+		
+		initialSpeed.setBounds(10,325,180,20);
+		noSpeed.setBounds(10,345,180,20);
+		speed.setBounds(10,365,180,20);
+		noSpeed.setSelected(true);
+		ButtonGroup speedGroup = new ButtonGroup();
+		speedGroup.add(noSpeed);
+		speedGroup.add(speed);
+		optionPanel.add(initialSpeed);
+		optionPanel.add(noSpeed);
+		optionPanel.add(speed);
+		initialSpeed.setVisible(false);
+		speed.setVisible(false);
+		noSpeed.setVisible(false);
+		
+		initialForce.setBounds(10,390,180,20);
+		noForce.setBounds(10,410,180,20);
+		force.setBounds(10,430,180,20);
+		noForce.setSelected(true);
+		ButtonGroup ForceGroup = new ButtonGroup();
+		ForceGroup.add(noForce);
+		ForceGroup.add(force);
+		optionPanel.add(initialForce);
+		optionPanel.add(noForce);
+		optionPanel.add(force);
+		initialForce.setVisible(false);
+		force.setVisible(false);
+		noForce.setVisible(false);
 
-		JLabel chooseAShape =new JLabel("Choose a Shape:");
+		scoreBox.setFocusable(false);
+		scoreBox.setEditable(false);
+		scoreBox.setBounds(10, 115, 188, 20);
+	  optionPanel.add(scoreBox);
+
 		chooseAShape.setBounds(10,50,210,20);
 		components = new JComboBox<BlockShape>(model.getComboModel());
 		components.setMaximumRowCount(30);
@@ -179,14 +244,19 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				return shapeLabel;
 			}
 		});
+		
+		
+		newGameButton.setBounds(10,60,187,25);
+		optionPanel.add(newGameButton);
+		newGameButton.setVisible(false);
+		
 		addButton = new JButton("Add");
 		addButton.setToolTipText("Click to add the selected block shape into the game board");
 		addButton.setBounds(140,70,65,25);
 		optionPanel.add(chooseAShape);
 		optionPanel.add(components);
 		optionPanel.add(addButton);
-
-		JPanel buttonPanel = new JPanel();
+		
 		buttonPanel.setLayout(new GridLayout(0,3));
 		buttonPanel.setBounds(10,97,195,25);
 		buttonPanel.add(newButton);
@@ -195,16 +265,47 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		optionPanel.add(buttonPanel);
 
 		previewPanel = new PreviewPanel((BlockShape)(components.getSelectedItem()));
-		JPanel borderPanel = new JPanel();
 		borderPanel.setLayout(new BorderLayout());
 		borderPanel.setBackground(BlockShape.DEFAULT_COLOR);
 		borderPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		borderPanel.setBounds(10, 125, 190, 190);
 		borderPanel.add(previewPanel);	
 		optionPanel.add(borderPanel);
+		
+		speedPanel.setBounds(10, 395, 190, 190);
+		speedPanel.setLayout(new BorderLayout());
+		speedPanel.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
+				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+		optionPanel.add(speedPanel);
+		speedPanel.setVisible(false);
+		
 
 		add(scroll);
-		scroll.setSize(230,345);
+		scroll.setSize(230,495);
+		setOptionPanelMode(false);
+	}
+	
+	private void setOptionPanelMode(boolean mode) {
+		
+			chooseAShape.setVisible(mode);
+			components.setVisible(mode);
+			addButton.setVisible(mode);
+			buttonPanel.setVisible(mode);
+			previewPanel.setVisible(mode);
+			borderPanel.setVisible(mode);
+			initialSpeed.setVisible(mode);
+			initialForce.setVisible(mode);
+			speed.setVisible(mode);
+			noSpeed.setVisible(mode);
+			speedPanel.setVisible(mode && expand);
+			noForce.setVisible(mode);
+			force.setVisible(mode);
+			newGameButton.setVisible(!mode);
+			score.setVisible(!mode);
+			scoreBox.setVisible(!mode);
+			lives.setVisible(!mode);
+			repaint();
+			
 	}
 
 
@@ -216,13 +317,15 @@ public class GameSidePanel extends JPanel implements ActionListener{
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.",
 								"res/side/Build.png", new Rectangle(0,0,60, 50));
+						setOptionPanelMode(test);
 						playPauseButton.setEnabled(true);
-						resetButton.setEnabled(true);
+						resetButton.setEnabled(true);				
+						optionPanel.setPreferredSize(new Dimension(200,450));
+						GameInfoBar.updateInfo("Mode: Game");
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
-
-					test=true;
+					test = true;
 				}else{
 					try {
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.",
@@ -233,11 +336,13 @@ public class GameSidePanel extends JPanel implements ActionListener{
 								"res/side/Play.png", new Rectangle(0,0,25,25));
 						playPauseButton.setEnabled(false);
 						resetButton.setEnabled(false);
+						setOptionPanelMode(test);
+						optionPanel.setPreferredSize(new Dimension(200,800));
+						GameInfoBar.updateInfo("Mode: Build");
 					} catch (Exception e1) {
 						System.out.println(e1);
 					}
-
-					test=false;
+					test = false;
 				}
 			}
 		});
@@ -271,7 +376,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		resetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//TODO
-			}
+				}
 		});
 
 		newButton.addActionListener(new ActionListener() {
@@ -289,6 +394,26 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		deleteButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				deleteShape((BlockShape)(components.getSelectedItem()), ((BlockShape)(components.getSelectedItem())).getShapeName(), model);
+			}
+		});
+		
+		speed.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				speedPanel.setVisible(true);
+				initialForce.setBounds(10,590,180,20);
+				noForce.setBounds(10,610,180,20);
+				force.setBounds(10,630,180,20);
+				expand = true;
+			}
+		});
+		
+		noSpeed.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				speedPanel.setVisible(false);
+				initialForce.setBounds(10,390,180,20);
+				noForce.setBounds(10,410,180,20);
+				force.setBounds(10,430,180,20);
+				expand = false;
 			}
 		});
 
