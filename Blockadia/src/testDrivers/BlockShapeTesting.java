@@ -9,6 +9,7 @@ import org.jbox2d.common.Vec2;
 import utility.ElementPos;
 import utility.Log;
 
+import components.Block;
 import components.BlockShape;
 
 public class BlockShapeTesting {
@@ -171,6 +172,10 @@ public class BlockShapeTesting {
 		shape1.setShape(shape_1);
 		shape2.setShape(shape_2);
 		Log.print("2 shapes with same map size, same mapping keys, different values: "+ shape1.equals(shape2));
+		
+		shape1 = new BlockShape();
+		Block shape3 = new Block();
+		Log.print("2 shapes with different type(One block one blockShape): "+ shape1.equals(shape3));
 		
 		Log.print("");
 

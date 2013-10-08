@@ -9,7 +9,7 @@ package utility;
 public class Setting {
 
 	public static enum SettingType{
-		
+		ENGINE,DRAWING,CONTROLL;
 	}
 	
   /**

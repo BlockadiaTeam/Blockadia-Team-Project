@@ -6,6 +6,8 @@ import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Vec2;
 
 import components.BlockShape;
+import components.BuildConfig;
+import components.GameConfig;
 
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
@@ -20,6 +22,8 @@ public class GameModel {
 	private final DefaultComboBoxModel<BlockShape> components = new DefaultComboBoxModel<BlockShape>();
 
 	private DebugDraw gamePanelRenderer;
+	private BuildConfig buildConfig;
+	private GameConfig gameConfig;
 	private Config config;
 	private Config runningConfig;
 	private final Vec2 mouse = new Vec2();
@@ -31,6 +35,8 @@ public class GameModel {
 
 	public GameModel(){	
 		//TODO: testing
+		buildConfig = new BuildConfig();
+		gameConfig = new GameConfig();
 		config = new Config();
 		populateBlockShapes();
 	}
@@ -43,6 +49,22 @@ public class GameModel {
 		this.config = config;
 	}
 
+	public BuildConfig getBuildConfig() {
+		return buildConfig;
+	}
+
+	public void setBuildConfig(BuildConfig buildConfig) {
+		this.buildConfig = buildConfig;
+	}
+
+	public GameConfig getGameConfig() {
+		return gameConfig;
+	}
+
+	public void setGameConfig(GameConfig gameConfig) {
+		this.gameConfig = gameConfig;
+	}
+	
 	public Vec2 getMouse(){
 		return this.mouse;
 	}
@@ -130,5 +152,4 @@ public class GameModel {
 			throw new ElementExistsException(e.getMessage());
 		}
 	}
-
 }

@@ -44,7 +44,7 @@ public class BlockShape {
 	/**Resolution decides how big each element in the block shape is when it is painted in
 	 * previewPanel and otherWindow*/
 	public void setResolution(final Vec2 resolution){
-		this.resolution = resolution;
+		this.resolution = resolution.clone();
 	}
 
 	public Vec2 getResolution(){
@@ -60,7 +60,8 @@ public class BlockShape {
 	}
 
 	public void setShape(final Map<ElementPos,Color> shape){
-		this.shape = shape;
+		this.shape =  new HashMap<ElementPos,Color>();
+		this.shape.putAll(shape);
 	}
 
 	public Map<ElementPos,Color> getShape(){
@@ -115,8 +116,9 @@ public class BlockShape {
 	public boolean equals(Object otherShape){
 		if (otherShape == null) return false;
 		if (otherShape == this) return true;
+		//Note: a blockShape can be same as a block(its subclass)
+		//as long as otherShape object has same fields are same as this one
 		if (!(otherShape instanceof BlockShape))return false;
-		if(getClass() != otherShape.getClass()) return false;
 
 		BlockShape anotherShape = (BlockShape)otherShape;
 		//compare the name of the shape object
@@ -159,6 +161,19 @@ public class BlockShape {
 		BlockShape newShape = new BlockShape(this.blockShapeName,this.shape);
 		newShape.setResolution(this.resolution);
 		return newShape;
+	}
+	
+	/**
+	 * This method returns a copy of this class as a Block type
+	 * This is for downward compatibility. I don't wanna change a bunch of things in NewShapeWindow....etc.
+	 * Probably should plan earlier next time :PPP*/
+	public Block cloneToBlock(){
+		Block block = new Block();
+		
+		block.setShape(this.getShape());
+		block.setResolution(this.getResolution());
+		block.setShapeName(this.getShapeName());
+		return block;
 	}
 }
 
