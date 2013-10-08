@@ -241,7 +241,6 @@ public class EditShapeWindowSidePanel extends JPanel{
 
 								//3. save the painted shape
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								editShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(
 										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
@@ -322,7 +321,6 @@ public class EditShapeWindowSidePanel extends JPanel{
 
 								//3. save the painted shape
 								editShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								editShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(
 										editShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",

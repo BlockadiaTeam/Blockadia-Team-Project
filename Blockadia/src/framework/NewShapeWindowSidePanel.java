@@ -222,7 +222,6 @@ public class NewShapeWindowSidePanel extends JPanel{
 								buildPanel.getPaintedShape().setShapeName(shapeName);
 								
 								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								newShapeWindow.getParentPanel().updateComboBox();
 
 								JOptionPane.showMessageDialog(
 										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
@@ -278,7 +277,6 @@ public class NewShapeWindowSidePanel extends JPanel{
 								buildPanel.getPaintedShape().setShapeName(shapeName);
 								
 								newShapeWindow.model.attachShapeToGame(buildPanel.getPaintedShape());
-								newShapeWindow.getParentPanel().updateComboBox();
 								JOptionPane.showMessageDialog(
 										newShapeWindow, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",
