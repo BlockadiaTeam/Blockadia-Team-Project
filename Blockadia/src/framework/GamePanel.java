@@ -105,6 +105,10 @@ public class GamePanel extends JPanel implements IGamePanel{
       public void mouseDragged(MouseEvent e) {
       	//TODO
       }
+      
+      public void mouseMoved(MouseEvent e) {
+      	
+      }
     });
     
 	}

@@ -22,9 +22,9 @@ public class Block extends BlockShape{
 
 	private final BlockSettings settings;
 	private String blockName;
-	private Vec2 sizeInWorld;																				//sizeInWorld = sizeOnScreen*cachedCameraScale
+	private Vec2 sizeInWorld;																				
 	//private Vec2 sizeOnScreen;																			//sizeOnScreen can be set
-	private Vec2 posInWorld;																				//posInWorld might need to use ViewportTransform
+	private Vec2 posInWorld;																				//Note: center point of the block,not topleft
 	//private Vec2 posOnScreen;																				//posOnScreen can be set
 	
 	public Block(){
@@ -69,6 +69,7 @@ public class Block extends BlockShape{
 		this.sizeInWorld = sizeInWorld;
 	}
 
+	/**return PosInWorld which is the center point of the block,NOT topleft*/
 	public Vec2 getPosInWorld() {
 		return posInWorld;
 	}
@@ -89,12 +90,17 @@ public class Block extends BlockShape{
 		return true;
 	}
 	
-	/**This method returns the smallest outside bounding box of the entire block.
+	/**This method returns the outside bounding box of the entire block.
 	 * The bounding box is decided by the blockShape*/
 	public AABB bigBoundingBox(){
-		
+		Vec2 lowerBound = new Vec2(posInWorld.x-(sizeInWorld.x/2),posInWorld.y-(sizeInWorld.y/2));
+		Vec2 upperBound = new Vec2(posInWorld.x+(sizeInWorld.x/2),posInWorld.y+(sizeInWorld.y/2));
+		return new AABB(lowerBound,upperBound);
 	}
 	
+	public List<AABB> smallBoundingBoxes(){
+		
+	}
 	/**This method puts this block into the world (It assumes the ground is created)
 	 * Before calling this method, you need to check the following things are set:
 	 * 1. the block name

@@ -7,8 +7,8 @@ public class ElementPos{
 	public static final int INITIAL_COL_NUM = 0;
 	public static final int INITIAL_ROW_NUM = 0;
 
-	public int row;
-	public int col;
+	public Integer row;
+	public Integer col;
 
 	public ElementPos(){
 		this(INITIAL_ROW_NUM,INITIAL_COL_NUM);

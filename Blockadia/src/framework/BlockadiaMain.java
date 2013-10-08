@@ -5,8 +5,6 @@ import interfaces.IGamePanel;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import utility.Log;
-
 /**
  * The start point of Blockadia
  * 
