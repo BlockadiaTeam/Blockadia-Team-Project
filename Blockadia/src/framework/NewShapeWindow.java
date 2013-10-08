@@ -73,7 +73,6 @@ public class NewShapeWindow extends JDialog {
 								buildPanel.getPaintedShape().setShapeName(shapeName);
 								
 								NewShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
-								parent.updateComboBox();
 								JOptionPane.showMessageDialog(
 										NewShapeWindow.this, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",

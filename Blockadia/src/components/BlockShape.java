@@ -20,9 +20,11 @@ public class BlockShape {
 	public static final Vec2 DEFAULT_RESOLUTION = new Vec2(3,3);
 	public static final Color DEFAULT_COLOR = Color.BLACK;
 
-	private String blockShapeName;
-	private Map<ElementPos,Color> shape;								
-	private Vec2 resolution;
+	protected String blockShapeName;
+	protected Map<ElementPos,Color> shape;								
+	protected Vec2 resolution = DEFAULT_RESOLUTION;
+	protected ElementPos lowerBoundElement= new ElementPos(0,(int)this.resolution.y);				//Bottom left corner
+	protected ElementPos upperBoundElement= new ElementPos((int)this.resolution.x,0);				//top right corner
 
 	private static final Map<ElementPos,Color> DEFAULT_SHAPE = new HashMap<ElementPos,Color>();
 
@@ -38,6 +40,12 @@ public class BlockShape {
 		this.blockShapeName = shapeName;
 		this.shape =  new HashMap<ElementPos,Color>();
 		this.shape.putAll(shape);
+		for(ElementPos pos: this.shape.keySet()){
+			if(pos.row >= lowerBoundElement.row) lowerBoundElement.row = pos.row;
+			if(pos.col <= lowerBoundElement.col) lowerBoundElement.col = pos.col;
+			if(pos.row <= upperBoundElement.row) upperBoundElement.row = pos.row;
+			if(pos.col >= upperBoundElement.col) upperBoundElement.col = pos.col;
+		}
 		this.resolution = new Vec2(3,3);
 	}
 
@@ -62,6 +70,15 @@ public class BlockShape {
 	public void setShape(final Map<ElementPos,Color> shape){
 		this.shape =  new HashMap<ElementPos,Color>();
 		this.shape.putAll(shape);
+		lowerBoundElement= new ElementPos(0,(int)this.resolution.y);			
+		upperBoundElement= new ElementPos((int)this.resolution.x,0);			
+
+		for(ElementPos pos: this.shape.keySet()){
+			if(pos.row >= lowerBoundElement.row) lowerBoundElement.row = pos.row;
+			if(pos.col <= lowerBoundElement.col) lowerBoundElement.col = pos.col;
+			if(pos.row <= upperBoundElement.row) upperBoundElement.row = pos.row;
+			if(pos.col >= upperBoundElement.col) upperBoundElement.col = pos.col;
+		}
 	}
 
 	public Map<ElementPos,Color> getShape(){
@@ -94,10 +111,28 @@ public class BlockShape {
 		if(shape.containsKey(pos)){
 			shape.remove(pos);
 		}
+
+		if(pos.row == lowerBoundElement.row || pos.col == lowerBoundElement.col ||
+				pos.row == upperBoundElement.row || pos.col == lowerBoundElement.col){
+			//the deleted one is at the edge!
+			lowerBoundElement= new ElementPos(0,(int)this.resolution.y);			
+			upperBoundElement= new ElementPos((int)this.resolution.x,0);			
+
+			for(ElementPos position: this.shape.keySet()){
+				if(position.row >= lowerBoundElement.row) lowerBoundElement.row = position.row;
+				if(position.col <= lowerBoundElement.col) lowerBoundElement.col = position.col;
+				if(position.row <= upperBoundElement.row) upperBoundElement.row = position.row;
+				if(position.col >= upperBoundElement.col) upperBoundElement.col = position.col;
+			}
+			
+		}
+
 	}
 
 	public void removeAllShapeElements(){
 		shape.clear();
+		lowerBoundElement= new ElementPos(0,(int)this.resolution.y);			
+		upperBoundElement= new ElementPos((int)this.resolution.x,0);			
 	}
 
 	public void setShapeElement(final Color newColor,int row,int col) throws IllegalArgumentException{
@@ -111,6 +146,11 @@ public class BlockShape {
 			shape.remove(pos);
 		}
 		shape.put(pos, newColor);
+
+		if(pos.row >= lowerBoundElement.row) lowerBoundElement.row = pos.row;
+		if(pos.col <= lowerBoundElement.col) lowerBoundElement.col = pos.col;
+		if(pos.row <= upperBoundElement.row) upperBoundElement.row = pos.row;
+		if(pos.col >= upperBoundElement.col) upperBoundElement.col = pos.col;
 	}
 
 	public boolean equals(Object otherShape){
@@ -128,7 +168,7 @@ public class BlockShape {
 		if(!anotherShape.getResolution().equals(this.getResolution())){
 			return false;
 		}
-		
+
 		//compare the shape
 		//1. Compare all the keys between this and anotherShape
 		//   Different: return false
@@ -139,13 +179,13 @@ public class BlockShape {
 			//compare the mapping key and the map size
 			return false;
 		}
-		
+
 		for(Map.Entry<ElementPos, Color> entry: shape.entrySet()){
 			if(!entry.getValue().equals(shape.get(entry.getKey()))){
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -162,14 +202,14 @@ public class BlockShape {
 		newShape.setResolution(this.resolution);
 		return newShape;
 	}
-	
+
 	/**
 	 * This method returns a copy of this class as a Block type
 	 * This is for downward compatibility. I don't wanna change a bunch of things in NewShapeWindow....etc.
 	 * Probably should plan earlier next time :PPP*/
 	public Block cloneToBlock(){
 		Block block = new Block();
-		
+
 		block.setShape(this.getShape());
 		block.setResolution(this.getResolution());
 		block.setShapeName(this.getShapeName());

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jbox2d.collision.AABB;
 import org.jbox2d.common.Vec2;
 
 import utility.ElementPos;
@@ -82,5 +83,43 @@ public class BlockTesting {
 		block2 = new Block();
 		Log.print("2 blocks by different sizeInWorld: "+block1.equals(block2));
 		
+		Log.print("");
+
+		//"Test case #3: test [lowerBoundElement,upperBoundElement]"
+		Log.print("Test case #3: test [lowerBoundElement,upperBoundElement]");
+		block1 = new Block();
+		block2 = new Block();
+		Log.print("default constructor:");
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("one element:");
+		try {
+			block1.setShapeElement(Color.black, 0, 0);
+		} catch (IllegalArgumentException e) {
+			Log.print(e.getMessage());
+		}	
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("two elements:");
+		try {
+			block1.setShapeElement(Color.black, 0, 1);
+		} catch (IllegalArgumentException e) {
+			Log.print(e.getMessage());
+		}	
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("remove first element:");
+		block1.removeShapeElement(0, 0);
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("remove second element:");
+		block1.removeShapeElement(0, 1);
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("add in (1,1) and (2,2)");
+		block1.setShapeElement(Color.black, 1, 1);
+		block1.setShapeElement(Color.black, 2, 2);
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
 	}
 }

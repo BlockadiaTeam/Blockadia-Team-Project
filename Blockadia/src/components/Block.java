@@ -17,12 +17,12 @@ public class Block extends BlockShape{
 
 	public static final Vec2 DEFAULT_SIZE_ON_SCREEN =new Vec2(80f,80f);
 	public static final Vec2 DEFAULT_SIZE_IN_WORLD =new Vec2(80f,80f);
-	public static final Vec2 DEFAULT_POS_ON_SCREEN = new Vec2();
-	public static final Vec2 DEFAULT_POS_IN_WORLD = new Vec2();
+	public static final Vec2 DEFAULT_POS_ON_SCREEN = new Vec2(40f,40f);
+	public static final Vec2 DEFAULT_POS_IN_WORLD = new Vec2(40f,40f);
 
 	private final BlockSettings settings;
 	private String blockName;
-	private Vec2 sizeInWorld;																				
+	private Vec2 sizeInWorld;																				//x- width, y- height
 	//private Vec2 sizeOnScreen;																			//sizeOnScreen can be set
 	private Vec2 posInWorld;																				//Note: center point of the block,not topleft
 	//private Vec2 posOnScreen;																				//posOnScreen can be set
@@ -65,6 +65,7 @@ public class Block extends BlockShape{
 		return sizeInWorld;
 	}
 
+	/**NOTE: sizeInWorld.x = width, sizeInWorld.y = height*/
 	public void setSizeInWorld(Vec2 sizeInWorld) {
 		this.sizeInWorld = sizeInWorld;
 	}
@@ -90,17 +91,21 @@ public class Block extends BlockShape{
 		return true;
 	}
 	
-	/**This method returns the outside bounding box of the entire block.
+	/**This method returns the smallest bounding box of the entire block.
 	 * The bounding box is decided by the blockShape*/
-	public AABB bigBoundingBox(){
-		Vec2 lowerBound = new Vec2(posInWorld.x-(sizeInWorld.x/2),posInWorld.y-(sizeInWorld.y/2));
-		Vec2 upperBound = new Vec2(posInWorld.x+(sizeInWorld.x/2),posInWorld.y+(sizeInWorld.y/2));
-		return new AABB(lowerBound,upperBound);
+	public AABB boundingBox(){
+		if(shape.isEmpty()){
+			return new AABB(new Vec2(),new Vec2());
+		}
+		
+		Vec2 topLeftPos = new Vec2(posInWorld.x-sizeInWorld.x/2 , posInWorld.y+sizeInWorld.y/2);
+		float elementWidth = sizeInWorld.x/resolution.y;
+		float elementHeight = sizeInWorld.y/resolution.x;
+		Vec2 lowerBound = new Vec2(lowerBoundElement.col*elementWidth,-((lowerBoundElement.row+1)*elementHeight));
+		Vec2 upperBound = new Vec2((upperBoundElement.col+1)*elementWidth, -(upperBoundElement.row*elementHeight));
+		return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
 	}
 	
-	public List<AABB> smallBoundingBoxes(){
-		
-	}
 	/**This method puts this block into the world (It assumes the ground is created)
 	 * Before calling this method, you need to check the following things are set:
 	 * 1. the block name

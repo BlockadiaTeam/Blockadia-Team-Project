@@ -116,7 +116,6 @@ public class EditShapeWindow extends JDialog {
 
 								//3. save the painted shape
 								EditShapeWindow.this.model.attachShapeToGame(buildPanel.getPaintedShape());
-								parent.updateComboBox();
 								JOptionPane.showMessageDialog(
 										EditShapeWindow.this, "The new block shape named as: "+shapeName+" has been saved!",
 										"Save successful",

@@ -45,6 +45,10 @@ public class ElementPos{
 		result = prime * result + col;
 		return result;
 	}
+	
+	public String toString(){
+		return "ElementPos[row:"+row+",col:"+col+"]";
+	}
 }
 
 

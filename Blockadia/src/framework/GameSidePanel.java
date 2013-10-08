@@ -337,14 +337,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		}
 
 	}
-
-	/**
-	 * This method is called whenever a shape is added or deleted from Config
-	 * */
-	public void updateComboBox(){
-		components = new JComboBox<BlockShape>(model.getComboModel());
-	}
-
+	
 	/**
 	 * This is a helper class to be used to conveniently update the looks of button
 	 * @param theButtonType - the type of button to be updated(see GameSidePanel.ButtonType)

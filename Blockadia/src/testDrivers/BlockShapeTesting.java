@@ -206,5 +206,6 @@ public class BlockShapeTesting {
 			Log.print("shape2 map is not empty");
 		}
 		
+		
 	}
 }
