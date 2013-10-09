@@ -50,6 +50,6 @@ public class GameFrame extends JFrame {
 
 		//controller.playTest(0);
 		//The game is running on start-up
-		controller.start();
+		//controller.start();
 	}
 }

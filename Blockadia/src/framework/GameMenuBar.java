@@ -216,7 +216,7 @@ public class GameMenuBar extends JMenuBar{
 		quitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Quit");
-				BlockadiaMain.blockadia.dispose();
+				System.exit(0);
 			}
 		});
 

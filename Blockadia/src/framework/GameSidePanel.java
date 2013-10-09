@@ -99,8 +99,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	
 	private static TextFieldWithPlaceHolder gameName = 
 			new TextFieldWithPlaceHolder("Placeholder Game Name");
-	private TextFieldWithPlaceHolder velocity = 
-			new TextFieldWithPlaceHolder("Velocity", StringType.PLACEHOLDER);
+//	private TextFieldWithPlaceHolder //velocity = 
+//			new TextFieldWithPlaceHolder("Velocity", StringType.PLACEHOLDER);
 	private TextFieldWithPlaceHolder force = 
 			new TextFieldWithPlaceHolder("Force", StringType.PLACEHOLDER);
 	
@@ -112,7 +112,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	private boolean expandSpeed = false;
 	private boolean expandForce = false;
 	private boolean dirtyForce = false;
-	private boolean dirtyVelocity = false;
+	//private boolean dirtyVelocity = false;
 	//private boolean saveClearDirty = false;
 	public static boolean test =true; // TODO:DELETE LATER
 	private JScrollPane scroll = new JScrollPane(optionPanel, 
@@ -121,7 +121,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	
 	// Regex for number type checking
 	private JWindow errorWindow;
-  private static final String REGEX_TEST = "\\d*";
+  //private static final String REGEX_TEST = "\\d*";
+  private static final String REGEX_TEST = "[0-9.]";
   private static final String ERROR_TEXT = "Please enter only numbers.";
 
 	public GameSidePanel(GameFrame frame, GameModel model, GameController controller){
@@ -205,7 +206,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 		optionPanel.setPreferredSize(new Dimension(200,450));
 		((PlainDocument)force.getDocument()).setDocumentFilter(new MyNumberDocFilter());
-		((PlainDocument)velocity.getDocument()).setDocumentFilter(new MyNumberDocFilter());
+		//((PlainDocument)//velocity.getDocument()).setDocumentFilter(new MyNumberDocFilter());
 		
 		// Scroll Bar
 		scroll.getVerticalScrollBar().setUnitIncrement(16);	//Set the vertical scroll sensitivity
@@ -217,7 +218,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		addButton.setBounds(140,70,65,25);
 		borderPanel.setBounds(10, 125, 190, 190);
 		buttonPanel.setBounds(10,97,195,25);
-		clearButton.setBounds(120,571,115,35);
+		clearButton.setBounds(120,559,115,35);
 		chooseAShape.setBounds(10,50,210,20);
 		constantForce.setBounds(10,410,180,20);
 		dynamicForce.setBounds(10,430,180,20);
@@ -231,12 +232,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		newGameButton.setBounds(10,60,187,25);
 		newtons.setBounds(165,455,150,25);
 		noSpeed.setBounds(10,345,180,20);
-		saveButton.setBounds(5,571,115,35);
+		saveButton.setBounds(5,559,115,35);
 		score.setBounds(10,90,180,20);
 		scoreBox.setBounds(10, 115, 188, 20);
 		speed.setBounds(10,365,180,20);
 		speedPanel.setBounds(10, 395, 190, 190);
-		velocity.setBounds(10,485,150,25);
+		////velocity.setBounds(10,485,150,25);
 
 		// Button Groups
 		ButtonGroup speedGroup = new ButtonGroup();
@@ -326,7 +327,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		optionPanel.add(scoreBox);
 		optionPanel.add(speed);
 		optionPanel.add(speedPanel);
-		optionPanel.add(velocity);
+		//optionPanel.add(//velocity);
 
 		//Set Visibility
 		clearButton.setVisible(false);
@@ -344,7 +345,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		setOptionPanelMode(false);
 		speed.setVisible(false);
 		speedPanel.setVisible(false);
-		velocity.setVisible(false);
+		//velocity.setVisible(false);
 		
 		//Set Buttons Disabled
 		clearButton.setEnabled(false);
@@ -369,7 +370,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			constantForce.setVisible(mode);
 			dynamicForce.setVisible(mode);
 			force.setVisible(mode && expandForce);
-			velocity.setVisible(mode && expandForce);
+			//velocity.setVisible(mode && expandForce);
 			newtons.setVisible(mode && expandForce);
 			mps.setVisible(mode && expandForce);
 			newGameButton.setVisible(!mode);
@@ -414,7 +415,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 						resetButton.setEnabled(false);
 						setOptionPanelMode(test);
 						optionPanel.setPreferredSize(new Dimension(200,800));
-						scroll.setSize(230,460);
+						scroll.setSize(230,450);
 						GameInfoBar.updateInfo("Mode: Build");
 					} catch (Exception e1) {
 						System.out.println(e1);
@@ -478,7 +479,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				constantForce.setBounds(10,610,180,20);
 				dynamicForce.setBounds(10,630,180,20);
 				force.setBounds(10,655,150,25);
-				velocity.setBounds(10,685,150,25);
+				//velocity.setBounds(10,685,150,25);
 				newtons.setBounds(165,655,150,25);
 				mps.setBounds(165,685,150,25);
 				expandSpeed = true;
@@ -492,7 +493,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				constantForce.setBounds(10,410,180,20);
 				dynamicForce.setBounds(10,430,180,20);
 				force.setBounds(10,455,150,25);
-				velocity.setBounds(10,485,150,25);
+				//velocity.setBounds(10,485,150,25);
 				newtons.setBounds(165,455,150,25);
 				mps.setBounds(165,485,150,25);
 				expandSpeed = false;
@@ -502,7 +503,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		constantForce.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				force.setVisible(false);
-				velocity.setVisible(false);
+				//velocity.setVisible(false);
 				newtons.setVisible(false);
 				mps.setVisible(false);
 				expandForce = false;
@@ -512,7 +513,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		dynamicForce.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				force.setVisible(true);
-				velocity.setVisible(true);
+				//velocity.setVisible(true);
 				newtons.setVisible(true);
 				mps.setVisible(true);
 				expandForce = true;
@@ -524,9 +525,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 				noSpeed.doClick();
 				//TODO: Clear the speed panel
 				force.setText("");
-				velocity.setText("");
+				//velocity.setText("");
 				constantForce.doClick();
-				dirtyVelocity = false;
+				//dirtyVelocity = false;
 				dirtyForce = false;
 				clearButton.setEnabled(false);
 				saveButton.setEnabled(false);
@@ -535,49 +536,57 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		
 		saveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setForce();
-				setVelocity();
-				dirtyVelocity = false;
-				dirtyForce = false;
-				saveButton.setEnabled(false);
-				System.out.println("Force and Velocity Saved!\nForce: " + getForce() + " N\nVelocity: " + getVelocity() + " m/s");
+				try {
+					setForce();
+					//setVelocity();
+				}
+				catch (java.lang.NumberFormatException e1) {
+					System.out.println("Please enter a valid number.");
+				}
+				finally{
+					//dirtyVelocity = false;
+					dirtyForce = false;
+					saveButton.setEnabled(false);
+					System.out.println("Force: " + getForce() + " N\nVelocity: " + getVelocity() + " m/s");
+				}
 			}
 		});
 		
 		force.addKeyListener(new KeyListener() {
 			public void keyTyped(KeyEvent value) {
+			}
+			public void keyPressed(KeyEvent e) {
+			}
+			public void keyReleased(KeyEvent e) {
 				if (force.getText() == null || force.getText() == "") {
 					dirtyForce = false;
 				}
 				else {
 					dirtyForce = true;
 				}
-				saveButton.setEnabled(dirtyVelocity && dirtyForce);
-				clearButton.setEnabled(dirtyVelocity || dirtyForce);
-			}
-			public void keyPressed(KeyEvent e) {
-			}
-			public void keyReleased(KeyEvent e) {
+				saveButton.setEnabled(dirtyForce);
+				clearButton.setEnabled(dirtyForce);
+				//System.out.println("")
 			}
 		});
 
-		velocity.addKeyListener(new KeyListener() {
-			public void keyTyped(KeyEvent value) {
-				if (velocity.getText() == null || velocity.getText() == "") {
-					dirtyVelocity = false;
-				}
-				else {
-					dirtyVelocity = true;
-				}
-				saveButton.setEnabled(dirtyVelocity && dirtyForce);
-				clearButton.setEnabled(dirtyVelocity || dirtyForce);
-			}
-			
-			public void keyPressed(KeyEvent e) {
-			}
-			public void keyReleased(KeyEvent e) {
-			}
-		});
+//		//velocity.addKeyListener(new KeyListener() {
+//			public void keyTyped(KeyEvent value) {
+//				if (//velocity.getText() == null || //velocity.getText() == "") {
+//					dirtyVelocity = false;
+//				}
+//				else {
+//					dirtyVelocity = true;
+//				}
+//				saveButton.setEnabled(dirtyVelocity && dirtyForce);
+//				clearButton.setEnabled(dirtyVelocity || dirtyForce);
+//			}
+//			
+//			public void keyPressed(KeyEvent e) {
+//			}
+//			public void keyReleased(KeyEvent e) {
+//			}
+//		});
 		
 	}
 	
@@ -690,9 +699,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			newtonsValue = Double.parseDouble(force.getText());
 	}
 	
-	public void setVelocity() {
-			mpsValue = Double.parseDouble(velocity.getText());
-	}
+//	public void setVelocity() {
+//			mpsValue = Double.parseDouble(velocity.getText());
+//	}
 	
 	public double getForce() {
 		return newtonsValue;
@@ -735,7 +744,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	}
 
 	private boolean textOK(String text) {
-		if (text.matches(REGEX_TEST)) {
+		if (text.matches(REGEX_TEST)) { //TODO
 			return true;
 		}
 		return false;
