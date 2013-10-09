@@ -8,21 +8,19 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
-import utility.Log;
-
 /**
- * The Blockadia frame. Contains all stuff. Make sure you in the GameMain.java call 
+ * The Blockadia frame. Contains all stuff. Make sure you in the GameMain.java call
  * {@link #setVisible(boolean)} and
  * {@link #setDefaultCloseOperation(int)}.
- * 
+ *
  * Warnign: All the interface components boundings are hard-coded so please don't change the
- * frame size. 
- * 
- * @author alex.yang
+ * frame size.
+ *
+ * @author alex.yang, patrick.lam
  **/
 
 @SuppressWarnings("serial")
-public class GameFrame  extends JFrame {
+public class GameFrame extends JFrame {
 
 	private GameMenuBar menu;
 	private GameInfoBar infoBar;
@@ -34,15 +32,16 @@ public class GameFrame  extends JFrame {
 		super("Blockadia");
 		setLayout(new BorderLayout());
 
-		model = argModel;
-		model.setGamePanelRenderer(argPanel.getGamePanelRenderer());
+		this.model = argModel;
+		this.model.setGamePanelRenderer(argPanel.getGamePanelRenderer());
 
-		menu = new GameMenuBar();//TODO: rework on the GameMenuBar constructor
+		menu = new GameMenuBar(model.getCurrGameConfig(), side);
 		setJMenuBar(menu);
 		infoBar = new GameInfoBar();
 		add(infoBar,"South");
 
 		controller = new GameController(model,argPanel);
+
 		side = new GameSidePanel(this,model,controller);
 		add((Component) argPanel, "Center");
 		add(new JScrollPane(side),"East");

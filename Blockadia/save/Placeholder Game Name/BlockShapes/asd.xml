@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<blockshape>
+	<name>asd</name>
+	<shape>
+		<element>
+			<row>2</row>
+			<col>1</col>
+			<color>r=0,g=255,b=0</color>
+		</element>
+		<element>
+			<row>1</row>
+			<col>1</col>
+			<color>r=0,g=255,b=0</color>
+		</element>
+		<element>
+			<row>2</row>
+			<col>2</col>
+			<color>r=0,g=255,b=0</color>
+		</element>
+		<element>
+			<row>1</row>
+			<col>2</col>
+			<color>r=0,g=255,b=0</color>
+		</element>
+	</shape>
+	<resolution>
+		<x>3</x>
+		<y>3</y>
+	</resolution>
+</blockshape>

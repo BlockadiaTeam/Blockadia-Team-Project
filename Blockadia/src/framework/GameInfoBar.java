@@ -43,8 +43,8 @@ public class GameInfoBar extends JPanel {
 	}
 	
 	
-	public void updateInfo(String newInfo){
-		System.out.println(newInfo.length());
+	public static void updateInfo(String newInfo){
+		//System.out.println(newInfo.length());
 		if(newInfo.length() >textMaxLength){
 			String newString = newInfo.substring(0, textMaxLength-3);
 			newString = newString.concat("...");

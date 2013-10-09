@@ -42,6 +42,7 @@ import exceptions.ElementNotExistException;
 public class Config implements ContactListener{
 
 	public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
+
 	public static final int MAX_CONTACT_POINTS = 4048;
 
 	// keep these static so we don't have to recreate them every time
@@ -67,6 +68,9 @@ public class Config implements ContactListener{
 	private float cachedCameraScale;
 	private final Vec2 cachedCameraPos = new Vec2();
 	private boolean hasCachedCamera = false;
+
+	public static String loadedConfig = "save/test123.xml";
+
 
 	private Map<String, BlockShape> shapesMap;
 	private List<BlockShape> shapesList;

@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="jbox2d-library"/>
 	<classpathentry kind="lib" path="jbox2d-serialization"/>
 	<classpathentry kind="lib" path="res"/>
+	<classpathentry kind="lib" path="save"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
