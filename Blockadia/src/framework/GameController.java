@@ -124,7 +124,7 @@ public class GameController implements Runnable{
         updateTime = System.nanoTime();
       }
 
-      if(panel.render()) {
+      if(panel.render() && !model.pause) {
         update();
         panel.paintScreen();        
       }

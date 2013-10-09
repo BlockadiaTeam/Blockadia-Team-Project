@@ -386,8 +386,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		modeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//TODO
-				if(!test){
-					try {	// Game Mode
+				if(GameModel.getGameMode() == GameModel.Mode.BUILD_MODE){
+					try {	//If the game is currently in Game Mode
 						buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.",
 								"res/side/Build.png", new Rectangle(0,0,60, 50));
 						setOptionPanelMode(test);

@@ -18,6 +18,9 @@ import exceptions.ElementNotExistException;
  * @author alex.yang
  * */
 public class GameModel {
+	public static enum Mode{
+		GAME_MODE,BUILD_MODE;
+	}
 	//TODO: make the config object dirty
 	private final DefaultComboBoxModel<BlockShape> components = new DefaultComboBoxModel<BlockShape>();
 
@@ -32,15 +35,27 @@ public class GameModel {
 	private float panelWidth;
 
 	public boolean pause = false;
-
+	private static Mode mode;
+	
 	public GameModel(){	
 		//TODO: testing
 		buildConfig = new BuildConfig();
 		gameConfig = new GameConfig();
 		config = new Config();
+		//When the game is started, it's in game mode and is running
+		mode = Mode.GAME_MODE;
+		pause = false;
 		populateBlockShapes();
 	}
 
+	public static Mode getGameMode(){
+		return mode;
+	}
+	
+	public static void setGameMode(Mode theMode){
+		mode = theMode;
+	}
+	
 	public Config getCurrGameConfig(){
 		return this.config;
 	}

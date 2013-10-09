@@ -35,7 +35,7 @@ public class GameFrame extends JFrame {
 		this.model = argModel;
 		this.model.setGamePanelRenderer(argPanel.getGamePanelRenderer());
 
-		menu = new GameMenuBar(model.getCurrGameConfig(), side);
+		menu = new GameMenuBar(model, side);
 		setJMenuBar(menu);
 		infoBar = new GameInfoBar();
 		add(infoBar,"South");

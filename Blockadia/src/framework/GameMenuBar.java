@@ -7,20 +7,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.security.auth.login.Configuration;
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import xmlParsers.SaveFileManager;
-import xmlParsers.BlockShapeXMLWriter;
 
 /**
  * The menu bar on top
@@ -38,6 +35,7 @@ public class GameMenuBar extends JMenuBar{
 	final JMenu helpMenu =	new JMenu("Help ");
 	final JFrame frame = new JFrame();
 	private Config config;
+	private GameModel model;
 	private GameSidePanel gameSidePanel;
 	SaveFileManager save;
 	JMenuItem newItem;
@@ -50,9 +48,10 @@ public class GameMenuBar extends JMenuBar{
 	JMenuItem creditItem;
 
 
-	public GameMenuBar(Config config, GameSidePanel gameSidePanel){
+	public GameMenuBar(GameModel model, GameSidePanel gameSidePanel){
 		setPreferredSize(new Dimension(GamePanel.DEFAULT_WIDTH, 22));
-		this.config = config;
+		this.model = model;
+		this.config = model.getCurrGameConfig();
 		this.gameSidePanel = gameSidePanel;
 		save = new SaveFileManager(config);
 		initComponents();
@@ -163,6 +162,37 @@ public class GameMenuBar extends JMenuBar{
 
 	private void addListeners(){
 
+		fileMenu.addMenuListener(new MenuListener(){
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				//if in buildMode: do nothing
+				//if in gameMode: stop the game
+				
+				model.pause = true;
+				System.out.println("Open");
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+				
+				System.out.println("Close");
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+				System.out.println("Cancel");
+			}
+			
+		});
+		
+		fileMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Open1111");
+				// TODO
+			}
+		});
+		
 		// New
 		newItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -216,7 +246,7 @@ public class GameMenuBar extends JMenuBar{
 		quitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Quit");
-				BlockadiaMain.blockadia.dispose();
+				System.exit(0);
 			}
 		});
 
