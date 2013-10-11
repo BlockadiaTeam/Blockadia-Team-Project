@@ -22,34 +22,35 @@ import javax.swing.JScrollPane;
 @SuppressWarnings("serial")
 public class GameFrame extends JFrame {
 
-	private GameMenuBar menu;
-	private GameInfoBar infoBar;
-	private GameSidePanel side;
-	private GameModel model;
-	private GameController controller;
+  private GameMenuBar menu;
+  private GameInfoBar infoBar;
+  private GameSidePanel side;
+  private GameModel model;
+  private GameController controller;
 
-	public GameFrame(final GameModel argModel, final IGamePanel argPanel) {
-		super("Blockadia");
-		setLayout(new BorderLayout());
+  public GameFrame(final GameModel argModel, final IGamePanel argPanel) {
+	super("Blockadia");
+	setLayout(new BorderLayout());
 
-		this.model = argModel;
-		this.model.setGamePanelRenderer(argPanel.getGamePanelRenderer());
+	this.model = argModel;
+	GameModel.setGamePanelRenderer(argPanel.getGamePanelRenderer());
+	GameModel.setGamePanel(argPanel);
 
-		menu = new GameMenuBar(model, side);
-		setJMenuBar(menu);
-		infoBar = new GameInfoBar();
-		add(infoBar,"South");
+	menu = new GameMenuBar(model, side);
+	setJMenuBar(menu);
+	infoBar = new GameInfoBar();
+	add(infoBar,"South");
 
-		controller = new GameController(model,argPanel);
+	controller = new GameController(model,argPanel);
 
-		side = new GameSidePanel(this,model,controller);
-		add((Component) argPanel, "Center");
-		add(new JScrollPane(side),"East");
-		setResizable(false);
-		pack();
+	side = new GameSidePanel(this,model,controller);
+	add((Component) argPanel, "Center");
+	add(new JScrollPane(side),"East");
+	setResizable(false);
+	pack();
 
-		//controller.playTest(0);
-		//The game is running on start-up
-		controller.start();
-	}
+	//controller.playTest(0);
+	//The game is running on start-up
+	controller.start();
+  }
 }

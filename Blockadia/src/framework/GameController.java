@@ -11,137 +11,137 @@ import utility.Log;
  */
 public class GameController implements Runnable{
 
-	public static final int DEFAULT_FPS = 60;
+  public static final int DEFAULT_FPS = 60;
 
-	private Config currConfig = null;
-	private Config nextConfig = null;//TODO: do we need this?
+  private Config currConfig = null;
+  private final Config nextConfig = null;//TODO: do we need this?
 
-	private long startTime;
-	private long frameCount;
-	private int targetFrameRate;
-	private float frameRate = 0;
-	private boolean running = false;
-	private Thread animator;
+  private long startTime;
+  private long frameCount;
+  private int targetFrameRate;
+  private float frameRate = 0;
+  private boolean running = false;
+  private final Thread animator;
 
-	private final GameModel model;
-	private final IGamePanel panel;
+  private final GameModel model;
+  private final IGamePanel panel;
 
-	public GameController(GameModel model,IGamePanel panel){
-		this.model = model;
-		this.panel = panel;
-		setFPS(DEFAULT_FPS);
-		animator = new Thread(this,"Blockadia Thread 1");
-    loopInit();
-		addListeners();
+  public GameController(final GameModel model,final IGamePanel panel){
+	this.model = model;
+	this.panel = panel;
+	setFPS(DEFAULT_FPS);
+	animator = new Thread(this,"Blockadia Thread 1");
+	loopInit();
+	addListeners();
+  }
+
+  private void addListeners(){
+
+  }
+
+  protected void loopInit() {
+	panel.grabFocus();
+	model.setRunningConfig(model.getCurrGameConfig());
+	currConfig = model.getCurrGameConfig();
+
+	if (currConfig != null) {
+	  currConfig.init(model);
 	}
+  }
 
-	private void addListeners(){
-		
+  protected void update() {
+	if (currConfig != null) {
+	  currConfig.update();
 	}
+  }
 
-	protected void loopInit() {
-		panel.grabFocus();
-  	model.setRunningConfig(model.getCurrGameConfig());
-  	currConfig = model.getCurrGameConfig();
+  public void resetTest(){//TODO
+	// model.getCurrGameConfig().reset();
+  }
 
-		if (currConfig != null) {
-			currConfig.init(model);
-		}
+  public boolean isRunning() {
+	return running;
+  }
+
+  public void setFPS(final int fps){
+	if(fps < 0){
+	  throw new IllegalArgumentException("FPS cannot be less than or equal to zero");
 	}
+	this.targetFrameRate = fps;
+	this.frameRate = fps;
+  }
 
-	protected void update() {
-		if (currConfig != null) {
-			currConfig.update();
-		}
+  public int getFPS(){
+	return this.targetFrameRate;
+  }
+
+  public float getCalculatedFPS(){
+	return this.frameRate;
+  }
+
+  public synchronized void start() {
+	if (!running) {
+	  frameCount = 0;
+	  animator.start();
+	} else {
+	  Log.print("Animation is already animating.");
 	}
+  }
 
-	public void resetTest(){//TODO
-		// model.getCurrGameConfig().reset();
-	}
-	
-	public boolean isRunning() {
-		return running;
-	}
+  public synchronized void stop() {
+	running = false;
+  }
 
-	public void setFPS(int fps){
-		if(fps < 0){
-			throw new IllegalArgumentException("FPS cannot be less than or equal to zero");
-		}
-		this.targetFrameRate = fps;
-		this.frameRate = fps;
-	}
+  @Override
+  public void run() {
 
-	public int getFPS(){
-		return this.targetFrameRate;
-	}
+	long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
+	float timeInSecs;
+	beforeTime = startTime = updateTime = System.nanoTime();
+	sleepTime = 0;
 
-	public float getCalculatedFPS(){
-		return this.frameRate;
-	}
+	running = true;
+	//loopInit();
+	while (running) {
 
-	public synchronized void start() {
-		if (!running) {
-			frameCount = 0;
-			animator.start();
-		} else {
-			Log.print("Animation is already animating.");
-		}
-	}
-
-	public synchronized void stop() {
-		running = false;
-	}
-	
-	@Override
-	public void run() {
-
-    long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
-    float timeInSecs;
-    beforeTime = startTime = updateTime = System.nanoTime();
-    sleepTime = 0;
-
-    running = true;
-    //loopInit();
-    while (running) {
-
-      /*if (nextTest != null) {
+	  /*if (nextTest != null) {
         nextTest.init(model);
         model.setRunningTest(nextTest);
         if(currTest != null) {
-          currTest.exit();    		
+          currTest.exit();
         }
         currTest = nextTest;
         nextTest = null;
       }*/
-    	
-      timeSpent = beforeTime - updateTime;
-      if (timeSpent > 0) {
-        timeInSecs = timeSpent * 1.0f / 1000000000.0f;
-        updateTime = System.nanoTime();
-        frameRate = (frameRate * 0.9f) + (1.0f / timeInSecs) * 0.1f;
-        model.setCalculatedFPS(frameRate);
-      } else {
-        updateTime = System.nanoTime();
-      }
 
-      if(panel.render() && !model.pause) {
-        update();
-        panel.paintScreen();        
-      }
-      frameCount++;
+	  timeSpent = beforeTime - updateTime;
+	  if (timeSpent > 0) {
+		timeInSecs = timeSpent * 1.0f / 1000000000.0f;
+		updateTime = System.nanoTime();
+		frameRate = frameRate * 0.9f + 1.0f / timeInSecs * 0.1f;
+		model.setCalculatedFPS(frameRate);
+	  } else {
+		updateTime = System.nanoTime();
+	  }
 
-      afterTime = System.nanoTime();
+	  /*
+	   * if(panel.render() && !model.pause) { update(); panel.paintScreen(); }
+	   */
 
-      timeDiff = afterTime - beforeTime;
-      sleepTime = (1000000000 / targetFrameRate - timeDiff) / 1000000;
-      if (sleepTime > 0) {
-        try {
-          Thread.sleep(sleepTime);
-        } catch (InterruptedException ex) {
-        }
-      }
-      beforeTime = System.nanoTime();
-    } // end of run loop
+	  frameCount++;
+
+	  afterTime = System.nanoTime();
+
+	  timeDiff = afterTime - beforeTime;
+	  sleepTime = (1000000000 / targetFrameRate - timeDiff) / 1000000;
+	  if (sleepTime > 0) {
+		try {
+		  Thread.sleep(sleepTime);
+		} catch (final InterruptedException ex) {
+		}
+	  }
+	  beforeTime = System.nanoTime();
+	} // end of run loop
   }
 
 }
