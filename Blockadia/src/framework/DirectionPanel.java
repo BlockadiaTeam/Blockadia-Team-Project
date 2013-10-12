@@ -16,6 +16,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
+import utility.TextFieldWithPlaceHolder;
+
 @SuppressWarnings("serial")
 public class DirectionPanel extends JPanel {
 
@@ -23,7 +25,8 @@ public class DirectionPanel extends JPanel {
     private Point mousePosition;
     private float angle = 90;
     private boolean lock = false;
-    private double rotation = 0;
+    private float rotation = 0;
+    private TextFieldWithPlaceHolder angleIndicatorField;
 
     /**
      * The arrow animation panel for setting velocity angle
@@ -31,7 +34,7 @@ public class DirectionPanel extends JPanel {
      * @author patrick.lam
      */
 
-    public DirectionPanel() {
+    public DirectionPanel(TextFieldWithPlaceHolder angleIndicatorField) {
 
 	try {
 	    // All images must be of size 190x190 and format .png
@@ -40,6 +43,7 @@ public class DirectionPanel extends JPanel {
 	} catch (final IOException ex) {
 	    System.out.println("Image error.");
 	}
+	this.angleIndicatorField = angleIndicatorField;
 	setLayout(new BorderLayout());
 	setBackground(Color.BLACK);
 	setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(
@@ -56,8 +60,8 @@ public class DirectionPanel extends JPanel {
 	    public void mouseMoved(final MouseEvent e) {
 		mousePosition = e.getPoint();
 		if (!lock) {
-		    double x = (e.getX() - 95) / (double) 94;
-		    double y = (-e.getY() + 95) / (double) 94;
+		    float x = (e.getX() - 95) / (float) 94;
+		    float y = (-e.getY() + 95) / (float) 94;
 		    angle = (float) (Math
 			    .round(Math.toDegrees(Math.atan2(y, x)) * 100.0) / 100.0);
 		    if (angle < 0) {
@@ -65,7 +69,8 @@ public class DirectionPanel extends JPanel {
 		    }
 		    // System.out.println("X: " + x + " Y: " + y);
 		    // System.out.println(lock);
-		    System.out.println("Angle: " + getAngle() + "°");
+		    // System.out.println("Angle: " + getAngle() + "°");
+		    angleIndicatorField.setText(angle + "");
 		}
 		repaint();
 	    }
@@ -82,21 +87,15 @@ public class DirectionPanel extends JPanel {
     }
 
     public void setAngle(float degrees) {
-	if (degrees >= 0.0 && degrees < 360.0) {
-	    angle = degrees;
-	    lock = true;
-	    repaint();
-	} else {
-	    throw new IllegalArgumentException("Degree out of range");
-	}
+
+	angle = degrees;
+	lock = true;
+	repaint();
+	lock = true;
     }
 
     public float getAngle() {
 	return angle;
-    }
-
-    public boolean isLocked() {
-	return lock;
     }
 
     @Override
@@ -109,13 +108,20 @@ public class DirectionPanel extends JPanel {
 	    if (mousePosition != null) {
 		final int x = mousePosition.x - 95;
 		final int y = mousePosition.y - 95;
-		rotation = -Math.atan2(x, y);
-		rotation = Math.toDegrees(rotation) + 180;
+		rotation = (float) -Math.atan2(x, y);
+		rotation = (float) (Math.toDegrees(rotation) + 180);
+		// System.out.println(x + " " + y);
 	    }
+	    g2d.rotate(Math.toRadians(rotation), 95, 95);
+	    g2d.drawImage(arrow, 5, 5, this);
+	    g2d.dispose();
+	    return;
 	}
-	g2d.rotate(Math.toRadians(rotation), 95, 95);
+
+	g2d.rotate(Math.toRadians(90 - angle), 95, 95);
 	g2d.drawImage(arrow, 5, 5, this);
 	g2d.dispose();
+	// System.out.println(angle);
     }
 
 }

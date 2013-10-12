@@ -14,8 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -89,35 +87,41 @@ public class GameSidePanel extends JPanel implements ActionListener{
     private final JLabel initialForce = new JLabel("Set Initial Force?");
     private final JLabel newtons = new JLabel("N");
     private final JLabel mps = new JLabel("m/s");
-    private final JLabel degrees = new JLabel("Degrees");
+    private final JLabel velocityDegrees = new JLabel("Degrees");
+    private final JLabel forceDegrees = new JLabel("Degrees");
 
     private final JPanel optionPanel = new JPanel();
     private final JPanel borderPanel = new JPanel();
     private final JPanel buttonPanel = new JPanel();
-    private final DirectionPanel speedPanel = new DirectionPanel();
 
-    private double newtonsValue = 0;
-    private double mpsValue = 0;
+    private final DirectionPanel velocityPanel;
+    private final DirectionPanel forcePanel;
+
+    private float newtonsValue = 0f;
+    private float mpsValue = 0f;
+    private float velocityDegreeValue = 0f;
+    private float forceDegreeValue = 0f;
 
     private static TextFieldWithPlaceHolder gameName = new TextFieldWithPlaceHolder(
 	    "Placeholder Game Name");
     private TextFieldWithPlaceHolder velocity = new TextFieldWithPlaceHolder(
 	    "Velocity", StringType.PLACEHOLDER);
-    private TextFieldWithPlaceHolder velocityAngle = new TextFieldWithPlaceHolder(
-	    "90");
     private final TextFieldWithPlaceHolder force = new TextFieldWithPlaceHolder(
 	    "Force", StringType.PLACEHOLDER);
+    private TextFieldWithPlaceHolder velocityDirection = new TextFieldWithPlaceHolder(
+	    "90");
+    private TextFieldWithPlaceHolder forceDirection = new TextFieldWithPlaceHolder(
+	    "90");
+    private TextFieldWithPlaceHolder focusedTextField;
 
     private final TextField scoreBox = new TextField();
     private PreviewPanel previewPanel;
     private ButtonType buttonType;
     private NewShapeWindow newWindow;
     private EditShapeWindow editWindow;
-    private boolean expandSpeed = false;
+    private boolean expandVelocity = false;
     private boolean expandForce = false;
-    private boolean dirtyForce = false;
-    private boolean dirtyVelocity = false;
-    private boolean saveClearDirty = false;
+    private boolean dirty = false;
     public static boolean test = true; // TODO:DELETE LATER
     private final JScrollPane scroll = new JScrollPane(optionPanel,
 	    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -126,7 +130,6 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
     // Regex for number type checking
     private JWindow errorWindow;
-    // private static final String REGEX_TEST = "\\d*";
     private static final String REGEX_TEST = "[0-9.]";
     private static final String ERROR_TEXT = "Please enter only numbers.";
 
@@ -137,9 +140,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	this.controller = controller;
 	setPreferredSize(new Dimension(SIDE_PANEL_WIDTH,
 		GamePanel.DEFAULT_HEIGHT - 50));
-
+	velocityPanel = new DirectionPanel(velocityDirection);
+	forcePanel = new DirectionPanel(forceDirection);
 	initComponents();
 	addListeners();
+	((PlainDocument) force.getDocument())
+	.setDocumentFilter(new MyNumberDocFilter());
+	((PlainDocument) velocity.getDocument())
+	.setDocumentFilter(new MyNumberDocFilter());
     }
 
     public void initComponents() {
@@ -217,15 +225,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		new EtchedBorder(EtchedBorder.LOWERED),
 		BorderFactory.createEmptyBorder(1, 1, 1, 1)));
 	optionPanel.setPreferredSize(new Dimension(200, 450));
-	((PlainDocument) force.getDocument())
-	.setDocumentFilter(new MyNumberDocFilter());
-	((PlainDocument) velocity.getDocument())
-	.setDocumentFilter(new MyNumberDocFilter());
 
 	// Scroll Bar
-	scroll.getVerticalScrollBar().setUnitIncrement(16); // Set the vertical
-	// scroll
-	// sensitivity
+	scroll.getVerticalScrollBar().setUnitIncrement(16); // Sensitivity
 	scroll.setBounds(5, 110, 230, 190);
 	scroll.setSize(230, 495);
 	add(scroll);
@@ -238,24 +240,27 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	chooseAShape.setBounds(10, 50, 210, 20);
 	constantForce.setBounds(10, 410, 180, 20);
 	dynamicForce.setBounds(10, 430, 180, 20);
-	force.setBounds(10, 455, 150, 25);
+	force.setBounds(10, 455, 130, 25);
+	forceDirection.setBounds(10, 480, 130, 25);
+	forcePanel.setBounds(10, 510, 190, 190);
 	gameName.setBounds(10, 25, 188, 25);
 	gameNameLabel.setBounds(10, 5, 180, 20);
 	initialForce.setBounds(10, 390, 180, 20);
 	initialSpeed.setBounds(10, 325, 180, 20);
 	lives.setBounds(10, 145, 150, 20);
 	mps.setBounds(145, 390, 150, 25);
-	degrees.setBounds(145, 415, 150, 25);
+	velocityDegrees.setBounds(145, 415, 150, 25);
+	forceDegrees.setBounds(145, 480, 150, 25);
 	newGameButton.setBounds(10, 60, 187, 25);
-	newtons.setBounds(165, 455, 150, 25);
+	newtons.setBounds(145, 455, 130, 25);
 	noSpeed.setBounds(10, 345, 180, 20);
 	saveButton.setBounds(5, 559, 115, 35);
 	score.setBounds(10, 90, 180, 20);
 	scoreBox.setBounds(10, 115, 188, 20);
 	speed.setBounds(10, 365, 180, 20);
-	speedPanel.setBounds(10, 445, 190, 190);
+	velocityPanel.setBounds(10, 445, 190, 190);
 	velocity.setBounds(10, 390, 130, 25);
-	velocityAngle.setBounds(10, 415, 130, 25);
+	velocityDirection.setBounds(10, 415, 130, 25);
 
 	// Button Groups
 	final ButtonGroup speedGroup = new ButtonGroup();
@@ -333,9 +338,12 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	optionPanel.add(chooseAShape);
 	optionPanel.add(components);
 	optionPanel.add(constantForce);
-	optionPanel.add(degrees);
+	optionPanel.add(velocityDegrees);
+	optionPanel.add(forceDegrees);
 	optionPanel.add(dynamicForce);
 	optionPanel.add(force);
+	optionPanel.add(forceDirection);
+	optionPanel.add(forcePanel);
 	optionPanel.add(gameName);
 	optionPanel.add(gameNameLabel);
 	optionPanel.add(initialForce);
@@ -348,9 +356,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	optionPanel.add(score);
 	optionPanel.add(scoreBox);
 	optionPanel.add(speed);
-	optionPanel.add(speedPanel);
+	optionPanel.add(velocityPanel);
 	optionPanel.add(velocity);
-	optionPanel.add(velocityAngle);
+	optionPanel.add(velocityDirection);
 
 	// Set Visibility
 	clearButton.setVisible(false);
@@ -358,19 +366,22 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	constantForce.setVisible(false);
 	dynamicForce.setVisible(false);
 	force.setVisible(false);
+	forceDirection.setVisible(false);
+	forcePanel.setVisible(false);
+	forceDegrees.setVisible(false);
 	initialForce.setVisible(false);
 	initialSpeed.setVisible(false);
 	mps.setVisible(false);
-	degrees.setVisible(false);
+	velocityDegrees.setVisible(false);
 	newGameButton.setVisible(false);
 	newtons.setVisible(false);
 	noSpeed.setVisible(false);
 	saveButton.setVisible(false);
 	setOptionPanelMode(false);
 	speed.setVisible(false);
-	speedPanel.setVisible(false);
+	velocityPanel.setVisible(false);
 	velocity.setVisible(false);
-	velocityAngle.setVisible(false);
+	velocityDirection.setVisible(false);
 
 	// Set Buttons Disabled
 	clearButton.setEnabled(false);
@@ -391,15 +402,18 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	saveButton.setVisible(mode);
 	speed.setVisible(mode);
 	noSpeed.setVisible(mode);
-	speedPanel.setVisible(mode && expandSpeed);
+	velocityPanel.setVisible(mode && expandVelocity);
+	forcePanel.setVisible(mode && expandForce);
 	constantForce.setVisible(mode);
 	dynamicForce.setVisible(mode);
 	force.setVisible(mode && expandForce);
-	velocity.setVisible(mode && expandSpeed);
-	velocityAngle.setVisible(mode && expandSpeed);
+	forceDirection.setVisible(mode && expandForce);
+	forceDegrees.setVisible(mode && expandForce);
+	velocity.setVisible(mode && expandVelocity);
+	velocityDirection.setVisible(mode && expandVelocity);
 	newtons.setVisible(mode && expandForce);
-	mps.setVisible(mode && expandSpeed);
-	degrees.setVisible(mode && expandSpeed);
+	mps.setVisible(mode && expandVelocity);
+	velocityDegrees.setVisible(mode && expandVelocity);
 	newGameButton.setVisible(!mode);
 	score.setVisible(!mode);
 	scoreBox.setVisible(!mode);
@@ -448,7 +462,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			playPauseButton.setEnabled(false);
 			resetButton.setEnabled(false);
 			setOptionPanelMode(test);
-			optionPanel.setPreferredSize(new Dimension(200, 800));
+			optionPanel.setPreferredSize(new Dimension(200, 1100));
 			scroll.setSize(230, 450);
 			GameInfoBar.updateInfo("Mode: Build");
 		    } catch (final Exception e1) {
@@ -522,16 +536,19 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    @Override
 	    public void actionPerformed(final ActionEvent e) {
 		velocity.setVisible(true);
-		velocityAngle.setVisible(true);
+		velocityDirection.setVisible(true);
 		mps.setVisible(true);
-		degrees.setVisible(true);
-		speedPanel.setVisible(true);
+		velocityDegrees.setVisible(true);
+		velocityPanel.setVisible(true);
 		initialForce.setBounds(10, 642, 180, 20);
 		constantForce.setBounds(10, 662, 180, 20);
 		dynamicForce.setBounds(10, 682, 180, 20);
-		force.setBounds(10, 710, 150, 25);
-		newtons.setBounds(165, 710, 150, 25);
-		expandSpeed = true;
+		force.setBounds(10, 710, 130, 25);
+		forceDirection.setBounds(10, 735, 130, 25);
+		forceDegrees.setBounds(145, 735, 150, 25);
+		forcePanel.setBounds(10, 765, 190, 190);
+		newtons.setBounds(145, 710, 150, 25);
+		expandVelocity = true;
 	    }
 	});
 
@@ -539,16 +556,19 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    @Override
 	    public void actionPerformed(final ActionEvent e) {
 		velocity.setVisible(false);
-		velocityAngle.setVisible(false);
+		velocityDirection.setVisible(false);
 		mps.setVisible(false);
-		degrees.setVisible(false);
-		speedPanel.setVisible(false);
+		velocityDegrees.setVisible(false);
+		velocityPanel.setVisible(false);
 		initialForce.setBounds(10, 390, 180, 20);
 		constantForce.setBounds(10, 410, 180, 20);
 		dynamicForce.setBounds(10, 430, 180, 20);
-		force.setBounds(10, 455, 150, 25);
-		newtons.setBounds(165, 455, 150, 25);
-		expandSpeed = false;
+		force.setBounds(10, 455, 130, 25);
+		forceDirection.setBounds(10, 480, 130, 25);
+		forceDegrees.setBounds(145, 480, 150, 25);
+		forcePanel.setBounds(10, 510, 190, 190);
+		newtons.setBounds(145, 455, 130, 25);
+		expandVelocity = false;
 	    }
 	});
 
@@ -557,6 +577,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    public void actionPerformed(final ActionEvent e) {
 		force.setVisible(false);
 		newtons.setVisible(false);
+		forceDegrees.setVisible(false);
+		forceDirection.setVisible(false);
+		forcePanel.setVisible(false);
 		expandForce = false;
 	    }
 	});
@@ -565,6 +588,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    @Override
 	    public void actionPerformed(final ActionEvent e) {
 		force.setVisible(true);
+		forceDirection.setVisible(true);
+		forcePanel.setVisible(true);
+		forceDegrees.setVisible(true);
 		newtons.setVisible(true);
 		expandForce = true;
 	    }
@@ -573,13 +599,10 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	clearButton.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(final ActionEvent e) {
-		noSpeed.doClick();
 		// TODO: Clear the speed panel
 		force.setText("");
 		velocity.setText("");
-		constantForce.doClick();
-		dirtyVelocity = false;
-		dirtyForce = false;
+		dirty = false;
 		clearButton.setEnabled(false);
 		saveButton.setEnabled(false);
 	    }
@@ -588,14 +611,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	saveButton.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(final ActionEvent e) {
+
 		try {
 		    setForce();
 		    setVelocity();
 		} catch (final java.lang.NumberFormatException e1) {
 		    System.out.println("Please enter a valid number.");
 		} finally {
-		    dirtyVelocity = false;
-		    dirtyForce = false;
+		    dirty = false;
 		    saveButton.setEnabled(false);
 		    System.out.println("Force: " + getForce()
 			    + " N\nVelocity: " + getVelocity() + " m/s");
@@ -610,32 +633,47 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 	    @Override
 	    public void keyPressed(final KeyEvent e) {
+		focusedTextField = force;
 	    }
 
 	    @Override
 	    public void keyReleased(final KeyEvent e) {
-		if (force.getText() == null || force.getText() == "") {
-		    dirtyForce = false;
+		if (force.getText().length() == 0) {
+		    dirty = false;
 		}
 		else {
-		    dirtyForce = true;
+		    dirty = true;
 		}
-		saveButton.setEnabled(dirtyForce);
-		clearButton.setEnabled(dirtyForce);
-		// System.out.println("")
+		saveButton.setEnabled(dirty);
+		clearButton.setEnabled(dirty);
 	    }
 	});
 
 	velocity.addKeyListener(new KeyListener() {
 	    @Override
 	    public void keyTyped(KeyEvent value) {
-		if (velocity.getText() == null || velocity.getText() == "") {
-		    dirtyVelocity = false;
+	    }
+
+	    @Override
+	    public void keyPressed(KeyEvent e) {
+		focusedTextField = velocity;
+	    }
+
+	    @Override
+	    public void keyReleased(KeyEvent e) {
+		if (velocity.getText().length() == 0) {
+		    dirty = false;
 		} else {
-		    dirtyVelocity = true;
+		    dirty = true;
 		}
-		saveButton.setEnabled(dirtyVelocity && dirtyForce);
-		clearButton.setEnabled(dirtyVelocity || dirtyForce);
+		saveButton.setEnabled(dirty);
+		clearButton.setEnabled(dirty);
+	    }
+	});
+
+	velocityDirection.addKeyListener(new KeyListener() {
+	    @Override
+	    public void keyTyped(KeyEvent value) {
 	    }
 
 	    @Override
@@ -644,14 +682,23 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 	    @Override
 	    public void keyReleased(KeyEvent e) {
+		setDegrees(velocityDirection, velocityDegreeValue,
+			velocityPanel);
 	    }
 	});
 
-	addMouseMotionListener(new MouseAdapter() {
+	forceDirection.addKeyListener(new KeyListener() {
 	    @Override
-	    public void mouseMoved(final MouseEvent e) {
-		velocityAngle.setText(speedPanel.getAngle() + "");
-		repaint();
+	    public void keyTyped(KeyEvent value) {
+	    }
+
+	    @Override
+	    public void keyPressed(KeyEvent e) {
+	    }
+
+	    @Override
+	    public void keyReleased(KeyEvent e) {
+		setDegrees(forceDirection, forceDegreeValue, forcePanel);
 	    }
 	});
 
@@ -776,11 +823,23 @@ public class GameSidePanel extends JPanel implements ActionListener{
     }
 
     public void setForce() {
-	newtonsValue = Double.parseDouble(force.getText());
+	newtonsValue = Float.parseFloat(force.getText());
     }
 
     public void setVelocity() {
-	mpsValue = Double.parseDouble(velocity.getText());
+	mpsValue = Float.parseFloat(velocity.getText());
+    }
+
+    public void setDegrees(TextFieldWithPlaceHolder textField, float degreeVal, DirectionPanel directionPanel) {
+	if (!textField.getText().equals("")) {
+	    try {
+		degreeVal = Float.parseFloat(textField.getText());
+		directionPanel.setAngle(degreeVal % 360);
+		System.out.println(degreeVal % 360);
+	    } catch (java.lang.NumberFormatException e) {
+		System.out.println("This is not a number");
+	    }
+	}
     }
 
     public double getForce() {
@@ -821,9 +880,10 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    errorWindow.pack();
 	}
 
-	final Point loc = force.getLocationOnScreen();
-	errorWindow.setLocation(loc.x + 20, loc.y + 30);
+	Point loc = focusedTextField.getLocationOnScreen();
+	errorWindow.setLocation(loc.x + 150, loc.y + 2);
 	errorWindow.setVisible(true);
+
     }
 
     private boolean textOK(final String text) {
@@ -871,7 +931,5 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	    }
 	}
     }
-
-
 
 }
