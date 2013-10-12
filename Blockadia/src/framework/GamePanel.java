@@ -3,18 +3,23 @@ package framework;
 import interfaces.IGamePanel;
 
 import java.awt.AWTError;
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -25,11 +30,12 @@ import org.jbox2d.common.OBBViewportTransform;
 import org.jbox2d.common.Vec2;
 
 import utility.GamePanelRenderer;
+import utility.Log;
 import components.Block;
 import components.BlockShape;
 
 /**
- * This is the main game panel. Silimar to AnimationWindow in gizmoball
+ * This is the main game panel. Similar to AnimationWindow in gizmoball
  * 
  * @author alex.yang
  * */
@@ -54,7 +60,8 @@ public class GamePanel extends JPanel implements IGamePanel{
   private final Vec2 draggingMouse = new Vec2();
   private boolean drag = false;
 
-  private Rectangle boundingBoxRect;
+  private Rectangle2D boundingBoxRect;
+  private Map<Rectangle2D,Color> shapeRect;
   private Block tempBlock;
   private AABB boundingBox;
 
@@ -118,28 +125,25 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  // Add Mode: draw current selected block shape with default size on
 		  // screen
 		  if (GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE) {
-			if (e.getX() < GamePanel.this.getWidth()
-				- (boundingBox.upperBound.x - boundingBox.lowerBound.x)
-				&& e.getY() < GamePanel.this.getHeight()
-				- (boundingBox.upperBound.y - boundingBox.lowerBound.y)
-				&& e.getX() > 0 && e.getY() > 0) {
-			  boundingBoxRect.x = e.getX();
-			  boundingBoxRect.y = e.getY();
-			  boundingBoxRect.width = (int) (boundingBox.upperBound.x - boundingBox.lowerBound.x);
-			  boundingBoxRect.height = (int) (boundingBox.upperBound.y - boundingBox.lowerBound.y);
-			}
+			//No Mode: draw current game process
 
-			if (e.getX() > GamePanel.this.getWidth()
-				- (boundingBox.upperBound.x - boundingBox.lowerBound.x)) {
-			  boundingBoxRect.x = (int) (GamePanel.this.getWidth() - (boundingBox.upperBound.x - boundingBox.lowerBound.x));
-			}
+			//Add Mode: draw current selected block shape with default size on screen
+			if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
 
-			if (e.getY() > GamePanel.this.getHeight()
-				- (boundingBox.upperBound.y - boundingBox.lowerBound.y)) {
-			  boundingBoxRect.y = (int) (GamePanel.this.getHeight() - (boundingBox.upperBound.y - boundingBox.lowerBound.y));
-			}
+			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
-			repaint();
+			  int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
+			  int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+
+			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
+			  /*= e.getX()-halfBBWidth;
+				boundingBoxRect.y = e.getY()-halfBBHeight;
+				boundingBoxRect.width = halfBBWidth*2;
+				boundingBoxRect.height = halfBBHeight*2;
+			   */
+			  repaint();
+			}
+			//Edit Mode:
 		  }
 		  // Edit Mode:
 		}
@@ -153,27 +157,13 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 		  //Add Mode: draw current selected block shape with default size on screen
 		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
-			if (e.getX() < GamePanel.this.getWidth()
-				- (boundingBox.upperBound.x - boundingBox.lowerBound.x)
-				&& e.getY() < GamePanel.this.getHeight()
-				- (boundingBox.upperBound.y - boundingBox.lowerBound.y)
-				&& e.getX() > 0 && e.getY() > 0) {
-			  boundingBoxRect.x = e.getX();
-			  boundingBoxRect.y = e.getY();
-			  boundingBoxRect.width = (int) (boundingBox.upperBound.x - boundingBox.lowerBound.x);
-			  boundingBoxRect.height = (int) (boundingBox.upperBound.y - boundingBox.lowerBound.y);
-			}
 
-			if (e.getX() > GamePanel.this.getWidth()
-				- (boundingBox.upperBound.x - boundingBox.lowerBound.x)) {
-			  boundingBoxRect.x = (int) (GamePanel.this.getWidth() - (boundingBox.upperBound.x - boundingBox.lowerBound.x));
-			}
+			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
-			if (e.getY() > GamePanel.this.getHeight()
-				- (boundingBox.upperBound.y - boundingBox.lowerBound.y)) {
-			  boundingBoxRect.y = (int) (GamePanel.this.getHeight()
-				  - (boundingBox.upperBound.y - boundingBox.lowerBound.y));
-			}
+			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
+			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+
+			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
 
 			repaint();
 		  }
@@ -182,6 +172,29 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  }
 	});
 
+	addKeyListener(new KeyListener() {
+	  @Override
+	  public void keyTyped(KeyEvent e) {
+	  }
+
+	  @Override
+	  public void keyReleased(KeyEvent e) {
+	  }
+
+	  @Override
+	  public void keyPressed(KeyEvent e) {
+		//Log.print("Key pressed: "+e.getKeyCode());
+		if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+		  if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
+			Log.print("Quit add mode");
+			if (GameModel.getBuildMode() != GameModel.BuildMode.NO_MODE) {
+			  GameModel.setBuildMode(GameModel.BuildMode.NO_MODE);
+			  repaint();
+			}
+		  }
+		}
+	  }
+	});
   }
 
   @Override
@@ -201,7 +214,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 
   @Override
   public void grabFocus(){
-	//this.requestFocus();
+	this.requestFocus();
   }
 
   @Override
@@ -249,8 +262,19 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  //Add Mode: draw current selected block shape with default size on screen
 	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+		g2d.scale(.1d,.1d);
 		g2d.setColor(Color.white);
-		g2d.drawRect(boundingBoxRect.x, boundingBoxRect.y, boundingBoxRect.width, boundingBoxRect.height);
+		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
+			(int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
+		for(Map.Entry<Rectangle2D, Color> entry: shapeRect.entrySet()){
+		  g2d.setColor(entry.getValue());
+		  //comment out this line if you don't like the transparancy
+		  g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.26f));
+		  Rectangle2D theRect = entry.getKey();
+		  g2d.fillRect((int)(theRect.getX()*10), (int)(theRect.getY()*10), 
+			  (int)(theRect.getWidth()*10),(int)(theRect.getHeight()*10));
+		}
+		g2d.scale(1, 1);
 	  }
 
 	  //Edit Mode:
@@ -261,7 +285,8 @@ public class GamePanel extends JPanel implements IGamePanel{
   public void updateScreen() {
 	tempBlock= ((BlockShape)GameSidePanel.components.getSelectedItem()).cloneToBlock();
 	boundingBox = tempBlock.boundingBox();
-	boundingBoxRect = new Rectangle();
+	boundingBoxRect = new Rectangle2D.Float();
+	shapeRect = new HashMap<Rectangle2D, Color>();
 	repaint();
   }
 }

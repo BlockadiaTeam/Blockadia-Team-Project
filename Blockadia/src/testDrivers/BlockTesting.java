@@ -4,12 +4,10 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jbox2d.collision.AABB;
 import org.jbox2d.common.Vec2;
 
 import utility.ElementPos;
 import utility.Log;
-
 import components.Block;
 import components.BlockShape;
 
@@ -119,6 +117,12 @@ public class BlockTesting {
 		Log.print("add in (1,1) and (2,2)");
 		block1.setShapeElement(Color.black, 1, 1);
 		block1.setShapeElement(Color.black, 2, 2);
+		Log.print(block1.boundingBox().toString());
+		Log.print(block2.boundingBox().toString());
+		Log.print("test 8x8(size 80x80, pos 40x40)");
+		block1.setResolution(new Vec2(8,8));
+		block1.setShapeElement(Color.black, 1, 5);
+		block1.setShapeElement(Color.black, 2, 7);
 		Log.print(block1.boundingBox().toString());
 		Log.print(block2.boundingBox().toString());
 	}

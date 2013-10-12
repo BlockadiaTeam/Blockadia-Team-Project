@@ -465,6 +465,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		  if (((BlockShape)components.getSelectedItem()).getShapeName() != Config.INITIAL_BLOCK_NAME) {
 			GameModel.setBuildMode(GameModel.BuildMode.ADD_MODE);
 			GameModel.getGamePanel().updateScreen();
+			GameModel.getGamePanel().grabFocus();
 		  }
 		  else {
 			JOptionPane.showMessageDialog(

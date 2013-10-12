@@ -100,7 +100,8 @@ public class EditShapeWindowBuildPanel extends JPanel {
 			int col = e.getX() / gridSize; // which col is the clicked
 			int row = e.getY() / gridSize; // which row is the clicked
 			if (row + 1 > (int) blockShape.getResolution().x
-				|| col + 1 > (int) blockShape.getResolution().y) {
+				|| col + 1 > (int) blockShape.getResolution().y
+				|| row < 0 || col < 0) {
 			  return;
 			}
 			blockShape.setShapeElement(paintColor, row, col);
@@ -115,7 +116,8 @@ public class EditShapeWindowBuildPanel extends JPanel {
 			int col = e.getX() / gridSize; // which col is the clicked
 			int row = e.getY() / gridSize; // which row is the clicked
 			if (row + 1 > (int) blockShape.getResolution().x
-				|| col + 1 > (int) blockShape.getResolution().y) {
+				|| col + 1 > (int) blockShape.getResolution().y
+				|| row < 0 || col < 0) {
 			  return;
 			}
 			blockShape.removeShapeElement(row, col);
@@ -138,7 +140,8 @@ public class EditShapeWindowBuildPanel extends JPanel {
 			int col = e.getX() / gridSize; // which col is the clicked
 			int row = e.getY() / gridSize; // which row is the clicked
 			if (row + 1 > (int) blockShape.getResolution().x
-				|| col + 1 > (int) blockShape.getResolution().y) {
+				|| col + 1 > (int) blockShape.getResolution().y
+				|| row < 0 || col < 0) {
 			  return;
 			}
 			blockShape.setShapeElement(paintColor, row, col);
@@ -153,7 +156,8 @@ public class EditShapeWindowBuildPanel extends JPanel {
 			int col = e.getX() / gridSize; // which col is the clicked
 			int row = e.getY() / gridSize; // which row is the clicked
 			if (row + 1 > (int) blockShape.getResolution().x
-				|| col + 1 > (int) blockShape.getResolution().y) {
+				|| col + 1 > (int) blockShape.getResolution().y
+				|| row < 0 || col < 0) {
 			  return;
 			}
 			blockShape.removeShapeElement(row, col);
