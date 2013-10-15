@@ -120,32 +120,21 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  public void mouseDragged(final MouseEvent e) {
 
 		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
-		  // No Mode: draw current game process
+		  //No Mode: draw current game process
 
-		  // Add Mode: draw current selected block shape with default size on
-		  // screen
-		  if (GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE) {
-			//No Mode: draw current game process
+		  //Add Mode: draw current selected block shape with default size on screen
+		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
 
-			//Add Mode: draw current selected block shape with default size on screen
-			if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
-			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
+			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
+			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
 
-			  int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
-			  int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
 
-			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
-			  /*= e.getX()-halfBBWidth;
-				boundingBoxRect.y = e.getY()-halfBBHeight;
-				boundingBoxRect.width = halfBBWidth*2;
-				boundingBoxRect.height = halfBBHeight*2;
-			   */
-			  repaint();
-			}
-			//Edit Mode:
+			repaint();
 		  }
-		  // Edit Mode:
+		  //Edit Mode:
 		}
 	  }
 
@@ -264,6 +253,9 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
 		g2d.scale(.1d,.1d);
 		g2d.setColor(Color.white);
+		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
+			(int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
+		g2d.setColor(new Color(1f,1f,1f,0.5f));
 		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
 			(int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
 		for(Map.Entry<Rectangle2D, Color> entry: shapeRect.entrySet()){
