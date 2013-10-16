@@ -2,6 +2,7 @@ package framework;
 
 import interfaces.IGamePanel;
 import utility.Log;
+import components.BuildConfig;
 
 /**
  * This class contains most control logic for the Game and the update loop. It also watches the
@@ -13,8 +14,7 @@ public class GameController implements Runnable{
 
   public static final int DEFAULT_FPS = 60;
 
-  private Config currConfig = null;
-  private final Config nextConfig = null;//TODO: do we need this?
+  private BuildConfig currConfig = null;
 
   private long startTime;
   private long frameCount;
@@ -41,8 +41,8 @@ public class GameController implements Runnable{
 
   protected void loopInit() {
 	panel.grabFocus();
-	model.setRunningConfig(model.getCurrGameConfig());
-	currConfig = model.getCurrGameConfig();
+	//	model.setRunningConfig(model.getCurrConfig());
+	currConfig = model.getCurrConfig();
 
 	if (currConfig != null) {
 	  currConfig.init(model);
@@ -103,7 +103,6 @@ public class GameController implements Runnable{
 	running = true;
 	//loopInit();
 	while (running) {
-
 	  /*if (nextTest != null) {
         nextTest.init(model);
         model.setRunningTest(nextTest);
@@ -123,10 +122,12 @@ public class GameController implements Runnable{
 	  } else {
 		updateTime = System.nanoTime();
 	  }
-
-	  /*
-	   * if(panel.render() && !model.pause) { update(); panel.paintScreen(); }
-	   */
+	  
+	  if(panel.render() && !model.pause) { 
+		update(); 
+		//panel.paintScreen(); 
+		panel.updateScreen();
+	  }
 
 	  frameCount++;
 

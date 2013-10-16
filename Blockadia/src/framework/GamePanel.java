@@ -33,6 +33,8 @@ import utility.GamePanelRenderer;
 import utility.Log;
 import components.Block;
 import components.BlockShape;
+import components.BuildConfig;
+
 
 /**
  * This is the main game panel. Similar to AnimationWindow in gizmoball
@@ -67,11 +69,10 @@ public class GamePanel extends JPanel implements IGamePanel{
 
   public GamePanel(final GameModel argModel){
 	this.setBackground(Color.black);
-	renderer = new GamePanelRenderer(this);
+	this.renderer = new GamePanelRenderer(this);
 	this.model = argModel;
 	updateSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
-	//setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 
 	addMouseWheelListener(new MouseWheelListener() {
 
@@ -84,12 +85,12 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  public void mouseWheelMoved(final MouseWheelEvent e) {
 		final DebugDraw d = renderer;
 		final int notches = e.getWheelRotation();
-		final Config currConfig = model.getCurrGameConfig();
+		final BuildConfig currConfig = model.getCurrConfig();
 		if(currConfig == null){
 		  return;
 		}
 		final OBBViewportTransform trans = (OBBViewportTransform) d.getViewportTranform();
-		oldCenter.set(model.getCurrGameConfig().getWorldMouse());
+		oldCenter.set(model.getCurrConfig().getWorldMouse());
 
 		if(notches < 0){
 		  trans.mulByTransform(upScale);
@@ -100,8 +101,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 		}
 		d.getScreenToWorldToOut(model.getMouse(), newCenter);
 		final Vec2 transformedMove = oldCenter.subLocal(newCenter);
-		d.getViewportTranform().setCenter(
-			d.getViewportTranform().getCenter().addLocal(transformedMove));
+		d.getViewportTranform().setCenter(d.getViewportTranform().getCenter().addLocal(transformedMove));
 
 		currConfig.setCachedCameraPos(d.getViewportTranform().getCenter());
 	  }
@@ -110,8 +110,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 	addMouseListener(new MouseAdapter() {
 	  @Override
 	  public void mousePressed(final MouseEvent e) {
-		draggingMouse.set(e.getX(), e.getY());
-		drag = e.getButton() == MouseEvent.BUTTON3;
+
 	  }
 	});
 
@@ -124,12 +123,10 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 		  //Add Mode: draw current selected block shape with default size on screen
 		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
-
 			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
 			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
-
 			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
 
 			repaint();
@@ -146,12 +143,10 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 		  //Add Mode: draw current selected block shape with default size on screen
 		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
-
 			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
 			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
-
 			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
 
 			repaint();
@@ -245,6 +240,14 @@ public class GamePanel extends JPanel implements IGamePanel{
 	super.paintComponent(g);
 
 	final Graphics2D g2d = (Graphics2D) g;
+
+	if(GameModel.getMode() == GameModel.Mode.GAME_MODE){
+	  if (gImage != null) {
+		g2d.drawImage(gImage, 0, 0, null);
+		Toolkit.getDefaultToolkit().sync();
+		g2d.dispose();
+	  }
+	}
 
 	if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
 	  //No Mode: draw current game process

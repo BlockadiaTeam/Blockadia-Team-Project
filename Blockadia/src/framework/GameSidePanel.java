@@ -472,21 +472,10 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	  public void actionPerformed(final ActionEvent e) {
 		if (model.pause) {
 		  model.pause=false; //start running
-		  try {
-			buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Stop", "Click to pause the game.",
-				"res/side/Stop.png", new Rectangle(0,0,25,25));
-		  } catch (final Exception e1) {
-			System.out.println(e1);
-		  }
 		} else {
 		  model.pause=true;; //stop running
-		  try {
-			buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
-				"res/side/Play.png", new Rectangle(0,0,25,25));
-		  } catch (final Exception e1) {
-			System.out.println(e1);
-		  }
 		}
+		updatePlayPauseButton();
 	  }
 	});
 
@@ -833,6 +822,26 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		button.setToolTipText(tooltip);
 	  }
 	}
+  }
+
+  public void updatePlayPauseButton(){
+
+	if (!model.pause) {
+	  try {
+		buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Stop", "Click to pause the game.",
+			"res/side/Stop.png", new Rectangle(0,0,25,25));
+	  } catch (final Exception e1) {
+		System.out.println(e1);
+	  }
+	} else {
+	  try {
+		buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
+			"res/side/Play.png", new Rectangle(0,0,25,25));
+	  } catch (final Exception e1) {
+		System.out.println(e1);
+	  }
+	}
+
   }
 
   public void setForce() {

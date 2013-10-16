@@ -36,14 +36,15 @@ public class GameFrame extends JFrame {
 	GameModel.setGamePanelRenderer(argPanel.getGamePanelRenderer());
 	GameModel.setGamePanel(argPanel);
 
+	controller = new GameController(model,argPanel);
+
+	side = new GameSidePanel(this,model,controller);
+
 	menu = new GameMenuBar(model, side);
 	setJMenuBar(menu);
 	infoBar = new GameInfoBar();
 	add(infoBar,"South");
 
-	controller = new GameController(model,argPanel);
-
-	side = new GameSidePanel(this,model,controller);
 	add((Component) argPanel, "Center");
 	add(new JScrollPane(side),"East");
 	setResizable(false);
