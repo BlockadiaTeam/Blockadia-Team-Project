@@ -16,6 +16,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import xmlParsers.SaveFileManager;
 import components.BuildConfig;
@@ -165,10 +167,10 @@ public class GameMenuBar extends JMenuBar{
 
   private void addListeners(){
 //TODO: there is a bug that whenever a menu is opened up, the rendering routine is messed up
-/*	fileMenu.addMenuListener(new MenuListener(){
+	fileMenu.addMenuListener(new MenuListener(){
 
 	  @Override
-	  public void menuSelected(MenuEvent e) {
+	  public void menuSelected(MenuEvent e) {/*
 		//if in buildMode: do nothing
 		//if in gameMode: stop the game
 		if(GameModel.getMode() == GameModel.Mode.GAME_MODE){
@@ -176,9 +178,9 @@ public class GameMenuBar extends JMenuBar{
 		  gameSidePanel.updatePlayPauseButton();
 		  if(panel.render() && !model.pause) { 
 			model.getCurrConfig().update();
-			panel.paintScreen(); 
+			panel.updateScreen();
 		  }
-		}
+		}*/
 		System.out.println("Open");
 	  }
 
@@ -194,7 +196,7 @@ public class GameMenuBar extends JMenuBar{
 	  }
 
 	});
-*/
+
 	// New
 	newItem.addActionListener(new ActionListener() {
 	  @Override

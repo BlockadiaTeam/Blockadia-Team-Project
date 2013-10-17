@@ -22,7 +22,6 @@ public class BlockadiaMain {
     
     GameModel model = new GameModel();
     IGamePanel panel = new GamePanel(model);
-    //TestList.populateModel(model);
     JFrame blockadia = new GameFrame(model, panel);
     blockadia.setVisible(true);
     blockadia.setResizable(false);

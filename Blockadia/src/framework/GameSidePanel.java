@@ -431,37 +431,45 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		// TODO: change the screen when enter into different mode
 		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
 		  GameModel.setMode(GameModel.Mode.GAME_MODE);
-		  try {
-			GameInfoBar.updateInfo("Mode: Game");
+		  GameInfoBar.updateInfo("Mode: Game");
+		  try {//Update buttons & panel:
 			buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.",
 				"res/side/Build.png", new Rectangle(0,0,60, 50));
+		  } catch (final Exception e1) {
+			System.out.println(e1);
+		  }
+		  {
 			playPauseButton.setEnabled(true);
 			resetButton.setEnabled(true);
 			setOptionPanelMode(false);
 			optionPanel.setPreferredSize(new Dimension(200,450));
 			scroll.setSize(230,495);
-		  } catch (final Exception e1) {
-			System.out.println(e1);
+		  }
+		  {//Update the screen //TODO: is controller.loopInit() correct?
+			controller.loopInit();
+			model.pause = true;
+			updatePlayPauseButton();
 		  }
 		} else {
 		  GameModel.setMode(GameModel.Mode.BUILD_MODE);
+		  GameInfoBar.updateInfo("Mode: Build");
 		  try {
-			GameInfoBar.updateInfo("Mode: Build");
 			buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.",
 				"res/side/Game.png", new Rectangle(0,0,60,50));
-			//1st: stop the game if it is running//TODO
-			model.pause = true;
+		  } catch (final Exception e1) {
+			System.out.println(e1);
+		  }
+		  {//1st: stop the game if it is running //TODO: is controller.loopInit() correct?
 			controller.loopInit();
-			//2nd: reset the looks of playPauseButton
-			buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
-				"res/side/Play.png", new Rectangle(0,0,25,25));
+			model.pause = true;
+			updatePlayPauseButton();
+		  }
+		  {//2nd: reset the looks of playPauseButton
 			playPauseButton.setEnabled(false);
 			resetButton.setEnabled(false);
 			setOptionPanelMode(true);
 			optionPanel.setPreferredSize(new Dimension(200,800));
 			scroll.setSize(230,460);
-		  } catch (final Exception e1) {
-			System.out.println(e1);
 		  }
 		}
 	  }
@@ -489,7 +497,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 		  if (((BlockShape)components.getSelectedItem()).getShapeName() != Config.INITIAL_BLOCK_NAME) {
 			GameModel.setBuildMode(GameModel.BuildMode.ADD_MODE);
-			GameModel.getGamePanel().updateScreen();
+			GameModel.getGamePanel().paintAddModeShape();
 			GameModel.getGamePanel().grabFocus();
 		  }
 		  else {

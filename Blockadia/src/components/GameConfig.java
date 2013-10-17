@@ -19,6 +19,7 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
 
 import utility.ContactPoint;
+import framework.GameController;
 import framework.GameModel;
 
 /**
@@ -64,6 +65,11 @@ public class GameConfig extends BuildConfig implements ContactListener{
    * */
   @Override
   public void initConfig(){
+	//TODO
+	for(Block block: blocksList){
+	  block.createBlockInWorld(getWorld());
+	}
+	
 	{ // Floor
 	  FixtureDef fd = new FixtureDef();
 	  PolygonShape sd = new PolygonShape();
@@ -72,10 +78,8 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
 	  BodyDef bd = new BodyDef();
 	  bd.position = new Vec2(0.0f, -10.0f);
-	  getWorld().createBody(bd).createFixture(fd);
-
+	  getWorld().createBody(bd).createFixture(fd);		
 	}
-
 	{ // Platforms
 	  for (int i = 0; i < 4; i++) {
 		FixtureDef fd = new FixtureDef();
@@ -122,15 +126,77 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   @Override
   public void update() {
+
+	if(!inputQueue.isEmpty()){
+	  synchronized (inputQueue) {
+		while(!inputQueue.isEmpty()){
+		  QueueItem item = inputQueue.pop();
+		  switch(item.type){
+		  case MouseMove:
+			mouseMove(item.pos);
+			break;
+		  case MouseDown:
+			mouseDown(item.pos);
+			break;
+		  case MouseUp:
+			mouseUp(item.pos);
+			break;
+		  case KeyPressed:
+			keyPressed(item.c , item.code);
+			break;
+		  case KeyReleased:
+			keyReleased(item.c , item.code);
+			break;
+		  case KeyTyped:
+			keyTyped(item.c , item.code);
+			break;
+		  }
+		}
+	  }
+	}
 	step();
+  }
+
+
+  private void keyTyped(char c, int code) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException("keyTyped has not been implemented");
+  }
+
+  private void keyReleased(char c, int code) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException("keyReleased has not been implemented");
+  }
+
+  private void keyPressed(char c, int code) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException("keyPressed has not been implemented");
+  }
+
+  private void mouseUp(Vec2 pos) {
+	
+  }
+
+  private void mouseDown(Vec2 pos) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException("mouseDown has not been implemented");
+  }
+
+  private void mouseMove(Vec2 pos) {
+	mouseWorld.set(pos);
   }
 
   @Override
   public synchronized void step() {
-	float hz = 60;
-	float timeStep = hz > 0f ? 1f / hz : 0;
+	float fps = GameController.DEFAULT_FPS;
+	float timeStep = fps > 0f ? 1f / fps : 0;
 
 	final DebugDraw debugDraw = GameModel.getGamePanelRenderer();
+
+	if (model.pause){
+	  timeStep = 0;
+	}
+
 	//using int to act as binary number
 	//eg: 1= 0001 , 2 = 0010 , 4 = 0100...
 	int flags = 0;
@@ -143,9 +209,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	world.setSubStepping(false);
 	world.setContinuousPhysics(true);
 
-	if(!model.pause){
-	  world.step(timeStep, 8,3);
-	}
+	world.step(timeStep, 8,3);
 
 	world.drawDebugData();
 

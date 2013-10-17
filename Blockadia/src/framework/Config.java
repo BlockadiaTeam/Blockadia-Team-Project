@@ -37,7 +37,7 @@ import exceptions.ElementNotExistException;
  * 
  * @author alex.yang
  * */
-public abstract class Config implements ContactListener{
+public class Config implements ContactListener{
 
   public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
 

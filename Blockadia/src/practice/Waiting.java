@@ -63,7 +63,8 @@ implements ActionListener {
 		  (float) trs[count % 8][i]));
 
 	  g2d.rotate(Math.PI / 4f);
-	  g2d.drawLine(0, -10, 0, -40);
+	  //g2d.drawLine(0, -10, 0, -40);
+	  g2d.fillRect(-20, -20, 10, 10);
 	}
   }
 

@@ -93,14 +93,6 @@ public class GameModel {
 	this.mouse.set(mouse);
   }
 
-/*  public BuildConfig getRunningConfig() {
-	return this.runningConfig;
-  }
-
-  public void setRunningConfig(final BuildConfig runningConfig) {
-	this.runningConfig = runningConfig;
-  }*/
-
   public float getPanelWidth() {
 	return this.panelWidth;
   }

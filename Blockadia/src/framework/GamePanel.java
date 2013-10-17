@@ -2,7 +2,6 @@ package framework;
 
 import interfaces.IGamePanel;
 
-import java.awt.AWTError;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -34,6 +33,7 @@ import utility.Log;
 import components.Block;
 import components.BlockShape;
 import components.BuildConfig;
+import exceptions.InvalidPositionException;
 
 
 /**
@@ -59,9 +59,10 @@ public class GamePanel extends JPanel implements IGamePanel{
   private final GameModel model;
   private final GamePanelRenderer renderer;
 
-  private final Vec2 draggingMouse = new Vec2();
+  private final Vec2 dragginMouse = new Vec2();
   private boolean drag = false;
 
+  //painting related:
   private Rectangle2D boundingBoxRect;
   private Map<Rectangle2D,Color> shapeRect;
   private Block tempBlock;
@@ -110,6 +111,47 @@ public class GamePanel extends JPanel implements IGamePanel{
 	addMouseListener(new MouseAdapter() {
 	  @Override
 	  public void mousePressed(final MouseEvent e) {
+		dragginMouse.set(e.getX(), e.getY());
+		drag = e.getButton() == MouseEvent.BUTTON3;
+	  }
+
+	  @Override
+	  public void mouseReleased(final MouseEvent e) {
+		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
+		  //No Mode: draw current game process
+
+		  //Add Mode: draw current selected block shape with default size on screen
+		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+			if(e.getButton() == MouseEvent.BUTTON1){
+			  final BuildConfig currConfig = model.getCurrConfig();
+			  if(currConfig == null){
+				return;
+			  }
+
+			  Vec2 posInWorld = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
+			  Vec2 sizeInWorld = new Vec2();
+			  GameModel.getGamePanelRenderer().getViewportTranform().
+			  getScreenVectorToWorld(Block.DEFAULT_SIZE_ON_SCREEN, sizeInWorld);
+			  sizeInWorld.set(Math.abs(sizeInWorld.x),Math.abs(sizeInWorld.y));
+			  tempBlock.setSizeInWorld(sizeInWorld);
+			  tempBlock.setPosInWorld(posInWorld);
+			  try {
+				currConfig.addGameBlock(tempBlock);
+				tempBlock.createBlockInWorld(currConfig.getWorld());
+				GameModel.setBuildMode(GameModel.BuildMode.NO_MODE);
+			  } catch (InvalidPositionException e1) {
+				GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
+				tempBlock.setSizeInWorld(Block.DEFAULT_SIZE_ON_SCREEN);
+				tempBlock.setPosInWorld(Block.DEFAULT_POS_ON_SCREEN);
+			  }
+			}
+		  }
+		  //Edit Mode:
+		}
+	  }
+
+	  @Override
+	  public void mouseClicked(final MouseEvent e){
 
 	  }
 	});
@@ -117,7 +159,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 	addMouseMotionListener(new MouseMotionAdapter() {
 	  @Override
 	  public void mouseDragged(final MouseEvent e) {
-
 		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
 		  //No Mode: draw current game process
 
@@ -128,11 +169,22 @@ public class GamePanel extends JPanel implements IGamePanel{
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
 			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
 			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
-
-			repaint();
 		  }
 		  //Edit Mode:
 		}
+
+		if (!drag) {
+		  return;
+		}
+		BuildConfig currConfig = model.getCurrConfig();
+		if (currConfig == null) {
+		  return;
+		}
+		Vec2 diff = new Vec2(e.getX(), e.getY());
+		diff.subLocal(dragginMouse);
+		GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(diff, diff);
+		GameModel.getGamePanelRenderer().getViewportTranform().getCenter().subLocal(diff);
+		dragginMouse.set(e.getX(), e.getY());
 	  }
 
 	  @Override
@@ -148,8 +200,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
 			int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
 			boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
-
-			repaint();
 		  }
 		  //Edit Mode:
 		}
@@ -173,7 +223,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 			Log.print("Quit add mode");
 			if (GameModel.getBuildMode() != GameModel.BuildMode.NO_MODE) {
 			  GameModel.setBuildMode(GameModel.BuildMode.NO_MODE);
-			  repaint();
 			}
 		  }
 		}
@@ -222,31 +271,17 @@ public class GamePanel extends JPanel implements IGamePanel{
   }
 
   @Override
-  public void paintScreen() {
-	try {
-	  final Graphics graphics = this.getGraphics();
-	  if (graphics != null && gImage != null) {
-		graphics.drawImage(gImage, 0, 0, null);
-		Toolkit.getDefaultToolkit().sync();
-		graphics.dispose();
-	  }
-	} catch (final AWTError e) {
-	  System.out.println("Graphics context error "+ e);
-	}
-  }
-
-  @Override
   public void paintComponent(final Graphics g) {
 	super.paintComponent(g);
 
 	final Graphics2D g2d = (Graphics2D) g;
+	if (gImage != null) {
+	  g2d.drawImage(gImage, 0, 0, null);
+	  Toolkit.getDefaultToolkit().sync();
+	}
 
 	if(GameModel.getMode() == GameModel.Mode.GAME_MODE){
-	  if (gImage != null) {
-		g2d.drawImage(gImage, 0, 0, null);
-		Toolkit.getDefaultToolkit().sync();
-		g2d.dispose();
-	  }
+	  //TODO
 	}
 
 	if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
@@ -256,9 +291,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
 		g2d.scale(.1d,.1d);
 		g2d.setColor(Color.white);
-		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
-			(int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
-		g2d.setColor(new Color(1f,1f,1f,0.5f));
 		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
 			(int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
 		for(Map.Entry<Rectangle2D, Color> entry: shapeRect.entrySet()){
@@ -274,14 +306,26 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  //Edit Mode:
 	}
+
+	g2d.dispose();
   }
 
   @Override
   public void updateScreen() {
-	tempBlock= ((BlockShape)GameSidePanel.components.getSelectedItem()).cloneToBlock();
-	boundingBox = tempBlock.boundingBox();
-	boundingBoxRect = new Rectangle2D.Float();
-	shapeRect = new HashMap<Rectangle2D, Color>();
+	repaint();
+  }
+
+  @Override
+  public void paintAddModeShape() {
+	if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
+	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+		tempBlock= ((BlockShape)GameSidePanel.components.getSelectedItem()).cloneToBlock();
+
+		boundingBox = tempBlock.boundingBox();
+		boundingBoxRect = new Rectangle2D.Float();
+		shapeRect = new HashMap<Rectangle2D, Color>();
+	  }
+	}
 	repaint();
   }
 }

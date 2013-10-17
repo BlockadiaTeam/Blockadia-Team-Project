@@ -6,7 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jbox2d.collision.AABB;
+import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
 import utility.BlockSettings;
@@ -127,8 +130,6 @@ public class Block extends BlockShape{
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
 
-  //TODO: there is a bug here. I used sizeInWorld for calculation but actually it should be sizeOnScreeen
-  // fix later
   /**Get shape as a map of Rectangle elements.
    * The positions are calculated by the posInWorld passed in
    * NOTE: the posInWorld you supply should be the center position of the block*/
@@ -137,8 +138,8 @@ public class Block extends BlockShape{
 	int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
 	int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
 	Vec2 topLeftPos = new Vec2(posOnScreen.x-halfBBWidth , posOnScreen.y-halfBBHeight);
-	float rectWidth = (this.sizeInWorld.x/resolution.y);
-	float rectHeight = (this.sizeInWorld.y/resolution.x);
+	float rectWidth = (sizeInWorld.x/resolution.y);
+	float rectHeight = (sizeInWorld.y/resolution.x);
 	float rectX;
 	float rectY;
 	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
@@ -158,6 +159,20 @@ public class Block extends BlockShape{
    * 3. the posInWorld
    * 4. settings*/
   public void createBlockInWorld(World world){
-	//TODO
+	//TODO: build depend on the blocksetting
+	AABB boundingBox = this.boundingBox();
+	float halfBBWidth = (boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
+	float halfBBHeight= (boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+
+	FixtureDef fd = new FixtureDef();
+	PolygonShape sd = new PolygonShape();
+	sd.setAsBox(halfBBWidth, halfBBHeight);
+	fd.shape = sd;
+	fd.density = 25.0f;
+	
+	BodyDef bd = new BodyDef();
+	bd.position = posInWorld;
+
+	world.createBody(bd).createFixture(fd);
   }
 }

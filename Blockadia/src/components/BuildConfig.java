@@ -3,14 +3,17 @@ package components;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jbox2d.collision.AABB;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.World;
 
+import utility.Log;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 import exceptions.InvalidPositionException;
@@ -30,18 +33,20 @@ public abstract class BuildConfig {
 
   protected World world;
   protected Body groundBody;
-  protected final Vec2 mouseWorld = new Vec2(-30,30);//This is a temporary value
+  protected Vec2 mouseWorld = new Vec2(-30,30);//This is a temporary value
   protected int pointCount;
 
   protected GameModel model;
 
   protected String configName = "HelloWorld";//TODO:Testing
-  
+
   protected Vec2 defaultCameraPos = new Vec2(-30,30);
   protected float defaultCameraScale = 10;
   protected float cachedCameraScale;
   protected final Vec2 cachedCameraPos = new Vec2();
   protected boolean hasCachedCamera = false;
+
+  protected final LinkedList<QueueItem> inputQueue;
 
   protected Map<String, BlockShape> shapesMap;
   protected List<BlockShape> shapesList;
@@ -49,6 +54,7 @@ public abstract class BuildConfig {
   protected List<Block> blocksList;
 
   public BuildConfig(){
+	inputQueue = new LinkedList<QueueItem>();
 	shapesMap = new HashMap<String, BlockShape>();
 	shapesList = new ArrayList<BlockShape>();
 	blocksMap = new HashMap<String, Block>();
@@ -166,6 +172,10 @@ public abstract class BuildConfig {
 	return world;
   }
 
+  public void setWorldMouse(final Vec2 mouseWorld) {
+	this.mouseWorld = mouseWorld;
+  }
+
   /**
    * Gets the world position of the mouse
    * 
@@ -173,6 +183,43 @@ public abstract class BuildConfig {
    */
   public Vec2 getWorldMouse() {
 	return mouseWorld;
+  }
+
+
+  public void queueMouseMove(Vec2 pos){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.MouseMove, pos));
+	}
+  }
+
+  public void queueMouseDown(Vec2 pos){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.MouseDown, pos));
+	}
+  }
+
+  public void queueMouseUp(Vec2 pos){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.MouseUp, pos));
+	}
+  }
+
+  public void queueKeyPressed(char c, int code){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.KeyPressed, c , code));
+	}
+  }
+
+  public void queueKeyReleased(char c, int code){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.KeyReleased, c , code));
+	}
+  }
+
+  public void queueKeyTyped(char c, int code){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new QueueItem(QueueItemType.KeyTyped, c , code));
+	}
   }
 
   public void addGameShape(BlockShape shape) throws ElementExistsException{
@@ -220,13 +267,33 @@ public abstract class BuildConfig {
   public void addGameBlock(Block block) throws InvalidPositionException{
 	//TODO:JBox2D should have a way to detect if they are overlapped: AABB: testOverlap
 	//1. check if its big bounding box overlap with other's
-	//   Yes-check if its small bounding boxes overlap with other's bounding boxes
-	//			 Yes-throw exception
-	//			 No- do nothing
-	//	 No- do nothing
+	//   Yes-throw exception
+	//	 No- next step
 	//2. check if the name exists
 	//	 Yes- change it to unique
 	//3. add the block
+	boolean hasOverlap = false;
+	if(!blocksList.isEmpty()){
+	  for(Block blk: blocksList){
+		hasOverlap = AABB.testOverlap(blk.boundingBox(), block.boundingBox());
+		if(hasOverlap){
+		  throw new InvalidPositionException("The position has been occupied");
+		}
+	  }
+
+	  if(blocksMap.containsKey(block.getBlockName())){
+		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
+		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);
+		  newName += "-("+(int)(Math.random()*10000)+")";
+		  block.setBlockName(newName);
+		}else{
+		  String newName = block.getBlockName();
+		  newName += "-("+(int)(Math.random()*10000)+")";
+		  block.setBlockName(newName);
+		}
+	  }
+	  Log.print(block.getBlockName());
+	}
 
 	blocksMap.put(block.getBlockName(), block);
 	blocksList.add(block);
@@ -264,5 +331,27 @@ public abstract class BuildConfig {
 	}else{
 	  return false;
 	}
+  }
+}
+
+enum QueueItemType{
+  MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
+}
+
+class QueueItem{
+  public QueueItemType type;
+  public Vec2 pos;
+  public char c;
+  public int code;
+
+  public QueueItem(QueueItemType type, Vec2 pos){
+	this.type = type;
+	this.pos = pos.clone();
+  }
+
+  public QueueItem(QueueItemType type, char c, int code){
+	this.type = type;
+	this.c = c;
+	this.code = code;
   }
 }
