@@ -8,6 +8,7 @@ import java.util.Map;
 import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
@@ -185,14 +186,21 @@ public class Block extends BlockShape{
 	Map<Rectangle2D,Color> shapeRect = this.getShapeRect();
 	FixtureDef fd = settings.getBlockFixtureDefinition();
 	BodyDef bd = settings.getBlockBodyDefinition();
-	//bd.type = BodyType.DYNAMIC;
+	bd.position = posInWorld;
+	Body blockBody = world.createBody(bd);
 	PolygonShape sd = new PolygonShape();
 
+	Vec2 elementCenter = new Vec2();
+	Vec2 diff = new Vec2();
 	for(Map.Entry<Rectangle2D, Color> entry : shapeRect.entrySet()){
-	  bd.position =new Vec2((float)entry.getKey().getX(),(float)entry.getKey().getY());
-	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2);
+	  elementCenter.set((float)(entry.getKey().getX()+(entry.getKey().getWidth()/2))
+		  ,(float)(entry.getKey().getY()-(entry.getKey().getHeight()/2)));
+	  diff = elementCenter.sub(posInWorld);
+	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2,diff,0f);
 	  fd.shape = sd;
-	  world.createBody(bd).createFixture(fd);
+	  blockBody.createFixture(fd);
+	  elementCenter = new Vec2();
+	  diff = new Vec2();
 	}
 
   }
