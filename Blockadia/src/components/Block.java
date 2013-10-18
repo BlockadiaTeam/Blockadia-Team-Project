@@ -12,7 +12,7 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
-import utility.BlockSettings;
+import prereference.BlockSettings;
 import utility.ElementPos;
 
 /**
@@ -131,7 +131,29 @@ public class Block extends BlockShape{
   }
 
   /**Get shape as a map of Rectangle elements.
-   * The positions are calculated by the posInWorld passed in
+   * The positions are calculated by the posInWorld
+   * NOTE: the posInWorld you supply should be the center position of the block*/
+  public Map<Rectangle2D, Color> getShapeRect(){
+	AABB boundingBox = this.boundingBox();
+	int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
+	int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+	
+	Vec2 topLeftPos = new Vec2(posInWorld.x-halfBBWidth , posInWorld.y+halfBBHeight);
+	float rectWidth = (sizeInWorld.x/resolution.y);
+	float rectHeight = (sizeInWorld.y/resolution.x);
+	float rectX;
+	float rectY;
+	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
+	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
+	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
+	  rectY = (topLeftPos.y-(entry.getKey().row-upperBoundElement.row)*rectWidth);
+	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
+	}
+	return shapeRect;
+  }
+
+  /**Get shape as a map of Rectangle elements.
+   * The positions are calculated by the posOnScreen passed in
    * NOTE: the posInWorld you supply should be the center position of the block*/
   public Map<Rectangle2D, Color> getShapeRect(Vec2 posOnScreen){
 	AABB boundingBox = this.boundingBox(posOnScreen);
@@ -160,19 +182,18 @@ public class Block extends BlockShape{
    * 4. settings*/
   public void createBlockInWorld(World world){
 	//TODO: build depend on the blocksetting
-	AABB boundingBox = this.boundingBox();
-	float halfBBWidth = (boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
-	float halfBBHeight= (boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
-
-	FixtureDef fd = new FixtureDef();
+	Map<Rectangle2D,Color> shapeRect = this.getShapeRect();
+	FixtureDef fd = settings.getBlockFixtureDefinition();
+	BodyDef bd = settings.getBlockBodyDefinition();
+	//bd.type = BodyType.DYNAMIC;
 	PolygonShape sd = new PolygonShape();
-	sd.setAsBox(halfBBWidth, halfBBHeight);
-	fd.shape = sd;
-	fd.density = 25.0f;
-	
-	BodyDef bd = new BodyDef();
-	bd.position = posInWorld;
 
-	world.createBody(bd).createFixture(fd);
+	for(Map.Entry<Rectangle2D, Color> entry : shapeRect.entrySet()){
+	  bd.position =new Vec2((float)entry.getKey().getX(),(float)entry.getKey().getY());
+	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2);
+	  fd.shape = sd;
+	  world.createBody(bd).createFixture(fd);
+	}
+
   }
 }

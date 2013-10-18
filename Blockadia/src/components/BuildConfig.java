@@ -265,7 +265,8 @@ public abstract class BuildConfig {
   }
 
   public void addGameBlock(Block block) throws InvalidPositionException{
-	//TODO:JBox2D should have a way to detect if they are overlapped: AABB: testOverlap
+	//TODO:Performance improvement: use dynamic tree to manage all the blocks efficiently, instead
+	// of using brute force manner
 	//1. check if its big bounding box overlap with other's
 	//   Yes-throw exception
 	//	 No- next step

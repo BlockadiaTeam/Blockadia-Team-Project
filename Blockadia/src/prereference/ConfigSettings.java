@@ -1,4 +1,5 @@
-package utility;
+package prereference;
+
 
 
 
@@ -22,7 +23,8 @@ public class ConfigSettings extends Settings {
   	super();
   }
   
-  public void populateDefaultSettings(){
+  @Override
+  protected void populateDefaultSettings(){
   	//TODO
   }
 }
