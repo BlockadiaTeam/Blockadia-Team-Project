@@ -30,9 +30,11 @@ import org.jbox2d.common.Vec2;
 
 import utility.GamePanelRenderer;
 import utility.Log;
+
 import components.Block;
 import components.BlockShape;
 import components.BuildConfig;
+
 import exceptions.InvalidPositionException;
 
 

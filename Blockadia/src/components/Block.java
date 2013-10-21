@@ -136,9 +136,9 @@ public class Block extends BlockShape{
    * NOTE: the posInWorld you supply should be the center position of the block*/
   public Map<Rectangle2D, Color> getShapeRect(){
 	AABB boundingBox = this.boundingBox();
-	int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
-	int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
-	
+	float halfBBWidth = ((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);   //half of the bounding box width
+	float halfBBHeight= ((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   //half of the bounding box height
+
 	Vec2 topLeftPos = new Vec2(posInWorld.x-halfBBWidth , posInWorld.y+halfBBHeight);
 	float rectWidth = (sizeInWorld.x/resolution.y);
 	float rectHeight = (sizeInWorld.y/resolution.x);
@@ -158,8 +158,8 @@ public class Block extends BlockShape{
    * NOTE: the posInWorld you supply should be the center position of the block*/
   public Map<Rectangle2D, Color> getShapeRect(Vec2 posOnScreen){
 	AABB boundingBox = this.boundingBox(posOnScreen);
-	int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
-	int halfBBHeight= (int)(boundingBox.upperBound.y - boundingBox.lowerBound.y)/2;   //half of the bounding box height
+	float halfBBWidth = ((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);   //half of the bounding box width
+	float halfBBHeight= ((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   //half of the bounding box height
 	Vec2 topLeftPos = new Vec2(posOnScreen.x-halfBBWidth , posOnScreen.y-halfBBHeight);
 	float rectWidth = (sizeInWorld.x/resolution.y);
 	float rectHeight = (sizeInWorld.y/resolution.x);
@@ -202,6 +202,5 @@ public class Block extends BlockShape{
 	  elementCenter = new Vec2();
 	  diff = new Vec2();
 	}
-
   }
 }

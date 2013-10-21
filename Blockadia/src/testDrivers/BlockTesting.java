@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.World;
 
 import utility.ElementPos;
 import utility.Log;
+
 import components.Block;
 import components.BlockShape;
 
@@ -141,5 +143,14 @@ public class BlockTesting {
 	for(Map.Entry<Rectangle2D, Color> entry : shapeRect.entrySet()){
 	  Log.print(entry.getKey().toString());
 	}
+	Log.print("Bounding box: "+block1.boundingBox().toString());
+
+	Log.print("");
+
+	//"Test case #5: test [createBlockInWorld()]"
+	Log.print("Test case #5: test [createBlockInWorld()]");
+	Vec2 gravity = new Vec2(0,-10f);
+	World world = new World(gravity); 
+	block1.createBlockInWorld(world);
   }
 }
