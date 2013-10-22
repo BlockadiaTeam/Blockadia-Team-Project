@@ -7,9 +7,11 @@ import java.util.Map;
 
 import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
@@ -33,9 +35,10 @@ public class Block extends BlockShape{
   private final BlockSettings settings;
   private String blockName;
   private Vec2 sizeInWorld;																				//x- width, y- height
-  //private Vec2 sizeOnScreen;																			//sizeOnScreen can be set
   private Vec2 posInWorld;																				//Note: center point of the block,not topleft
-  //private Vec2 posOnScreen;																				//posOnScreen can be set
+
+  private Body blockBody = null;
+  private Fixture fixtureList = null;
 
   public Block(){
 	this(BlockShape.DEFAULT_NAME,DEFAULT_SIZE_IN_WORLD,DEFAULT_POS_IN_WORLD);
@@ -187,7 +190,7 @@ public class Block extends BlockShape{
 	FixtureDef fd = settings.getBlockFixtureDefinition();
 	BodyDef bd = settings.getBlockBodyDefinition();
 	bd.position = posInWorld;
-	Body blockBody = world.createBody(bd);
+	blockBody = world.createBody(bd);
 	PolygonShape sd = new PolygonShape();
 
 	Vec2 elementCenter = new Vec2();
@@ -198,9 +201,28 @@ public class Block extends BlockShape{
 	  diff = elementCenter.sub(posInWorld);
 	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2,diff,0f);
 	  fd.shape = sd;
+	  //TODO: ALSO STORE THE SHAPE
 	  blockBody.createFixture(fd);
 	  elementCenter = new Vec2();
 	  diff = new Vec2();
 	}
+	
+	fixtureList = blockBody.getFixtureList();
+  }
+  
+  public boolean testPoint(Vec2 pointInWorld){
+	Transform xfm = new Transform();
+	xfm.setIdentity();
+	boolean contains = false;
+	for(int i = 0; i < blockBody.m_fixtureCount; i++){
+	  contains = fixtureList.testPoint(pointInWorld);
+	  if(contains){
+		break;
+	  }else{
+		fixtureList = fixtureList.getNext();
+	  }
+	}
+	fixtureList = blockBody.getFixtureList();
+	return contains;
   }
 }

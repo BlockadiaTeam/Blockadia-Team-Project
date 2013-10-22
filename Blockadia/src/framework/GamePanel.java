@@ -1,5 +1,8 @@
 package framework;
 
+import exceptions.InvalidPositionException;
+import framework.GameModel.BuildMode;
+import framework.GameModel.Mode;
 import interfaces.IGamePanel;
 
 import java.awt.AlphaComposite;
@@ -34,8 +37,6 @@ import utility.Log;
 import components.Block;
 import components.BlockShape;
 import components.BuildConfig;
-
-import exceptions.InvalidPositionException;
 
 
 /**
@@ -119,11 +120,16 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void mouseReleased(final MouseEvent e) {
-		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
-		  //No Mode: draw current game process
-
-		  //Add Mode: draw current selected block shape with default size on screen
-		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+		if (GameModel.getMode() == Mode.BUILD_MODE) {
+		  //No Mode: Test contains, if click point contains, enter EditMode
+		  if(GameModel.getBuildMode() == BuildMode.NO_MODE){
+			 Vec2 clickPoint = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
+			 Log.print("Contains: "+tempBlock.testPoint(clickPoint));
+			 
+		  }
+		  
+		  //Add Mode: 
+		  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 			if(e.getButton() == MouseEvent.BUTTON1){
 			  final BuildConfig currConfig = model.getCurrConfig();
 			  if(currConfig == null){
@@ -140,7 +146,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 			  try {
 				currConfig.addGameBlock(tempBlock);
 				tempBlock.createBlockInWorld(currConfig.getWorld());
-				GameModel.setBuildMode(GameModel.BuildMode.NO_MODE);
+				GameModel.setBuildMode(BuildMode.NO_MODE);
 			  } catch (InvalidPositionException e1) {
 				GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
 				tempBlock.setSizeInWorld(Block.DEFAULT_SIZE_ON_SCREEN);
@@ -161,11 +167,11 @@ public class GamePanel extends JPanel implements IGamePanel{
 	addMouseMotionListener(new MouseMotionAdapter() {
 	  @Override
 	  public void mouseDragged(final MouseEvent e) {
-		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
+		if (GameModel.getMode() == Mode.BUILD_MODE) {
 		  //No Mode: draw current game process
 
 		  //Add Mode: draw current selected block shape with default size on screen
-		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+		  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
@@ -192,11 +198,11 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  @Override
 	  public void mouseMoved(final MouseEvent e) {
 
-		if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
+		if(GameModel.getMode() == Mode.BUILD_MODE){
 		  //No Mode: draw current game process
 
 		  //Add Mode: draw current selected block shape with default size on screen
-		  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+		  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 			shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
 
 			int halfBBWidth = (int)(boundingBox.upperBound.x - boundingBox.lowerBound.x)/2;   //half of the bounding box width
@@ -221,10 +227,10 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  public void keyPressed(KeyEvent e) {
 		//Log.print("Key pressed: "+e.getKeyCode());
 		if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
-		  if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
+		  if(GameModel.getMode() == Mode.BUILD_MODE){
 			Log.print("Quit add mode");
-			if (GameModel.getBuildMode() != GameModel.BuildMode.NO_MODE) {
-			  GameModel.setBuildMode(GameModel.BuildMode.NO_MODE);
+			if (GameModel.getBuildMode() != BuildMode.NO_MODE) {
+			  GameModel.setBuildMode(BuildMode.NO_MODE);
 			}
 		  }
 		}
@@ -282,15 +288,15 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  Toolkit.getDefaultToolkit().sync();
 	}
 
-	if(GameModel.getMode() == GameModel.Mode.GAME_MODE){
+	if(GameModel.getMode() == Mode.GAME_MODE){
 	  //TODO
 	}
 
-	if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
+	if(GameModel.getMode() == Mode.BUILD_MODE){
 	  //No Mode: draw current game process
 
 	  //Add Mode: draw current selected block shape with default size on screen
-	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+	  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 		g2d.scale(.1d,.1d);
 		g2d.setColor(Color.white);
 		g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
@@ -319,8 +325,8 @@ public class GamePanel extends JPanel implements IGamePanel{
 
   @Override
   public void paintAddModeShape() {
-	if(GameModel.getMode() == GameModel.Mode.BUILD_MODE){
-	  if(GameModel.getBuildMode() == GameModel.BuildMode.ADD_MODE){
+	if(GameModel.getMode() == Mode.BUILD_MODE){
+	  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 		tempBlock= ((BlockShape)GameSidePanel.components.getSelectedItem()).cloneToBlock();
 
 		boundingBox = tempBlock.boundingBox();
