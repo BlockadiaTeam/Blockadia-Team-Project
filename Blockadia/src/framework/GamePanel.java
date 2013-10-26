@@ -26,10 +26,12 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.jbox2d.callbacks.DebugDraw;
+import org.jbox2d.callbacks.QueryCallback;
 import org.jbox2d.collision.AABB;
 import org.jbox2d.common.Mat22;
 import org.jbox2d.common.OBBViewportTransform;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Fixture;
 
 import utility.GamePanelRenderer;
 import utility.Log;
@@ -116,6 +118,24 @@ public class GamePanel extends JPanel implements IGamePanel{
 	  public void mousePressed(final MouseEvent e) {
 		dragginMouse.set(e.getX(), e.getY());
 		drag = e.getButton() == MouseEvent.BUTTON3;
+		Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
+		model.getCurrConfig().setWorldMouse(mouseWorld);
+		
+		final AABB queryAABB = new AABB();
+		final MousePressCallback callback = new MousePressCallback();
+		if (GameModel.getMode() == Mode.BUILD_MODE) {
+		  if(GameModel.getBuildMode() == BuildMode.NO_MODE){
+			queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
+			queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
+			callback.point.set(mouseWorld);
+			callback.fixture = null;
+			model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
+			 
+			if(callback.fixture != null){
+			  //TODO
+			}
+		  }
+		}
 	  }
 
 	  @Override
@@ -125,7 +145,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  if(GameModel.getBuildMode() == BuildMode.NO_MODE){
 			 Vec2 clickPoint = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
 			 Log.print("Contains: "+tempBlock.testPoint(clickPoint));
-			 
+			 //TODO:Delete Later
 		  }
 		  
 		  //Add Mode: 
@@ -336,4 +356,27 @@ public class GamePanel extends JPanel implements IGamePanel{
 	}
 	repaint();
   }
+}
+
+class MousePressCallback implements QueryCallback{
+
+  public final Vec2 point;
+  public Fixture fixture;
+  
+  public MousePressCallback(){
+	point = new Vec2();
+	fixture = null;
+  }
+  
+  @Override
+  public boolean reportFixture(Fixture fixture) {
+	boolean inside = fixture.testPoint(point);
+	
+	if(inside){
+	  this.fixture = fixture;
+	  return false;
+	}
+	return true;
+  }
+  
 }
