@@ -13,6 +13,7 @@ import javax.swing.Timer;
 import org.jbox2d.common.Vec2;
 
 import utility.Log;
+
 import components.BuildConfig;
 
 /**
@@ -84,9 +85,9 @@ public class GameController {
 	  @Override
 	  public void mouseDragged(MouseEvent e) {
 		pos.set(e.getX(), e.getY());
-
 		//right click
-		if (e.getButton() == MouseEvent.BUTTON3) {
+		if (e.getButton() == MouseEvent.BUTTON3) {// TODO: I don't think this part of code is ever ran -_-
+		  										  // Why did they put this in the JBox2D O_O
 		  posDif.set(model.getMouse()); //original position
 		  model.setMouse(pos);			//move to this position
 		  posDif.subLocal(pos);			//diff = orginal - end

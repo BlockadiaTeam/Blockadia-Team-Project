@@ -152,5 +152,7 @@ public class BlockTesting {
 	Vec2 gravity = new Vec2(0,-10f);
 	World world = new World(gravity); 
 	block1.createBlockInWorld(world);
+	
+	//TODO: Testcase #6 test fixtureBoundingBox();
   }
 }

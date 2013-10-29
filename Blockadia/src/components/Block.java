@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -118,9 +117,46 @@ public class Block extends BlockShape{
 
 	Vec2 lowerBound = new Vec2(lowerBoundElement.col*elementWidth,-((lowerBoundElement.row+1)*elementHeight));
 	Vec2 upperBound = new Vec2((upperBoundElement.col+1)*elementWidth, -(upperBoundElement.row*elementHeight));
+
+/*	if(blockBody == null){
+	  return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
+	}
+	else{
+	  Fixture originalFixture = fixtureList;
+	  AABB newBB = fixtureList.getAABB(0);
+	  for(int i = 0; i < blockBody.m_fixtureCount-1; i++){
+		fixtureList = fixtureList.getNext();
+		newBB.combine(fixtureList.getAABB(0));
+	  }
+	  fixtureList = originalFixture;
+	  return newBB;
+	}*/
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
 
+  public AABB fixturesBoundingBox(){
+	if(blockBody == null){
+	  AABB newBB = this.boundingBox();
+	  Vec2 center = posInWorld.clone();
+	  float halfBBWidth = (newBB.upperBound.x - newBB.lowerBound.x)/2;
+	  float halfBBHeight= (newBB.upperBound.y - newBB.lowerBound.y)/2;
+	  Vec2 lowerBound = new Vec2(center.x-halfBBWidth, center.y-halfBBHeight);
+	  Vec2 upperBound = new Vec2(center.x+halfBBWidth, center.y+halfBBHeight);
+	  newBB.set(new AABB(lowerBound,upperBound));
+	  return newBB;
+	}
+	else{
+	  Fixture originalFixture = fixtureList;
+	  AABB newBB = fixtureList.getAABB(0);
+	  for(int i = 0; i < blockBody.m_fixtureCount-1; i++){
+		fixtureList = fixtureList.getNext();
+		newBB.combine(fixtureList.getAABB(0));
+	  }
+	  fixtureList = originalFixture;
+	  return newBB;
+	}
+  }
+  
   public AABB boundingBox(Vec2 posOnScreen){
 	if(shape.isEmpty()){
 	  return new AABB(new Vec2(),new Vec2());
@@ -201,18 +237,19 @@ public class Block extends BlockShape{
 	  diff = elementCenter.sub(posInWorld);
 	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2,diff,0f);
 	  fd.shape = sd;
-	  //TODO: ALSO STORE THE SHAPE
+	  //TODO: ALSO STORE THE SHAPE (maybe)?
 	  blockBody.createFixture(fd);
 	  elementCenter = new Vec2();
 	  diff = new Vec2();
 	}
-	
+	//create a pointer in the body object that points to this block
+	blockBody.setUserData(this);
+
 	fixtureList = blockBody.getFixtureList();
   }
-  
+
+  //TODO: This is for testing purpose, might need to delete later
   public boolean testPoint(Vec2 pointInWorld){
-	Transform xfm = new Transform();
-	xfm.setIdentity();
 	boolean contains = false;
 	for(int i = 0; i < blockBody.m_fixtureCount; i++){
 	  contains = fixtureList.testPoint(pointInWorld);

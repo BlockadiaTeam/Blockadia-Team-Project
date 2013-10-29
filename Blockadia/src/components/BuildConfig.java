@@ -13,7 +13,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.World;
 
-import utility.Log;
+import utility.TestAABBCallback;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 import exceptions.InvalidPositionException;
@@ -265,21 +265,25 @@ public abstract class BuildConfig {
   }
 
   public void addGameBlock(Block block) throws InvalidPositionException{
-	//TODO:Performance improvement: use dynamic tree to manage all the blocks efficiently, instead
-	// of using brute force manner
+	//TODO: The adding game block check is not finalized
 	//1. check if its big bounding box overlap with other's
 	//   Yes-throw exception
 	//	 No- next step
 	//2. check if the name exists
 	//	 Yes- change it to unique
 	//3. add the block
-	boolean hasOverlap = false;
 	if(!blocksList.isEmpty()){
-	  for(Block blk: blocksList){
-		hasOverlap = AABB.testOverlap(blk.boundingBox(), block.boundingBox());
-		if(hasOverlap){
-		  throw new InvalidPositionException("The position has been occupied");
-		}
+	  final AABB queryAABB = new AABB();
+	  final TestAABBCallback callback = new TestAABBCallback();
+	  queryAABB.lowerBound.set(block.fixturesBoundingBox().lowerBound.clone());
+	  queryAABB.upperBound.set(block.fixturesBoundingBox().upperBound.clone());
+	  callback.aabb.lowerBound.set(block.fixturesBoundingBox().lowerBound.clone());
+	  callback.aabb.upperBound.set(block.fixturesBoundingBox().upperBound.clone());
+	  callback.fixture = null;
+	  model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
+
+	  if(callback.fixture != null){
+		throw new InvalidPositionException("The position has been occupied");
 	  }
 
 	  if(blocksMap.containsKey(block.getBlockName())){
@@ -293,7 +297,6 @@ public abstract class BuildConfig {
 		  block.setBlockName(newName);
 		}
 	  }
-	  Log.print(block.getBlockName());
 	}
 
 	blocksMap.put(block.getBlockName(), block);

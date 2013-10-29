@@ -39,8 +39,11 @@ import javax.swing.text.PlainDocument;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
+
 import components.BlockShape;
+
 import exceptions.ElementNotExistException;
+import framework.GameModel.BuildMode;
 
 /**
  * This class has all the GUI rendering about the side panel
@@ -428,8 +431,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	modeButton.addActionListener(new ActionListener() {
 	  @Override
 	  public void actionPerformed(final ActionEvent e) {
-		// TODO: change the screen when enter into different mode
 		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
+		  GameModel.setBuildMode(BuildMode.NO_MODE);
 		  GameModel.setMode(GameModel.Mode.GAME_MODE);
 		  GameInfoBar.updateInfo("Mode: Game");
 		  try {//Update buttons & panel:
