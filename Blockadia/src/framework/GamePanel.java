@@ -254,22 +254,18 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  }
 		  //Edit Mode:
 		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
+			dragginMouse.set(e.getX(), e.getY());
+			Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
+			model.getCurrConfig().setWorldMouse(mouseWorld);
 			OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
-			try{
-			  Vec2 posOnScreen = new Vec2();
-			  trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
-			  trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
-			  trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+			final AABB queryAABB = new AABB();
+			final TestPointCallback callback = new TestPointCallback();
+			queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
+			queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
+			callback.point.set(mouseWorld);
+			callback.fixture = null;
+			model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
 
-			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
-
-			  boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
-				  halfBBWidth*2, halfBBHeight*2);
-			}
-			catch(NullPointerException npe){
-			  System.out.println("Unexpected error: The tempBlock is null.");
-			}
 		  }
 		}
 	  }
@@ -296,28 +292,47 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  }
 		  //Edit Mode:
 		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
-			OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
-			try{
-			  Vec2 posOnScreen = new Vec2();
-			  trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
-			  trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
-			  trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
-
-			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
-
-			  boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
-				  halfBBWidth*2, halfBBHeight*2);
-			}
-			catch(NullPointerException npe){
-			  System.out.println("Unexpected error: The tempBlock is null.");
-			}
+//			OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
+//			try{
+//			  Vec2 posOnScreen = new Vec2();
+//			  trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
+//			  trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
+//			  trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+//
+//			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+//			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+//
+//			  boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
+//				  halfBBWidth*2, halfBBHeight*2);
+//			}
+//			catch(NullPointerException npe){
+//			  System.out.println("Unexpected error: The tempBlock is null.");
+//			}
 
 			if(!rightRrag){
-			  //TODO: There is error in getShapeRect() or getBoundingBox(posInWorld)
-			  tempBlock.setSizeInWorld(Block.DEFAULT_SIZE_ON_SCREEN);
-			 // tempBlock.setPosInWorld(Block.DEFAULT_POS_ON_SCREEN);
-			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()));
+			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()),
+				  Block.DEFAULT_SIZE_ON_SCREEN);
+			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);  
+			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   
+			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
+			}
+			else{
+//			  //OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
+//			  try{
+//				Vec2 posOnScreen = new Vec2();
+//				trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
+//				trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
+//				trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+//
+//				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+//				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+//
+//				boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
+//					halfBBWidth*2, halfBBHeight*2);
+//			  }
+//			  catch(NullPointerException npe){
+//				System.out.println("Unexpected error: The tempBlock is null.");
+//			  }
 			}
 		  }
 		}

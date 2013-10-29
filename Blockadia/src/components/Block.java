@@ -118,19 +118,6 @@ public class Block extends BlockShape{
 	Vec2 lowerBound = new Vec2(lowerBoundElement.col*elementWidth,-((lowerBoundElement.row+1)*elementHeight));
 	Vec2 upperBound = new Vec2((upperBoundElement.col+1)*elementWidth, -(upperBoundElement.row*elementHeight));
 
-/*	if(blockBody == null){
-	  return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
-	}
-	else{
-	  Fixture originalFixture = fixtureList;
-	  AABB newBB = fixtureList.getAABB(0);
-	  for(int i = 0; i < blockBody.m_fixtureCount-1; i++){
-		fixtureList = fixtureList.getNext();
-		newBB.combine(fixtureList.getAABB(0));
-	  }
-	  fixtureList = originalFixture;
-	  return newBB;
-	}*/
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
 
@@ -157,6 +144,7 @@ public class Block extends BlockShape{
 	}
   }
   
+  /**This is only used in Add Mode*/
   public AABB boundingBox(Vec2 posOnScreen){
 	if(shape.isEmpty()){
 	  return new AABB(new Vec2(),new Vec2());
@@ -170,6 +158,20 @@ public class Block extends BlockShape{
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
 
+  /**This is only used in Edit Mode*/
+  public AABB boundingBox(Vec2 posOnScreen, Vec2 sizeOnScreen){
+	if(shape.isEmpty()){
+	  return new AABB(new Vec2(),new Vec2());
+	}
+
+	Vec2 topLeftPos = new Vec2(posOnScreen.x-sizeOnScreen.x/2 , posOnScreen.y+sizeOnScreen.y/2);
+	float elementWidth = sizeOnScreen.x/resolution.y;
+	float elementHeight = sizeOnScreen.y/resolution.x;
+	Vec2 lowerBound = new Vec2(lowerBoundElement.col*elementWidth,-((lowerBoundElement.row+1)*elementHeight));
+	Vec2 upperBound = new Vec2((upperBoundElement.col+1)*elementWidth, -(upperBoundElement.row*elementHeight));
+	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
+  }
+  
   /**Get shape as a map of Rectangle elements.
    * The positions are calculated by the posInWorld
    * NOTE: the posInWorld you supply should be the center position of the block*/
@@ -194,7 +196,7 @@ public class Block extends BlockShape{
 
   /**Get shape as a map of Rectangle elements.
    * The positions are calculated by the posOnScreen passed in
-   * NOTE: the posInWorld you supply should be the center position of the block*/
+   * NOTE: the posOnScreen you supply should be the center position of the block*/
   public Map<Rectangle2D, Color> getShapeRect(Vec2 posOnScreen){
 	AABB boundingBox = this.boundingBox(posOnScreen);
 	float halfBBWidth = ((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);   //half of the bounding box width
@@ -214,6 +216,28 @@ public class Block extends BlockShape{
 	return shapeRect;
   }
 
+  /**Get shape as a map of Rectangle elements.
+   * The positions are calculated by the posOnScreen and sizeOnScreen passed in
+   * NOTE: the posOnScreen you supply should be the center position of the block*/
+  public Map<Rectangle2D, Color> getShapeRect(Vec2 posOnScreen, Vec2 sizeOnScreen){
+	AABB boundingBox = this.boundingBox(posOnScreen,sizeOnScreen);
+	float halfBBWidth = ((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);   //half of the bounding box width
+	float halfBBHeight= ((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   //half of the bounding box height
+	Vec2 topLeftPos = new Vec2(posOnScreen.x-halfBBWidth , posOnScreen.y-halfBBHeight);
+	float rectWidth = (sizeOnScreen.x/resolution.y);
+	float rectHeight = (sizeOnScreen.y/resolution.x);
+	float rectX;
+	float rectY;
+	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
+	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
+	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
+	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectWidth);
+	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
+	}
+
+	return shapeRect;
+  }
+  
   /**This method puts this block into the world (It assumes the ground is created)
    * Before calling this method, you need to check the following things are set:
    * 1. the block name
