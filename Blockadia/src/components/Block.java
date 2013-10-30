@@ -35,8 +35,8 @@ public class Block extends BlockShape{
 
   private final BlockSettings settings;
   private String blockName;
-  private Vec2 sizeInWorld;																				//x- width, y- height
-  private Vec2 posInWorld;																				//Note: center point of the block,not topleft
+  private Vec2 sizeInWorld;										//x- width, y- height
+  private Vec2 posInWorld;										//Note: center point of the block,not topleft
 
   private Body blockBody = null;
   private Fixture fixtureList = null;
@@ -76,21 +76,21 @@ public class Block extends BlockShape{
   }
 
   public Vec2 getSizeInWorld() {
-	return sizeInWorld;
+	return sizeInWorld.clone();
   }
 
   /**NOTE: sizeInWorld.x = width, sizeInWorld.y = height*/
   public void setSizeInWorld(Vec2 sizeInWorld) {
-	this.sizeInWorld = sizeInWorld;
+	this.sizeInWorld= sizeInWorld.clone();
   }
 
   /**return PosInWorld which is the center point of the block,NOT topleft*/
   public Vec2 getPosInWorld() {
-	return posInWorld;
+	return posInWorld.clone();
   }
 
   public void setPosInWorld(Vec2 posInWorld) {
-	this.posInWorld = posInWorld;
+	this.posInWorld = posInWorld.clone();
   }
 
   @Override
@@ -107,7 +107,7 @@ public class Block extends BlockShape{
   }
 
   /**This method returns the smallest bounding box of the entire block.
-   * The bounding box is decided by the blockShape*/
+   * The bounding box is determined by the posInWorld*/
   public AABB boundingBox(){
 	if(shape.isEmpty()){
 	  return new AABB(new Vec2(),new Vec2());
@@ -123,6 +123,8 @@ public class Block extends BlockShape{
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
 
+  /**This method returns the smallest bounding box of the entire block.
+   * The bounding box is assuming the center is at the center of the fixture*/
   public AABB fixturesBoundingBox(){
 	if(blockBody == null){
 	  AABB newBB = this.boundingBox();
@@ -146,6 +148,26 @@ public class Block extends BlockShape{
 	}
   }
 
+  /**Returns the world coordinate of the topLeft corner of the fixtureBoundingBox*/
+  public Vec2 getTopLeft(){
+	return new Vec2(fixturesBoundingBox().lowerBound.x, fixturesBoundingBox().upperBound.y);
+  }
+  
+  /**Returns the world coordinate of the topRight corner of the fixtureBoundingBox*/
+  public Vec2 getTopRight(){
+	return fixturesBoundingBox().upperBound.clone();
+  }
+  
+  /**Returns the world coordinate of the botLeft corner of the fixtureBoundingBox*/
+  public Vec2 getBotLeft(){
+	return fixturesBoundingBox().lowerBound.clone();
+  }
+  
+  /**Returns the world coordinate of the botRight corner of the fixtureBoundingBox*/
+  public Vec2 getBotRight(){
+	return new Vec2(fixturesBoundingBox().upperBound.x, fixturesBoundingBox().lowerBound.y);
+  }
+  
   /**This is only used in Edit Mode*/
   public AABB shiftedFixtureBoundingBox(Vec2 newFixtureCenterInWorld){
 	//original fixtureBB
@@ -200,7 +222,7 @@ public class Block extends BlockShape{
 	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
 	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
 	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
-	  rectY = (topLeftPos.y-(entry.getKey().row-upperBoundElement.row)*rectWidth);
+	  rectY = (topLeftPos.y-(entry.getKey().row-upperBoundElement.row)*rectHeight);
 	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
 	}
 	return shapeRect;
@@ -221,7 +243,7 @@ public class Block extends BlockShape{
 	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
 	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
 	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
-	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectWidth);
+	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectHeight);
 	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
 	}
 
@@ -243,13 +265,32 @@ public class Block extends BlockShape{
 	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
 	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
 	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
-	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectWidth);
+	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectHeight);
 	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
 	}
 
 	return shapeRect;
   }
-
+  
+//  /**This is only used in Edit Mode- resizing*/
+//  public Map<Rectangle2D, Color> getResizedShapeRect(Vec2 newPosInWorld, Vec2 newSizeInWorld,IViewportTransform trans){
+//	float halfBBWidth = newSizeInWorld.x/2;
+//	float halfBBHeight= newSizeInWorld.y/2;
+//	Vec2 topLeftPos = new Vec2(newPosInWorld.x-halfBBWidth , newPosInWorld.y+halfBBHeight);
+//	float rectWidth = (sizeOnScreen.x/resolution.y);
+//	float rectHeight = (sizeOnScreen.y/resolution.x);
+//	float rectX;
+//	float rectY;
+//	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
+//	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
+//	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
+//	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectHeight);
+//	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
+//	}
+//
+//	return shapeRect;
+//  }
+//  
   /**This method puts this block into the world (It assumes the ground is created)
    * Before calling this method, you need to check the following things are set:
    * 1. the block name
