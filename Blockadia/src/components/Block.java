@@ -16,6 +16,8 @@ import org.jbox2d.dynamics.World;
 
 import prereference.BlockSettings;
 import utility.ElementPos;
+import utility.TestAABBCallback;
+import exceptions.InvalidPositionException;
 
 /**
  * This class represents the blocks to be put on the game board
@@ -143,7 +145,17 @@ public class Block extends BlockShape{
 	  return newBB;
 	}
   }
-  
+
+  /**This is only used in Edit Mode*/
+  public AABB shiftedFixtureBoundingBox(Vec2 newFixtureCenterInWorld){
+	//original fixtureBB
+	AABB fixtureBB = this.fixturesBoundingBox();
+	Vec2 shiftDis = newFixtureCenterInWorld.sub(fixtureBB.getCenter());
+	Vec2 lowerBound = fixtureBB.lowerBound.sub(shiftDis);
+	Vec2 upperBound = fixtureBB.upperBound.sub(shiftDis);
+	return new AABB(lowerBound, upperBound);
+  }
+
   /**This is only used in Add Mode*/
   public AABB boundingBox(Vec2 posOnScreen){
 	if(shape.isEmpty()){
@@ -171,7 +183,7 @@ public class Block extends BlockShape{
 	Vec2 upperBound = new Vec2((upperBoundElement.col+1)*elementWidth, -(upperBoundElement.row*elementHeight));
 	return new AABB(topLeftPos.add(lowerBound), topLeftPos.add(upperBound));
   }
-  
+
   /**Get shape as a map of Rectangle elements.
    * The positions are calculated by the posInWorld
    * NOTE: the posInWorld you supply should be the center position of the block*/
@@ -237,7 +249,7 @@ public class Block extends BlockShape{
 
 	return shapeRect;
   }
-  
+
   /**This method puts this block into the world (It assumes the ground is created)
    * Before calling this method, you need to check the following things are set:
    * 1. the block name
@@ -272,6 +284,49 @@ public class Block extends BlockShape{
 	fixtureList = blockBody.getFixtureList();
   }
 
+  public void destroyBlockInWorld(World world){
+	world.destroyBody(blockBody);
+	blockBody = null;
+	fixtureList = null;
+  }
+
+  /**This method moves the Body bounded to this block in the world 
+   * Before calling this method, you need to check the following things are set:
+   * 1. the block name
+   * 2. the sizeInWorld
+   * 3. the posInWorld
+   * 4. settings*/
+  public void moveBlockInWorld(World world) throws InvalidPositionException {
+	this.destroyBlockInWorld(world);
+
+	final AABB queryAABB = new AABB();
+	final TestAABBCallback callback = new TestAABBCallback();
+	queryAABB.lowerBound.set(this.fixturesBoundingBox().lowerBound.clone());
+	queryAABB.upperBound.set(this.fixturesBoundingBox().upperBound.clone());
+	callback.aabb.lowerBound.set(this.fixturesBoundingBox().lowerBound.clone());
+	callback.aabb.upperBound.set(this.fixturesBoundingBox().upperBound.clone());
+	callback.fixture = null;
+	world.queryAABB(callback, queryAABB);
+
+	if(callback.fixture != null){
+	  throw new InvalidPositionException("The position has been occupied");
+	}
+
+	this.createBlockInWorld(world);
+  }
+
+  @Override
+  /**Create a clone of this block
+   *Warning: the cloned block does not contain an instance*/
+  public Block clone(){
+	Block newBlock = new Block();
+	newBlock = this.cloneToBlock();
+	newBlock.setBlockName(this.blockName);
+	newBlock.setPosInWorld(this.posInWorld.clone());
+	newBlock.setSizeInWorld(this.sizeInWorld.clone());
+	//TODO: block settings
+	return newBlock;
+  }
   //TODO: This is for testing purpose, might need to delete later
   public boolean testPoint(Vec2 pointInWorld){
 	boolean contains = false;

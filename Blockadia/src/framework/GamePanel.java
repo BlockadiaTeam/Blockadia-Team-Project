@@ -65,17 +65,19 @@ public class GamePanel extends JPanel implements IGamePanel{
   private final GamePanelRenderer renderer;
 
   private final Vec2 dragginMouse = new Vec2();
-  private boolean rightRrag = false;
+  private boolean rightDrag = false;
 
   //painting related:
   private Rectangle2D boundingBoxRect;
   private Map<Rectangle2D,Color> shapeRect;
   private Block tempBlock;
   private AABB boundingBox;
+  private OBBViewportTransform trans;
 
   public GamePanel(final GameModel argModel){
 	this.setBackground(Color.black);
 	this.renderer = new GamePanelRenderer(this);
+	trans = (OBBViewportTransform)renderer.getViewportTranform();
 	this.model = argModel;
 	updateSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
@@ -89,13 +91,13 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void mouseWheelMoved(final MouseWheelEvent e) {
+
 		final DebugDraw d = renderer;
 		final int notches = e.getWheelRotation();
 		final BuildConfig currConfig = model.getCurrConfig();
 		if(currConfig == null){
 		  return;
 		}
-		final OBBViewportTransform trans = (OBBViewportTransform) d.getViewportTranform();
 		oldCenter.set(model.getCurrConfig().getWorldMouse());
 
 		if(notches < 0){
@@ -116,16 +118,20 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  //Edit mode
 		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
 			try{
-			  Vec2 posOnScreen = new Vec2();
-			  trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
-			  trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
-			  trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+			  trans.getWorldToScreen(tempBlock.fixturesBoundingBox().lowerBound, boundingBox.lowerBound);
+			  trans.getWorldToScreen(tempBlock.fixturesBoundingBox().upperBound, boundingBox.upperBound);
 
 			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
 			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
 
-			  boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
+			  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
 				  halfBBWidth*2, halfBBHeight*2);
+			  //			  Vec2 sizeOnScreen = new Vec2();
+			  //			  sizeOnScreen = tempBlock.getSizeInWorld();
+			  //			  trans.
+			  //			  getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+			  //			  sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+			  //			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()),sizeOnScreen);
 			}
 			catch(NullPointerException npe){
 			  System.out.println("Unexpected error: The tempBlock is null.");
@@ -138,12 +144,64 @@ public class GamePanel extends JPanel implements IGamePanel{
 	addMouseListener(new MouseAdapter() {
 	  @Override
 	  public void mousePressed(final MouseEvent e) {
+
 		dragginMouse.set(e.getX(), e.getY());
-		rightRrag = e.getButton() == MouseEvent.BUTTON3;
+		rightDrag = e.getButton() == MouseEvent.BUTTON3;
 		Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
 		model.getCurrConfig().setWorldMouse(mouseWorld);
 
-		OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
+		final AABB queryAABB = new AABB();
+		final TestPointCallback callback = new TestPointCallback();
+		queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
+		queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
+		callback.point.set(mouseWorld);
+		callback.fixture = null;
+		model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
+
+		//no mode
+		if(GameModel.getBuildMode() == BuildMode.NO_MODE){
+		  if(callback.fixture != null && !rightDrag){
+			Body tempBody = callback.fixture.getBody();
+			try{
+			  tempBlock = (Block)tempBody.getUserData();
+			  
+			  Vec2 dragDis = new Vec2(e.getX(), e.getY());
+			  dragDis.subLocal(dragginMouse);	  
+			  Vec2 newFixtureCenter = tempBlock.fixturesBoundingBox().getCenter();
+			  trans.getWorldToScreen(newFixtureCenter,newFixtureCenter);
+			  Vec2 posOnScreen = newFixtureCenter.add(dragDis);
+			  newFixtureCenter.subLocal(dragDis);
+			  trans.getScreenToWorld(newFixtureCenter, newFixtureCenter);
+			  AABB newFixtureBB = tempBlock.shiftedFixtureBoundingBox(newFixtureCenter);
+
+			  trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
+			  trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
+
+			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+			  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+				  halfBBWidth*2, halfBBHeight*2);
+
+			  Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
+			  trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+			  sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+			  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+
+			  GameModel.setBuildMode(BuildMode.EDIT_MODE);
+			}
+			catch(ClassCastException cce){
+			  System.out.println("Unexpected error: "+ cce.getMessage());
+			}
+			catch(NullPointerException npe){
+			  System.out.println("The selected body does not have block object bounded to it.");
+			}
+		  }
+		  else if(callback.fixture != null && rightDrag){
+			//TODO: right click on Block
+		  }
+		}
+
+		/*	
 		final AABB queryAABB = new AABB();
 		final TestPointCallback callback = new TestPointCallback();
 		queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
@@ -179,6 +237,15 @@ public class GamePanel extends JPanel implements IGamePanel{
 			  catch(NullPointerException npe){
 				System.out.println("The selected body does not have block object bounded to it.");
 			  }
+
+//			  Body tempBody = callback.fixture.getBody();
+//			  tempBlock = (Block)tempBody.getUserData();
+//			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()),
+//				  Block.DEFAULT_SIZE_ON_SCREEN);
+//			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);  
+//			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   
+//			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
+//			  GameModel.setBuildMode(BuildMode.EDIT_MODE);
 			}
 			else{
 			  if(e.getButton() == MouseEvent.BUTTON1){
@@ -213,13 +280,23 @@ public class GamePanel extends JPanel implements IGamePanel{
 			  catch(NullPointerException npe){
 				System.out.println("The selected body does not have block object bounded to it.");
 			  }
+
+//			  Body tempBody = callback.fixture.getBody();
+//			  tempBlock = (Block)tempBody.getUserData();
+//			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()),
+//				  Block.DEFAULT_SIZE_ON_SCREEN);
+//			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);  
+//			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   
+//			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
+//			  GameModel.setBuildMode(BuildMode.EDIT_MODE);
 			}
 		  }
-		}
+		}*/
 	  }
 
 	  @Override
 	  public void mouseReleased(final MouseEvent e) {
+
 		if (GameModel.getMode() == Mode.BUILD_MODE) {
 		  //No Mode: Test contains, if click point contains, enter EditMode
 		  if(GameModel.getBuildMode() == BuildMode.NO_MODE){
@@ -227,6 +304,189 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  }
 
 		  //Add Mode: 
+		  //		  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
+		  //			if(e.getButton() == MouseEvent.BUTTON1){
+		  //			  final BuildConfig currConfig = model.getCurrConfig();
+		  //			  if(currConfig == null){
+		  //				return;
+		  //			  }
+		  //
+		  //			  Vec2 posInWorld = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
+		  //			  Vec2 sizeInWorld = new Vec2();
+		  //			  trans.
+		  //			  getScreenVectorToWorld(Block.DEFAULT_SIZE_ON_SCREEN, sizeInWorld);
+		  //			  sizeInWorld.set(Math.abs(sizeInWorld.x),Math.abs(sizeInWorld.y));
+		  //			  tempBlock.setSizeInWorld(sizeInWorld);
+		  //			  tempBlock.setPosInWorld(posInWorld);
+		  //			  try {
+		  //				currConfig.addGameBlock(tempBlock);
+		  //				tempBlock.createBlockInWorld(currConfig.getWorld());
+		  //				GameModel.setBuildMode(BuildMode.NO_MODE);
+		  //			  } catch (InvalidPositionException e1) {
+		  //				GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
+		  //				tempBlock.setSizeInWorld(Block.DEFAULT_SIZE_ON_SCREEN);
+		  //				tempBlock.setPosInWorld(Block.DEFAULT_POS_ON_SCREEN);
+		  //			  }
+		  //			}
+		  //		  }
+		  //Edit Mode:
+		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
+			if(e.getButton() == MouseEvent.BUTTON3){
+			  try{
+				trans.getWorldToScreen(tempBlock.fixturesBoundingBox().lowerBound, boundingBox.lowerBound);
+				trans.getWorldToScreen(tempBlock.fixturesBoundingBox().upperBound, boundingBox.upperBound);
+
+				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+
+				boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+					halfBBWidth*2, halfBBHeight*2);
+				GameModel.setBuildMode(BuildMode.EDIT_MODE);
+			  }
+			  catch(ClassCastException cce){
+				System.out.println("Unexpected error: "+ cce.getMessage());
+			  }
+			  catch(NullPointerException npe){
+				System.out.println("The selected body does not have block object bounded to it.");
+			  }			
+			}
+			else if(e.getButton() == MouseEvent.BUTTON1){
+			  if(new Vec2(e.getX(), e.getY()).equals(dragginMouse)) return;
+			  //1st: get the bounding box and shape to the right position
+			  Vec2 dragDis = new Vec2(e.getX(), e.getY());
+			  dragDis.subLocal(dragginMouse);	  
+			  Vec2 newFixtureCenter = tempBlock.fixturesBoundingBox().getCenter();
+			  trans.getWorldToScreen(newFixtureCenter,newFixtureCenter);
+			  Vec2 posOnScreen = newFixtureCenter.add(dragDis);
+			  newFixtureCenter.subLocal(dragDis);
+			  trans.getScreenToWorld(newFixtureCenter, newFixtureCenter);
+			  AABB newFixtureBB = tempBlock.shiftedFixtureBoundingBox(newFixtureCenter);
+
+			  trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
+			  trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
+
+			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+			  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+				  halfBBWidth*2, halfBBHeight*2);
+
+			  Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
+			  trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+			  sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+			  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+			  
+			  //2nd: try to save the new block
+			  final BuildConfig currConfig = model.getCurrConfig();
+			  if(currConfig == null){
+				return;
+			  }
+			  Vec2 oldPosInWorld = tempBlock.getPosInWorld();
+			  Vec2 newPosInWorld = renderer.getScreenToWorld(posOnScreen);
+			  Vec2 sizeInWorld = tempBlock.getSizeInWorld();
+			  tempBlock.setPosInWorld(newPosInWorld);
+			  tempBlock.setSizeInWorld(sizeInWorld);
+
+			  try {
+				tempBlock.moveBlockInWorld(currConfig.getWorld());
+				GameModel.setBuildMode(BuildMode.NO_MODE);
+			  } 
+			  catch (InvalidPositionException e1) {
+				try {
+				  tempBlock.createBlockInWorld(currConfig.getWorld());
+				  tempBlock.setPosInWorld(oldPosInWorld);
+				  tempBlock.moveBlockInWorld(currConfig.getWorld());
+				}
+				catch (InvalidPositionException e3) {//TODO: There is a bug here
+				  System.out.println("Unexpected error: "+ e3.getMessage());
+				}
+				GameModel.setBuildMode(BuildMode.NO_MODE);
+				GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
+			  }
+			}
+		  }
+		}
+	  }
+
+	  @Override
+	  public void mouseClicked(final MouseEvent e){
+
+		dragginMouse.set(e.getX(), e.getY());
+		Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
+		model.getCurrConfig().setWorldMouse(mouseWorld);
+
+		final AABB queryAABB = new AABB();
+		final TestPointCallback callback = new TestPointCallback();
+		queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
+		queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
+		callback.point.set(mouseWorld);
+		callback.fixture = null;
+		model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
+
+		if (GameModel.getMode() == Mode.BUILD_MODE) {
+		  //		  //Edit mode
+		  //		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
+		  //			if(callback.fixture != null){
+		  //			  Body tempBody = callback.fixture.getBody();
+		  //			  try{
+		  //				tempBlock = (Block)tempBody.getUserData();
+		  //
+		  //				Vec2 posOnScreen = new Vec2();
+		  //				trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
+		  //				trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
+		  //				trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+		  //
+		  //				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+		  //				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+		  //
+		  //				boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
+		  //					halfBBWidth*2, halfBBHeight*2);
+		  //				GameModel.setBuildMode(BuildMode.EDIT_MODE);
+		  //				//TODO: right click
+		  //			  }
+		  //			  catch(ClassCastException cce){
+		  //				System.out.println("Unexpected error: "+ cce.getMessage());
+		  //			  }
+		  //			  catch(NullPointerException npe){
+		  //				System.out.println("The selected body does not have block object bounded to it.");
+		  //			  }
+		  //			}
+		  //			else{
+		  //			  if(e.getButton() == MouseEvent.BUTTON1){
+		  //				GameModel.setBuildMode(BuildMode.NO_MODE);
+		  //			  }
+		  //			}
+		  //		  }
+		  //
+		  //		  //No mode
+		  //		  if(GameModel.getBuildMode() == BuildMode.NO_MODE){
+		  //			if(callback.fixture != null){
+		  //			  Body tempBody = callback.fixture.getBody();
+		  //			  try{
+		  //				tempBlock = (Block)tempBody.getUserData();
+		  //
+		  //				Vec2 posOnScreen = new Vec2();
+		  //				trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
+		  //				trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
+		  //				trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
+		  //
+		  //				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+		  //				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+		  //
+		  //				boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
+		  //					halfBBWidth*2, halfBBHeight*2);
+		  //				GameModel.setBuildMode(BuildMode.EDIT_MODE);
+		  //				//TODO: right click
+		  //			  }
+		  //			  catch(ClassCastException cce){
+		  //				System.out.println("Unexpected error: "+ cce.getMessage());
+		  //			  }
+		  //			  catch(NullPointerException npe){
+		  //				System.out.println("The selected body does not have block object bounded to it.");
+		  //			  }
+		  //			}
+		  //		  }
+
+		  //Add mode
 		  if(GameModel.getBuildMode() == BuildMode.ADD_MODE){
 			if(e.getButton() == MouseEvent.BUTTON1){
 			  final BuildConfig currConfig = model.getCurrConfig();
@@ -236,7 +496,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 			  Vec2 posInWorld = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
 			  Vec2 sizeInWorld = new Vec2();
-			  GameModel.getGamePanelRenderer().getViewportTranform().
+			  trans.
 			  getScreenVectorToWorld(Block.DEFAULT_SIZE_ON_SCREEN, sizeInWorld);
 			  sizeInWorld.set(Math.abs(sizeInWorld.x),Math.abs(sizeInWorld.y));
 			  tempBlock.setSizeInWorld(sizeInWorld);
@@ -252,33 +512,14 @@ public class GamePanel extends JPanel implements IGamePanel{
 			  }
 			}
 		  }
-		  //Edit Mode:
-		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
-			dragginMouse.set(e.getX(), e.getY());
-			Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
-			model.getCurrConfig().setWorldMouse(mouseWorld);
-			OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
-			final AABB queryAABB = new AABB();
-			final TestPointCallback callback = new TestPointCallback();
-			queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
-			queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
-			callback.point.set(mouseWorld);
-			callback.fixture = null;
-			model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
-
-		  }
 		}
-	  }
-
-	  @Override
-	  public void mouseClicked(final MouseEvent e){
-
 	  }
 	});
 
 	addMouseMotionListener(new MouseMotionAdapter() {
 	  @Override
 	  public void mouseDragged(final MouseEvent e) {
+
 		if (GameModel.getMode() == Mode.BUILD_MODE) {
 		  //No Mode: draw current game process
 
@@ -292,52 +533,50 @@ public class GamePanel extends JPanel implements IGamePanel{
 		  }
 		  //Edit Mode:
 		  if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
-//			OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
-//			try{
-//			  Vec2 posOnScreen = new Vec2();
-//			  trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
-//			  trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
-//			  trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
-//
-//			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-//			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
-//
-//			  boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
-//				  halfBBWidth*2, halfBBHeight*2);
-//			}
-//			catch(NullPointerException npe){
-//			  System.out.println("Unexpected error: The tempBlock is null.");
-//			}
+			if(rightDrag){
+			  try{
+				trans.getWorldToScreen(tempBlock.fixturesBoundingBox().lowerBound, boundingBox.lowerBound);
+				trans.getWorldToScreen(tempBlock.fixturesBoundingBox().upperBound, boundingBox.upperBound);
 
-			if(!rightRrag){
-			  shapeRect = tempBlock.getShapeRect(new Vec2(e.getX(),e.getY()),
-				  Block.DEFAULT_SIZE_ON_SCREEN);
-			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);  
-			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);   
-			  boundingBoxRect.setRect(e.getX()-halfBBWidth, e.getY()-halfBBHeight, halfBBWidth*2, halfBBHeight*2);
+				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+
+				boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+					halfBBWidth*2, halfBBHeight*2);
+			  }
+			  catch(ClassCastException cce){
+				System.out.println("Unexpected error: "+ cce.getMessage());
+			  }
+			  catch(NullPointerException npe){
+				System.out.println("The selected body does not have block object bounded to it.");
+			  }
 			}
 			else{
-//			  //OBBViewportTransform trans = (OBBViewportTransform) GameModel.getGamePanelRenderer().getViewportTranform();
-//			  try{
-//				Vec2 posOnScreen = new Vec2();
-//				trans.getWorldToScreen(tempBlock.getPosInWorld(),posOnScreen);
-//				trans.getWorldToScreen(tempBlock.boundingBox().lowerBound, boundingBox.lowerBound);
-//				trans.getWorldToScreen(tempBlock.boundingBox().upperBound, boundingBox.upperBound);
-//
-//				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-//				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
-//
-//				boundingBoxRect.setRect(posOnScreen.x-halfBBWidth, posOnScreen.y-halfBBHeight, 
-//					halfBBWidth*2, halfBBHeight*2);
-//			  }
-//			  catch(NullPointerException npe){
-//				System.out.println("Unexpected error: The tempBlock is null.");
-//			  }
+			  Vec2 dragDis = new Vec2(e.getX(), e.getY());
+			  dragDis.subLocal(dragginMouse);	  
+			  Vec2 newFixtureCenter = tempBlock.fixturesBoundingBox().getCenter();
+			  trans.getWorldToScreen(newFixtureCenter,newFixtureCenter);
+			  Vec2 posOnScreen = newFixtureCenter.add(dragDis);
+			  newFixtureCenter.subLocal(dragDis);
+			  trans.getScreenToWorld(newFixtureCenter, newFixtureCenter);
+			  AABB newFixtureBB = tempBlock.shiftedFixtureBoundingBox(newFixtureCenter);
+
+			  trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
+			  trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
+
+			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+			  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+				  halfBBWidth*2, halfBBHeight*2);
+			  Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
+			  trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+			  sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+			  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
 			}
 		  }
 		}
 
-		if (!rightRrag) {
+		if (!rightDrag) {
 		  return;
 		}
 		BuildConfig currConfig = model.getCurrConfig();
@@ -346,8 +585,8 @@ public class GamePanel extends JPanel implements IGamePanel{
 		}
 		Vec2 diff = new Vec2(e.getX(), e.getY());
 		diff.subLocal(dragginMouse);
-		GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(diff, diff);
-		GameModel.getGamePanelRenderer().getViewportTranform().getCenter().subLocal(diff);
+		trans.getScreenVectorToWorld(diff, diff);
+		trans.getCenter().subLocal(diff);
 		dragginMouse.set(e.getX(), e.getY());
 	  }
 
@@ -475,7 +714,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 		if(boundingBoxRect != null){
 		  g2d.drawRect((int)boundingBoxRect.getX()*10, (int)boundingBoxRect.getY()*10, 
 			  (int)boundingBoxRect.getWidth()*10, (int)boundingBoxRect.getHeight()*10);
-		  if(!rightRrag){
+		  if(!rightDrag){
 			for(Map.Entry<Rectangle2D, Color> entry: shapeRect.entrySet()){
 			  g2d.setColor(entry.getValue());
 			  //comment out this line if you don't like the transparancy

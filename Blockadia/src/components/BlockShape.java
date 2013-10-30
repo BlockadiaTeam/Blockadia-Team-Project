@@ -69,7 +69,7 @@ public class BlockShape {
   public String getShapeName(){
 	return this.blockShapeName;
   }
-
+ 
   public void setShape(final Map<ElementPos,Color> shape){
 	this.shape =  new HashMap<ElementPos,Color>();
 	this.shape.putAll(shape);
