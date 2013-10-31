@@ -272,25 +272,6 @@ public class Block extends BlockShape{
 	return shapeRect;
   }
   
-//  /**This is only used in Edit Mode- resizing*/
-//  public Map<Rectangle2D, Color> getResizedShapeRect(Vec2 newPosInWorld, Vec2 newSizeInWorld,IViewportTransform trans){
-//	float halfBBWidth = newSizeInWorld.x/2;
-//	float halfBBHeight= newSizeInWorld.y/2;
-//	Vec2 topLeftPos = new Vec2(newPosInWorld.x-halfBBWidth , newPosInWorld.y+halfBBHeight);
-//	float rectWidth = (sizeOnScreen.x/resolution.y);
-//	float rectHeight = (sizeOnScreen.y/resolution.x);
-//	float rectX;
-//	float rectY;
-//	Map<Rectangle2D, Color> shapeRect = new HashMap<Rectangle2D, Color>();
-//	for(Map.Entry<ElementPos, Color> entry : shape.entrySet()){
-//	  rectX = (topLeftPos.x+(entry.getKey().col-lowerBoundElement.col)*rectWidth);
-//	  rectY = (topLeftPos.y+(entry.getKey().row-upperBoundElement.row)*rectHeight);
-//	  shapeRect.put(new Rectangle2D.Float(rectX,rectY,rectWidth,rectHeight), entry.getValue());
-//	}
-//
-//	return shapeRect;
-//  }
-//  
   /**This method puts this block into the world (It assumes the ground is created)
    * Before calling this method, you need to check the following things are set:
    * 1. the block name
@@ -337,7 +318,7 @@ public class Block extends BlockShape{
    * 2. the sizeInWorld
    * 3. the posInWorld
    * 4. settings*/
-  public void moveBlockInWorld(World world) throws InvalidPositionException {
+  public void updateBlockInWorld(World world) throws InvalidPositionException {
 	this.destroyBlockInWorld(world);
 
 	final AABB queryAABB = new AABB();

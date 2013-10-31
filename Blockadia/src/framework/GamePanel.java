@@ -227,68 +227,197 @@ public class GamePanel extends JPanel implements IGamePanel{
 			}
 			else if(e.getButton() == MouseEvent.BUTTON1){
 			  if(new Vec2(e.getX(), e.getY()).equals(dragginMouse)) return;
-			  if(!dragging) return;
-			  //1st: get the bounding box and shape to the right position
-			  Vec2 dragDis = new Vec2(e.getX(), e.getY());
-			  dragDis.subLocal(dragginMouse);	  
-			  Vec2 newFixtureCenter = tempBlock.fixturesBoundingBox().getCenter();
-			  trans.getWorldToScreen(newFixtureCenter,newFixtureCenter);
-			  Vec2 posOnScreen = newFixtureCenter.add(dragDis);
-			  newFixtureCenter.subLocal(dragDis);
-			  trans.getScreenToWorld(newFixtureCenter, newFixtureCenter);
-			  AABB newFixtureBB = tempBlock.shiftedFixtureBoundingBox(newFixtureCenter);
+			  if(!dragging && cornerOfBB == null) return;
+			  if(dragging && cornerOfBB == null){
+				//1st: get the bounding box and shape to the right position
+				Vec2 dragDis = new Vec2(e.getX(), e.getY());
+				dragDis.subLocal(dragginMouse);	  
+				Vec2 newFixtureCenter = tempBlock.fixturesBoundingBox().getCenter();
+				trans.getWorldToScreen(newFixtureCenter,newFixtureCenter);
+				Vec2 posOnScreen = newFixtureCenter.add(dragDis);
+				newFixtureCenter.subLocal(dragDis);
+				trans.getScreenToWorld(newFixtureCenter, newFixtureCenter);
+				AABB newFixtureBB = tempBlock.shiftedFixtureBoundingBox(newFixtureCenter);
 
-			  trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
-			  trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
+				trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
+				trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
 
-			  float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-			  float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
-			  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
-				  halfBBWidth*2, halfBBHeight*2);
+				float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+				float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+				boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+					halfBBWidth*2, halfBBHeight*2);
 
-			  Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
-			  trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
-			  sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
-			  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+				Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
+				trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+				sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+				shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
 
-			  //2nd: try to save the new block
-			  final BuildConfig currConfig = model.getCurrConfig();
-			  if(currConfig == null){
-				return;
-			  }
-			  Vec2 oldPosInWorld = tempBlock.getPosInWorld();
-			  Vec2 newPosInWorld = renderer.getScreenToWorld(posOnScreen);
-			  Vec2 sizeInWorld = tempBlock.getSizeInWorld();
-			  tempBlock.setPosInWorld(newPosInWorld);
-			  tempBlock.setSizeInWorld(sizeInWorld);
+				//2nd: try to save the new block
+				final BuildConfig currConfig = model.getCurrConfig();
+				if(currConfig == null){
+				  return;
+				}
+				Vec2 oldPosInWorld = tempBlock.getPosInWorld();
+				Vec2 newPosInWorld = renderer.getScreenToWorld(posOnScreen);
+				Vec2 sizeInWorld = tempBlock.getSizeInWorld();
+				tempBlock.setPosInWorld(newPosInWorld);
+				tempBlock.setSizeInWorld(sizeInWorld);
 
-			  try {
-				tempBlock.moveBlockInWorld(currConfig.getWorld());
-				//GameModel.setBuildMode(BuildMode.NO_MODE);
-			  } 
-			  catch (InvalidPositionException e1) {
 				try {
-				  tempBlock.createBlockInWorld(currConfig.getWorld());
-				  tempBlock.setPosInWorld(oldPosInWorld);
-				  tempBlock.moveBlockInWorld(currConfig.getWorld());
+				  tempBlock.updateBlockInWorld(currConfig.getWorld());
+				} 
+				catch (InvalidPositionException e1) {
+				  try {
+					tempBlock.createBlockInWorld(currConfig.getWorld());
+					tempBlock.setPosInWorld(oldPosInWorld);
+					tempBlock.updateBlockInWorld(currConfig.getWorld());
 
-				  posOnScreen = tempBlock.fixturesBoundingBox().getCenter();
-				  trans.getWorldToScreen(posOnScreen,posOnScreen);
+					posOnScreen = tempBlock.fixturesBoundingBox().getCenter();
+					trans.getWorldToScreen(posOnScreen,posOnScreen);
 
-				  trans.getWorldToScreen(tempBlock.fixturesBoundingBox().lowerBound, boundingBox.lowerBound);
-				  trans.getWorldToScreen(tempBlock.fixturesBoundingBox().upperBound, boundingBox.upperBound);
-				  halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
-				  halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+					trans.getWorldToScreen(tempBlock.fixturesBoundingBox().lowerBound, boundingBox.lowerBound);
+					trans.getWorldToScreen(tempBlock.fixturesBoundingBox().upperBound, boundingBox.upperBound);
+					halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+					halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
 
-				  boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
-					  halfBBWidth*2, halfBBHeight*2);
-				  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+					boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+						halfBBWidth*2, halfBBHeight*2);
+					shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+				  }
+				  catch (InvalidPositionException e3) {
+					System.out.println("Unexpected error: "+ e3.getMessage());
+				  }
+				  GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
 				}
-				catch (InvalidPositionException e3) {
-				  System.out.println("Unexpected error: "+ e3.getMessage());
+			  }
+			  else if(cornerOfBB != null){
+				//1st: get the bounding box and shape to the right position
+				Vec2 dragTo = new Vec2(e.getX(), e.getY());
+				trans.getScreenToWorld(dragTo, dragTo);
+
+				float width = (tempBlock.fixturesBoundingBox().upperBound.x - tempBlock.fixturesBoundingBox().lowerBound.x);  
+				float height= (tempBlock.fixturesBoundingBox().upperBound.y - tempBlock.fixturesBoundingBox().lowerBound.y);  
+				float originalWidth = width;
+				float originalHeight = height;
+				float newWidth = 0f;
+				float newHeight = 0f;
+				Vec2 newCenter = tempBlock.fixturesBoundingBox().getCenter();
+
+				//cornerOfBB == topLeft or botLeft
+				if(cornerOfBB.x < relativePoint.x){
+				  newWidth = relativePoint.x - dragTo.x;
+				  if(newWidth <= (width/10)){
+					newWidth = (width/10);
+				  }
+				  newCenter.x = relativePoint.x - (newWidth/2);
 				}
-				//GameModel.setBuildMode(BuildMode.NO_MODE);
-				GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
+				//cornerOfBB == topRight or botRight
+				else if (cornerOfBB.x > relativePoint.x){
+				  newWidth = dragTo.x - relativePoint.x;
+				  if(newWidth <= (width/10)){
+					newWidth = (width/10);
+				  }
+				  newCenter.x = relativePoint.x + (newWidth/2);
+				}
+
+				//cornerOfBB == topLeft or topRight
+				if(cornerOfBB.y > relativePoint.y){
+				  newHeight = dragTo.y - relativePoint.y;
+				  if(newHeight <= (height/10)){
+					newHeight = (height/10);
+				  }
+				  newCenter.y = relativePoint.y + (newHeight/2);
+				}
+				//cornerOfBB == botLeft or botRight
+				else if(cornerOfBB.y < relativePoint.y){
+				  newHeight = relativePoint.y - dragTo.y;
+				  if(newHeight <= (height/10)){
+					newHeight = (height/10);
+				  }
+				  newCenter.y = relativePoint.y - (newHeight/2);
+				}
+
+				Vec2 newTopLeft = new Vec2(newCenter.x - (newWidth/2),newCenter.y + (newHeight/2));
+				Vec2 newSize = new Vec2(newWidth, newHeight);
+				trans.getWorldToScreen(newTopLeft, newTopLeft);
+				trans.getWorldVectorToScreen(newSize, newSize);
+				newSize.set(Math.abs(newSize.x),Math.abs(newSize.y));
+				boundingBoxRect.setRect(newTopLeft.x, newTopLeft.y,newSize.x, newSize.y);
+
+				float widthRatio = newWidth/originalWidth;
+				float heightRatio = newHeight/originalHeight;
+				Vec2 newSizeOnScreen = tempBlock.getSizeInWorld();
+				trans.getWorldVectorToScreen(newSizeOnScreen, newSizeOnScreen);
+				newSizeOnScreen.set(Math.abs(newSizeOnScreen.x),Math.abs(newSizeOnScreen.y));
+				newSizeOnScreen.set(newSizeOnScreen.x * widthRatio, newSizeOnScreen.y *heightRatio);
+				trans.getWorldToScreen(newCenter, newCenter);
+				shapeRect = tempBlock.getShapeRect(newCenter, newSizeOnScreen);
+
+				//2nd: try to save the new block
+				final BuildConfig currConfig = model.getCurrConfig();
+				if(currConfig == null){
+				  return;
+				}
+				Vec2 oldPosInWorld = tempBlock.getPosInWorld();
+				Vec2 oldSizeInWorld = tempBlock.getSizeInWorld();
+				Vec2 newPosInWorld = oldSizeInWorld.clone();
+				Vec2 newSizeInWorld = newSizeOnScreen;
+				trans.getScreenVectorToWorld(newSizeInWorld, newSizeInWorld);
+				newSizeInWorld.set(Math.abs(newSizeInWorld.x),Math.abs(newSizeInWorld.y));
+
+				Vec2 dragDis = new Vec2(e.getX(), e.getY());
+				trans.getScreenToWorld(dragDis, dragDis);
+				dragDis.subLocal(cornerOfBB);
+				Log.print("dragDis: "+dragDis.toString());
+				Mat22 half = new Mat22(new Vec2(.5f,0),new Vec2(0,.5f));
+				Vec2 centerOfFixtureBBMoved = half.mul(dragDis);
+				Log.print("centerOfFixtureBBMoved: "+centerOfFixtureBBMoved.toString());
+				widthRatio = originalWidth/tempBlock.getSizeInWorld().x;
+				heightRatio = originalHeight/tempBlock.getSizeInWorld().y;
+				Mat22 fixtureBBtoBB = new Mat22(new Vec2((1f/widthRatio),0f), new Vec2(0f,(1f/heightRatio)));
+
+				Vec2 centerOfBBMoved = fixtureBBtoBB.mul(centerOfFixtureBBMoved);
+				Log.print("centerOfBBMoved: "+centerOfBBMoved.toString());
+				Log.print("oldPosInWorld: " + newPosInWorld.toString());
+				newPosInWorld.addLocal(centerOfBBMoved);
+				Log.print("newPosInWorld" + newPosInWorld.toString());
+
+				tempBlock.setPosInWorld(newPosInWorld);
+				tempBlock.setSizeInWorld(newSizeInWorld);
+
+				try {
+				  Log.print("updating");
+				  tempBlock.updateBlockInWorld(currConfig.getWorld());
+				} 
+				catch (InvalidPositionException e1) {
+				  Log.print("update fail");
+				  try {
+					tempBlock.createBlockInWorld(currConfig.getWorld());
+					tempBlock.setPosInWorld(oldPosInWorld);
+					tempBlock.setSizeInWorld(oldSizeInWorld);
+					tempBlock.updateBlockInWorld(currConfig.getWorld());
+
+					AABB newFixtureBB = tempBlock.fixturesBoundingBox();
+					Vec2 posOnScreen  = tempBlock.fixturesBoundingBox().getCenter();
+					trans.getWorldToScreen(newFixtureBB.lowerBound, boundingBox.lowerBound);
+					trans.getWorldToScreen(newFixtureBB.upperBound, boundingBox.upperBound);
+
+					float halfBBWidth = Math.abs((boundingBox.upperBound.x - boundingBox.lowerBound.x)/2);
+					float halfBBHeight = Math.abs((boundingBox.upperBound.y - boundingBox.lowerBound.y)/2);
+					boundingBoxRect.setRect(boundingBox.lowerBound.x, boundingBox.upperBound.y, 
+						halfBBWidth*2, halfBBHeight*2);
+
+					Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
+					trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
+					sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+					shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
+
+				  }
+				  catch (InvalidPositionException e3) {
+					System.out.println("Unexpected error: "+ e3.getMessage());
+				  }
+				  GameInfoBar.updateInfo("The position has been occupied. Insert the shape somewhere else please.");
+				}
 			  }
 			}
 		  }
@@ -481,6 +610,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 				  shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
 				}	
 			  }
+			  //Resizing
 			  else{
 				Vec2 dragTo = new Vec2(e.getX(), e.getY());
 				trans.getScreenToWorld(dragTo, dragTo);
@@ -533,13 +663,13 @@ public class GamePanel extends JPanel implements IGamePanel{
 				trans.getWorldVectorToScreen(newSize, newSize);
 				newSize.set(Math.abs(newSize.x),Math.abs(newSize.y));
 				boundingBoxRect.setRect(newTopLeft.x, newTopLeft.y,newSize.x, newSize.y);
-				
+
 				float widthRatio = newWidth/originalWidth;
-				float heightRadio = newHeight/originalHeight;
+				float heightRatio = newHeight/originalHeight;
 				Vec2 newSizeOnScreen = tempBlock.getSizeInWorld();
 				trans.getWorldVectorToScreen(newSizeOnScreen, newSizeOnScreen);
 				newSizeOnScreen.set(Math.abs(newSizeOnScreen.x),Math.abs(newSizeOnScreen.y));
-				newSizeOnScreen.set(newSizeOnScreen.x * widthRatio, newSizeOnScreen.y *heightRadio);
+				newSizeOnScreen.set(newSizeOnScreen.x * widthRatio, newSizeOnScreen.y *heightRatio);
 				trans.getWorldToScreen(newCenter, newCenter);
 				shapeRect = tempBlock.getShapeRect(newCenter, newSizeOnScreen);
 			  }
