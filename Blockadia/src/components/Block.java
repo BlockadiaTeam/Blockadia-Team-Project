@@ -93,6 +93,10 @@ public class Block extends BlockShape{
 	this.posInWorld = posInWorld.clone();
   }
 
+  public Body getBlockBody(){
+	return this.blockBody;
+  }
+  
   @Override
   public boolean equals(Object otherBlock){
 	if (!(otherBlock instanceof Block))return false;

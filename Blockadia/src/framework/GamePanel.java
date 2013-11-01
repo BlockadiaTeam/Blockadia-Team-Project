@@ -1,5 +1,6 @@
 package framework;
 
+import exceptions.ElementNotExistException;
 import exceptions.InvalidPositionException;
 import framework.GameModel.BuildMode;
 import framework.GameModel.Mode;
@@ -33,6 +34,7 @@ import org.jbox2d.common.Mat22;
 import org.jbox2d.common.OBBViewportTransform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.Fixture;
 
 import utility.GamePanelRenderer;
 import utility.Log;
@@ -177,21 +179,24 @@ public class GamePanel extends JPanel implements IGamePanel{
 		Vec2 mouseWorld = GameModel.getGamePanelRenderer().getScreenToWorld(dragginMouse);
 		model.getCurrConfig().setWorldMouse(mouseWorld);
 
-		final AABB queryAABB = new AABB();
-		final TestPointCallback callback = new TestPointCallback();
-		queryAABB.lowerBound.set(mouseWorld.x - .001f, mouseWorld.y - .001f);
-		queryAABB.upperBound.set(mouseWorld.x + .001f, mouseWorld.y + .001f);
-		callback.point.set(mouseWorld);
-		callback.fixture = null;
-		model.getCurrConfig().getWorld().queryAABB(callback, queryAABB);
-
 		//no mode
 		if(GameModel.getBuildMode() == BuildMode.NO_MODE){
 
 		}
 		//Edit mode
 		else if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
-		  dragging = callback.fixture != null;
+		  dragging = false;
+		  Fixture fixtureList = tempBlock.getBlockBody().getFixtureList();
+		  for(int i = 0; i < tempBlock.getBlockBody().m_fixtureCount; i++){
+			if(fixtureList.testPoint(mouseWorld)){
+			  dragging = true;
+			}
+			if(dragging){
+			  break;
+			}else{
+			  fixtureList = fixtureList.getNext();
+			}
+		  }
 		}
 	  }
 
@@ -537,8 +542,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 			  Vec2 posInWorld = GameModel.getGamePanelRenderer().getScreenToWorld(new Vec2(e.getX(),e.getY()));
 			  Vec2 sizeInWorld = new Vec2();
-			  trans.
-			  getScreenVectorToWorld(Block.DEFAULT_SIZE_ON_SCREEN, sizeInWorld);
+			  trans.getScreenVectorToWorld(Block.DEFAULT_SIZE_ON_SCREEN, sizeInWorld);
 			  sizeInWorld.set(Math.abs(sizeInWorld.x),Math.abs(sizeInWorld.y));
 			  tempBlock.setSizeInWorld(sizeInWorld);
 			  tempBlock.setPosInWorld(posInWorld);
@@ -779,19 +783,35 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void keyReleased(KeyEvent e) {
-	  }
-
-	  @Override
-	  public void keyPressed(KeyEvent e) {
 		//Log.print("Key pressed: "+e.getKeyCode());
 		if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
 		  if(GameModel.getMode() == Mode.BUILD_MODE){
 			if (GameModel.getBuildMode() != BuildMode.NO_MODE) {
-			  Log.print("Quit add mode");
 			  GameModel.setBuildMode(BuildMode.NO_MODE);
 			}
 		  }
 		}
+
+		if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE || e.getKeyCode() == KeyEvent.VK_DELETE){
+		  if(GameModel.getMode() == Mode.BUILD_MODE){
+			if(GameModel.getBuildMode() == BuildMode.EDIT_MODE){
+			  if(tempBlock != null){
+				try {
+				  model.getCurrConfig().deleteGameBlock(tempBlock.getBlockName());
+				} catch (ElementNotExistException e1) {
+				  Log.print("Error deleting block: "+e1.getMessage());
+				}
+				tempBlock.destroyBlockInWorld(model.getCurrConfig().getWorld());
+				GameModel.setBuildMode(BuildMode.NO_MODE);
+			  }
+			}
+		  }
+		}
+	  }
+
+	  @Override
+	  public void keyPressed(KeyEvent e) {
+
 	  }
 	});
   }
