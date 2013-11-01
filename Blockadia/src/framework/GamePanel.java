@@ -310,6 +310,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 					newWidth = (width/10);
 				  }
 				  newCenter.x = relativePoint.x - (newWidth/2);
+				  dragTo.x = relativePoint.x - newWidth;
 				}
 				//cornerOfBB == topRight or botRight
 				else if (cornerOfBB.x > relativePoint.x){
@@ -318,6 +319,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 					newWidth = (width/10);
 				  }
 				  newCenter.x = relativePoint.x + (newWidth/2);
+				  dragTo.x = relativePoint.x + newWidth;
 				}
 
 				//cornerOfBB == topLeft or topRight
@@ -327,6 +329,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 					newHeight = (height/10);
 				  }
 				  newCenter.y = relativePoint.y + (newHeight/2);
+				  dragTo.y = relativePoint.y + newHeight;
 				}
 				//cornerOfBB == botLeft or botRight
 				else if(cornerOfBB.y < relativePoint.y){
@@ -335,6 +338,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 					newHeight = (height/10);
 				  }
 				  newCenter.y = relativePoint.y - (newHeight/2);
+				  dragTo.y = relativePoint.y - newHeight;
 				}
 
 				Vec2 newTopLeft = new Vec2(newCenter.x - (newWidth/2),newCenter.y + (newHeight/2));
@@ -360,37 +364,23 @@ public class GamePanel extends JPanel implements IGamePanel{
 				}
 				Vec2 oldPosInWorld = tempBlock.getPosInWorld();
 				Vec2 oldSizeInWorld = tempBlock.getSizeInWorld();
-				Vec2 newPosInWorld = oldSizeInWorld.clone();
+				Vec2 newPosInWorld = oldPosInWorld.clone();
 				Vec2 newSizeInWorld = newSizeOnScreen;
 				trans.getScreenVectorToWorld(newSizeInWorld, newSizeInWorld);
 				newSizeInWorld.set(Math.abs(newSizeInWorld.x),Math.abs(newSizeInWorld.y));
-
-				Vec2 dragDis = new Vec2(e.getX(), e.getY());
-				trans.getScreenToWorld(dragDis, dragDis);
-				dragDis.subLocal(cornerOfBB);
-				Log.print("dragDis: "+dragDis.toString());
+				Vec2 dragDis = new Vec2();
+				dragDis.set(dragTo.sub(cornerOfBB));
 				Mat22 half = new Mat22(new Vec2(.5f,0),new Vec2(0,.5f));
 				Vec2 centerOfFixtureBBMoved = half.mul(dragDis);
-				Log.print("centerOfFixtureBBMoved: "+centerOfFixtureBBMoved.toString());
-				widthRatio = originalWidth/tempBlock.getSizeInWorld().x;
-				heightRatio = originalHeight/tempBlock.getSizeInWorld().y;
-				Mat22 fixtureBBtoBB = new Mat22(new Vec2((1f/widthRatio),0f), new Vec2(0f,(1f/heightRatio)));
-
-				Vec2 centerOfBBMoved = fixtureBBtoBB.mul(centerOfFixtureBBMoved);
-				Log.print("centerOfBBMoved: "+centerOfBBMoved.toString());
-				Log.print("oldPosInWorld: " + newPosInWorld.toString());
-				newPosInWorld.addLocal(centerOfBBMoved);
-				Log.print("newPosInWorld" + newPosInWorld.toString());
+				newPosInWorld.addLocal(centerOfFixtureBBMoved);
 
 				tempBlock.setPosInWorld(newPosInWorld);
 				tempBlock.setSizeInWorld(newSizeInWorld);
 
 				try {
-				  Log.print("updating");
 				  tempBlock.updateBlockInWorld(currConfig.getWorld());
 				} 
 				catch (InvalidPositionException e1) {
-				  Log.print("update fail");
 				  try {
 					tempBlock.createBlockInWorld(currConfig.getWorld());
 					tempBlock.setPosInWorld(oldPosInWorld);
@@ -410,6 +400,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 					Vec2 sizeOnScreen = tempBlock.getSizeInWorld().clone();
 					trans.getWorldVectorToScreen(sizeOnScreen, sizeOnScreen);
 					sizeOnScreen.set(Math.abs(sizeOnScreen.x),Math.abs(sizeOnScreen.y));
+					trans.getWorldToScreen(posOnScreen, posOnScreen);
 					shapeRect = tempBlock.getShapeRect(posOnScreen, sizeOnScreen);
 
 				  }
