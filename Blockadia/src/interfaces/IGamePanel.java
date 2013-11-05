@@ -34,7 +34,7 @@ public interface IGamePanel {
   /**
    * Paint the rendered world to screen
    * */
-  public void paintScreen();
-
   public void updateScreen();
+  
+  public void paintAddModeShape();
 }

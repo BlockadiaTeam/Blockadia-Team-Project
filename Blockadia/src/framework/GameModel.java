@@ -35,10 +35,8 @@ public class GameModel {
 
   private static DebugDraw gamePanelRenderer;
   private static IGamePanel gamePanel;
-  private BuildConfig buildConfig;
-  private GameConfig gameConfig;
-  private Config config;
-  private Config runningConfig;
+  private BuildConfig config;
+  private BuildConfig runningConfig;
   private final Vec2 mouse = new Vec2();
 
   private float calculatedFPS;
@@ -50,9 +48,7 @@ public class GameModel {
 
   public GameModel() {
 	// TODO: testing
-	buildConfig = new BuildConfig();
-	gameConfig = new GameConfig();
-	config = new Config();
+	config = new GameConfig();
 	// When the game is started, it's in game mode and is running
 	mode = Mode.GAME_MODE;
 	buildMode = BuildMode.NO_MODE;
@@ -76,28 +72,12 @@ public class GameModel {
 	GameModel.buildMode = buildMode;
   }
 
-  public Config getCurrGameConfig() {
+  public BuildConfig getCurrConfig() {
 	return this.config;
   }
 
-  public void setCurrGameConfig(final Config config) {
+  public void setCurrConfig(final BuildConfig config) {
 	this.config = config;
-  }
-
-  public BuildConfig getBuildConfig() {
-	return buildConfig;
-  }
-
-  public void setBuildConfig(final BuildConfig buildConfig) {
-	this.buildConfig = buildConfig;
-  }
-
-  public GameConfig getGameConfig() {
-	return gameConfig;
-  }
-
-  public void setGameConfig(final GameConfig gameConfig) {
-	this.gameConfig = gameConfig;
   }
 
   public Vec2 getMouse() {
@@ -111,14 +91,6 @@ public class GameModel {
    * */
   public void setMouse(final Vec2 mouse) {
 	this.mouse.set(mouse);
-  }
-
-  public Config getRunningConfig() {
-	return this.runningConfig;
-  }
-
-  public void setRunningConfig(final Config runningConfig) {
-	this.runningConfig = runningConfig;
   }
 
   public float getPanelWidth() {
@@ -162,7 +134,7 @@ public class GameModel {
    * 
    * */
   public void populateBlockShapes() {
-	for (final BlockShape shape : config.getGameShapesList()) {
+	for (final BlockShape shape : config.getGameShapes()) {
 	  components.addElement(shape);
 	}
   }

@@ -1,7 +1,22 @@
 package framework;
 
 import interfaces.IGamePanel;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+
+import javax.swing.Timer;
+
+import org.jbox2d.common.Vec2;
+
 import utility.Log;
+
+import components.BuildConfig;
 
 /**
  * This class contains most control logic for the Game and the update loop. It also watches the
@@ -9,19 +24,19 @@ import utility.Log;
  * 
  * @author Alex Yang
  */
-public class GameController implements Runnable{
+public class GameController {
 
   public static final int DEFAULT_FPS = 60;
 
-  private Config currConfig = null;
-  private final Config nextConfig = null;//TODO: do we need this?
+  private BuildConfig currConfig = null;
 
   private long startTime;
   private long frameCount;
   private int targetFrameRate;
   private float frameRate = 0;
   private boolean running = false;
-  private final Thread animator;
+  private AnimationEventListener eventListener;
+  private final Timer animator;
 
   private final GameModel model;
   private final IGamePanel panel;
@@ -30,19 +45,113 @@ public class GameController implements Runnable{
 	this.model = model;
 	this.panel = panel;
 	setFPS(DEFAULT_FPS);
-	animator = new Thread(this,"Blockadia Thread 1");
+	eventListener = new AnimationEventListener();
+	animator = new Timer(1000 / DEFAULT_FPS, eventListener);
 	loopInit();
 	addListeners();
   }
 
   private void addListeners(){
 
+	panel.addMouseListener(new MouseAdapter() {
+	  @Override
+	  public void mouseReleased(MouseEvent e) {
+		if (model.getCurrConfig() != null) {
+		  Vec2 pos = new Vec2(e.getX(), e.getY());
+		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+		  model.getCurrConfig().queueMouseUp(pos);
+		}
+	  }
+
+	  @Override
+	  public void mousePressed(MouseEvent e) {
+        panel.grabFocus();
+        if (model.getCurrConfig() != null) {
+          Vec2 pos = new Vec2(e.getX(), e.getY());
+          if (e.getButton() == MouseEvent.BUTTON1) {
+        	GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+            model.getCurrConfig().queueMouseDown(pos);
+          }
+        }
+	   }
+	});
+
+    panel.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+/*        if (key != KeyEvent.CHAR_UNDEFINED) {
+          model.getKeys()[key] = false;
+        }
+        model.getCodedKeys()[code] = false;*/
+        if (model.getCurrConfig() != null) {
+          model.getCurrConfig().queueKeyReleased(key, code);
+        }
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+
+        if (model.getCurrConfig() != null) {
+          model.getCurrConfig().queueKeyPressed(key, code);
+        }
+      }
+    });
+
+	panel.addMouseMotionListener(new MouseMotionListener() {
+	  final Vec2 posDif = new Vec2();
+	  final Vec2 pos = new Vec2();
+	  final Vec2 pos2 = new Vec2();
+
+	  @Override
+	  public void mouseDragged(MouseEvent e) {
+		pos.set(e.getX(), e.getY());
+		//right click
+		if (e.getButton() == MouseEvent.BUTTON3) {// TODO: I don't think this part of code is ever ran -_-
+		  										  // Why did they put this in the JBox2D O_O
+		  posDif.set(model.getMouse()); //original position
+		  model.setMouse(pos);			//move to this position
+		  posDif.subLocal(pos);			//diff = orginal - end
+		  if(!GameModel.getGamePanelRenderer().getViewportTranform().isYFlip()){
+			posDif.y *= -1;
+		  }
+		  GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(posDif, posDif);
+		  GameModel.getGamePanelRenderer().getViewportTranform().getCenter().addLocal(posDif);
+		  if (model.getCurrConfig() != null) {
+			model.getCurrConfig().setCachedCameraPos(
+				GameModel.getGamePanelRenderer().getViewportTranform().getCenter());
+		  }
+		}
+		if (model.getCurrConfig() != null) {
+		  model.setMouse(pos);
+		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+		  model.getCurrConfig().queueMouseMove(pos);
+		}
+	  }
+
+	  @Override
+	  public void mouseMoved(MouseEvent e) {
+		pos2.set(e.getX(), e.getY());
+		model.setMouse(pos2);
+		if (model.getCurrConfig() != null) {
+		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos2, pos2);
+		  model.getCurrConfig().queueMouseMove(pos2);
+		}
+	  }
+	});
+
   }
 
   protected void loopInit() {
 	panel.grabFocus();
-	model.setRunningConfig(model.getCurrGameConfig());
-	currConfig = model.getCurrGameConfig();
+	currConfig = model.getCurrConfig();
 
 	if (currConfig != null) {
 	  currConfig.init(model);
@@ -92,56 +201,22 @@ public class GameController implements Runnable{
 	running = false;
   }
 
-  @Override
   public void run() {
+	panel.grabFocus();
+	if(panel.render()) { 
+	  update(); 
+	  //panel.paintScreen(); 
+	  panel.updateScreen();
+	}
+  }
 
-	long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
-	float timeInSecs;
-	beforeTime = startTime = updateTime = System.nanoTime();
-	sleepTime = 0;
+  class AnimationEventListener implements ActionListener {
 
-	running = true;
-	//loopInit();
-	while (running) {
-
-	  /*if (nextTest != null) {
-        nextTest.init(model);
-        model.setRunningTest(nextTest);
-        if(currTest != null) {
-          currTest.exit();
-        }
-        currTest = nextTest;
-        nextTest = null;
-      }*/
-
-	  timeSpent = beforeTime - updateTime;
-	  if (timeSpent > 0) {
-		timeInSecs = timeSpent * 1.0f / 1000000000.0f;
-		updateTime = System.nanoTime();
-		frameRate = frameRate * 0.9f + 1.0f / timeInSecs * 0.1f;
-		model.setCalculatedFPS(frameRate);
-	  } else {
-		updateTime = System.nanoTime();
-	  }
-
-	  /*
-	   * if(panel.render() && !model.pause) { update(); panel.paintScreen(); }
-	   */
-
-	  frameCount++;
-
-	  afterTime = System.nanoTime();
-
-	  timeDiff = afterTime - beforeTime;
-	  sleepTime = (1000000000 / targetFrameRate - timeDiff) / 1000000;
-	  if (sleepTime > 0) {
-		try {
-		  Thread.sleep(sleepTime);
-		} catch (final InterruptedException ex) {
-		}
-	  }
-	  beforeTime = System.nanoTime();
-	} // end of run loop
+	@Override
+	public void actionPerformed(ActionEvent e) {
+	  run();
+	}
   }
 
 }
+

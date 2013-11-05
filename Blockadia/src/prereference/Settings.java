@@ -1,9 +1,10 @@
-package utility;
+package prereference;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
 
 public abstract class Settings {
 
@@ -17,7 +18,7 @@ public abstract class Settings {
   	populateDefaultSettings();
   }
   
-  public abstract void populateDefaultSettings();
+  protected abstract void populateDefaultSettings();
   
   public void addSetting(Setting newSetting) throws IllegalArgumentException{
   	if(settingsMap.containsKey(newSetting.name)){

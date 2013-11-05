@@ -15,7 +15,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import utility.ElementPos;
-
 import components.BlockShape;
 
 /**
@@ -115,7 +114,7 @@ public class BlockShapeXMLWriter {
 	}
 	
 
-	public void saveShapes(Entry<String, BlockShape> blockShape) throws XMLStreamException {
+	public void saveShapes(BlockShape blockShape) throws XMLStreamException {
 
 		try {
 			initElements();
@@ -124,9 +123,9 @@ public class BlockShapeXMLWriter {
 		}
 
 		// Get all necessary information of this blockShape
-		name = eventFactory.createDTD(blockShape.getKey());
-		x = eventFactory.createDTD((int)blockShape.getValue().getResolution().x + "");
-		y = eventFactory.createDTD((int)blockShape.getValue().getResolution().y + "");
+		name = eventFactory.createDTD(blockShape.getShapeName());
+		x = eventFactory.createDTD((int)blockShape.getResolution().x + "");
+		y = eventFactory.createDTD((int)blockShape.getResolution().y + "");
 
 		// Start
 		eventWriter.add(startDocument);
@@ -150,7 +149,7 @@ public class BlockShapeXMLWriter {
 
 
 		// Loop through every element in the BlockShape
-		for (Entry<ElementPos, Color> elements : blockShape.getValue().getShape().entrySet()) {
+		for (Entry<ElementPos, Color> elements : blockShape.getShape().entrySet()) {
 
 			row = eventFactory.createDTD(elements.getKey().row + "");
 			col = eventFactory.createDTD(elements.getKey().col + "");
