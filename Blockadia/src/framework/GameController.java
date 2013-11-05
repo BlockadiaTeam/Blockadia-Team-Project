@@ -4,6 +4,8 @@ import interfaces.IGamePanel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -62,20 +64,46 @@ public class GameController {
 	  }
 
 	  @Override
-	  public void mousePressed(MouseEvent e) {/*
+	  public void mousePressed(MouseEvent e) {
         panel.grabFocus();
-        if (model.getCurrTest() != null) {
+        if (model.getCurrConfig() != null) {
           Vec2 pos = new Vec2(e.getX(), e.getY());
           if (e.getButton() == MouseEvent.BUTTON1) {
-            model.getDebugDraw().getScreenToWorldToOut(pos, pos);
-            model.getCurrTest().queueMouseDown(pos);
-            if (model.getCodedKeys()[KeyEvent.VK_SHIFT]) {
-              model.getCurrTest().queueShiftMouseDown(pos);
-            }
+        	GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+            model.getCurrConfig().queueMouseDown(pos);
           }
         }
-	   */}
+	   }
 	});
+
+    panel.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+/*        if (key != KeyEvent.CHAR_UNDEFINED) {
+          model.getKeys()[key] = false;
+        }
+        model.getCodedKeys()[code] = false;*/
+        if (model.getCurrConfig() != null) {
+          model.getCurrConfig().queueKeyReleased(key, code);
+        }
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        char key = e.getKeyChar();
+        int code = e.getKeyCode();
+
+        if (model.getCurrConfig() != null) {
+          model.getCurrConfig().queueKeyPressed(key, code);
+        }
+      }
+    });
 
 	panel.addMouseMotionListener(new MouseMotionListener() {
 	  final Vec2 posDif = new Vec2();
@@ -174,6 +202,7 @@ public class GameController {
   }
 
   public void run() {
+	panel.grabFocus();
 	if(panel.render()) { 
 	  update(); 
 	  //panel.paintScreen(); 

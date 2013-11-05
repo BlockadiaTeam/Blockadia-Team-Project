@@ -13,7 +13,10 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.World;
 
+import prereference.ConfigSettings;
 import utility.TestAABBCallback;
+import Rules.CrazySpacecraft;
+import Rules.RuleModel;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 import exceptions.InvalidPositionException;
@@ -31,17 +34,46 @@ public abstract class BuildConfig {
 
   public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
 
+  /*  public static enum ConfigType{
+	Tetris("Tetris"),
+	GunBound("Gunbound"),
+	CrazySpacecraft("CrazySpacecraft");
+
+	private final String code;
+
+	ConfigType(final String code) {
+	  this.code = code;
+	}
+
+	public String code() {
+	  return code;
+	}
+
+	public static ConfigType hasValueOf(final String code) {
+	  final EnumSet<ConfigType> choices = EnumSet.allOf(ConfigType.class);
+	  for (final ConfigType choice : choices) {
+		if (choice.code().equalsIgnoreCase(code)) {
+		  return choice;
+		}
+	  }
+	  return null;
+	}
+  }
+   */
+
   protected World world;
   protected Body groundBody;
-  protected Vec2 mouseWorld = new Vec2(-30,30);//This is a temporary value
+  protected Vec2 mouseWorld = new Vec2();
   protected int pointCount;
 
   protected GameModel model;
 
-  protected String configName = "HelloWorld";//TODO:Testing
+  protected String configName;
 
-  protected Vec2 defaultCameraPos = new Vec2(-30,30);
-  protected float defaultCameraScale = 10;
+  protected Vec2 defaultCameraPos = new Vec2();
+  protected float defaultCameraScale;
+  protected boolean enableZoom;
+  protected boolean enableDragScreen;
   protected float cachedCameraScale;
   protected final Vec2 cachedCameraPos = new Vec2();
   protected boolean hasCachedCamera = false;
@@ -52,6 +84,8 @@ public abstract class BuildConfig {
   protected List<BlockShape> shapesList;
   protected Map<String, Block> blocksMap;
   protected List<Block> blocksList;
+  protected ConfigSettings settings;
+  protected RuleModel rule;
 
   public BuildConfig(){
 	inputQueue = new LinkedList<QueueItem>();
@@ -59,6 +93,7 @@ public abstract class BuildConfig {
 	shapesList = new ArrayList<BlockShape>();
 	blocksMap = new HashMap<String, Block>();
 	blocksList = new ArrayList<Block>();
+	settings = new ConfigSettings();
 
 	try {
 	  addGameShape(new BlockShape(INITIAL_BLOCK_NAME));
@@ -69,9 +104,24 @@ public abstract class BuildConfig {
 
   public void init(GameModel model) {
 	this.model = model;
+	settings.setConfigName(this);
+	settings.setDisplayOptions(this);
+	
+	switch (settings.getConfigRule()){//TODO
+	case CrazySpacecraft:
+	  rule = new CrazySpacecraft(this);
+	  break;
+	case Customized:
+	  break;
+	case GunBound:
+	  break;
+	case Tetris:
+	  break;
+	default:
+	  return;
+	}
 
-	//TODO: change this so that it reads from the user settings
-	Vec2 gravity = new Vec2(0,-10f);
+	Vec2 gravity = settings.getWorldGravity();
 	world = new World(gravity);
 
 	BodyDef bodyDef = new BodyDef();
@@ -123,8 +173,29 @@ public abstract class BuildConfig {
 	return defaultCameraScale;
   }
 
+  /**This setter is only used when user changes the game setting*/
+  public void setDefaultCameraPos(final Vec2 defaultCameraPos) {
+	this.defaultCameraPos = defaultCameraPos;
+  }
+
   public Vec2 getDefaultCameraPos() {
 	return defaultCameraPos;
+  }
+
+  public void setEnableZoom(final boolean enableZoom){
+	this.enableZoom = enableZoom;
+  }
+
+  public boolean getEnableZoom(){
+	return this.enableZoom;
+  }
+
+  public void setEnableDragScreen(final boolean enable){
+	this.enableDragScreen = enable;
+  }
+
+  public boolean getEnableDragScreen(){
+	return this.enableDragScreen;
   }
 
   public float getCachedCameraScale() {
@@ -335,6 +406,14 @@ public abstract class BuildConfig {
 	}else{
 	  return false;
 	}
+  }
+
+  public ConfigSettings getConfigSettings(){
+	return this.settings;
+  }
+
+  public RuleModel getRule(){
+	return this.rule;
   }
 }
 

@@ -711,7 +711,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void mouseMoved(final MouseEvent e) {
-
 		if(GameModel.getMode() == Mode.BUILD_MODE){
 		  //No Mode: draw current game process
 
@@ -783,6 +782,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void keyReleased(KeyEvent e) {
+
 		//Log.print("Key pressed: "+e.getKeyCode());
 		if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
 		  if(GameModel.getMode() == Mode.BUILD_MODE){
@@ -811,7 +811,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void keyPressed(KeyEvent e) {
-
 	  }
 	});
   }

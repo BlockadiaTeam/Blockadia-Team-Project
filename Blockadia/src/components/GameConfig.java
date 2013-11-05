@@ -46,10 +46,11 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   @Override
   public void init(World world){
+	
 	pointCount = 0;
 
 	world.setContactListener(this);
-	//let's use the default debugdraw renderer first. Write our own renderer later
+	//TODO: let's use the default debugdraw renderer first. Write our own renderer later
 	world.setDebugDraw(GameModel.getGamePanelRenderer());
 
 	if(hasCachedCamera){
@@ -57,10 +58,8 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	}else{
 	  setCamera(getDefaultCameraPos(), getDefaultCameraScale());
 	}
-	setConfigName(getConfigName());
-
+	
 	initConfig();
-
   }
 
   /**
@@ -74,7 +73,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	}
 
 	//initDomino();
-	initBolbTest();
+	//initBolbTest();
   }
 
   @Override
@@ -113,30 +112,31 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   private void keyTyped(char c, int code) {
 	// TODO Auto-generated method stub
-	throw new UnsupportedOperationException("keyTyped has not been implemented");
+	rule.keyTyped(c, code);
   }
 
   private void keyReleased(char c, int code) {
 	// TODO Auto-generated method stub
-	throw new UnsupportedOperationException("keyReleased has not been implemented");
+	rule.keyReleased(c, code);
   }
 
   private void keyPressed(char c, int code) {
 	// TODO Auto-generated method stub
-	throw new UnsupportedOperationException("keyPressed has not been implemented");
+	rule.keyPressed(c, code);
   }
 
   private void mouseUp(Vec2 pos) {
-
+	rule.mouseUp(pos);
   }
 
   private void mouseDown(Vec2 pos) {
 	// TODO Auto-generated method stub
-	throw new UnsupportedOperationException("mouseDown has not been implemented");
+	rule.mouseDown(pos);
   }
 
   private void mouseMove(Vec2 pos) {
 	mouseWorld.set(pos);
+	rule.mouseMove(pos);
   }
 
   @Override
@@ -150,20 +150,16 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	  timeStep = 0;
 	}
 
-	//using int to act as binary number
-	//eg: 1= 0001 , 2 = 0010 , 4 = 0100...
 	int flags = 0;
-	flags += DebugDraw.e_shapeBit;
-	flags += DebugDraw.e_jointBit;
+	flags = settings.getRendererFlag();
 	debugDraw.setFlags(flags);
 
-	world.setAllowSleep(true);
-	world.setWarmStarting(true);
-	world.setSubStepping(false);
-	world.setContinuousPhysics(true);
+	settings.setWorldOptions(world);
 
-	world.step(timeStep, 8,3);
-
+	world.step(timeStep, settings.getVelocityIterations(),settings.getPositionIterations());
+	
+	rule.step();
+	
 	world.drawDebugData();
 
   }
@@ -172,12 +168,13 @@ public class GameConfig extends BuildConfig implements ContactListener{
   @Override
   public void beginContact(Contact contact) {
 	// TODO Auto-generated method stub
-
+	rule.beginContract(contact);
   }
 
   @Override
   public void endContact(Contact contact) {
 	// TODO Auto-generated method stub
+	rule.endContact(contact);
 
   }
 
@@ -211,12 +208,14 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	  cp.tangentImpulse = manifold.points[i].tangentImpulse;
 	  ++pointCount;
 	}
+	
+	rule.preSolve(contact, manifold);
   }
 
   @Override
   public void postSolve(Contact contact, ContactImpulse impulse) {
 	// TODO Auto-generated method stub
-
+	rule.postSolve(contact, impulse);
   }
 
   //TODO:delete these tests later
