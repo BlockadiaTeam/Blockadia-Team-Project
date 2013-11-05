@@ -25,6 +25,6 @@ public class BlockadiaMain {
     JFrame blockadia = new GameFrame(model, panel);
     blockadia.setVisible(true);
     blockadia.setResizable(false);
-    blockadia.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //TODO: check if the `build board is dirty
+    blockadia.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //TODO: check if the build board is dirty
   }
 }

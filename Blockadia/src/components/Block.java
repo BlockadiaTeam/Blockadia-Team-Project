@@ -300,6 +300,7 @@ public class Block extends BlockShape{
 	  sd.setAsBox((float)entry.getKey().getWidth()/2, (float)entry.getKey().getHeight()/2,diff,0f);
 	  fd.shape = sd;
 	  //TODO: ALSO STORE THE SHAPE (maybe)?
+	  //TODO: Take a look at compound shape test in Testbed about how to create dynamic body with >1 fixtures
 	  blockBody.createFixture(fd);
 	  elementCenter = new Vec2();
 	  diff = new Vec2();

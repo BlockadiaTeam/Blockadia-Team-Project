@@ -65,45 +65,49 @@ public class GameController {
 
 	  @Override
 	  public void mousePressed(MouseEvent e) {
-        panel.grabFocus();
-        if (model.getCurrConfig() != null) {
-          Vec2 pos = new Vec2(e.getX(), e.getY());
-          if (e.getButton() == MouseEvent.BUTTON1) {
-        	GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
-            model.getCurrConfig().queueMouseDown(pos);
-          }
-        }
-	   }
+		panel.grabFocus();
+		if (model.getCurrConfig() != null) {
+		  Vec2 pos = new Vec2(e.getX(), e.getY());
+		  if (e.getButton() == MouseEvent.BUTTON1) {
+			GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+			model.getCurrConfig().queueMouseDown(pos);
+		  }
+		}
+	  }
 	});
 
-    panel.addKeyListener(new KeyListener() {
-      @Override
-      public void keyTyped(KeyEvent e) {
-      }
+	panel.addKeyListener(new KeyListener() {
+	  @Override
+	  public void keyTyped(KeyEvent e) {
+	  }
 
-      @Override
-      public void keyReleased(KeyEvent e) {
-        char key = e.getKeyChar();
-        int code = e.getKeyCode();
-/*        if (key != KeyEvent.CHAR_UNDEFINED) {
+	  @Override
+	  public void keyReleased(KeyEvent e) {
+		char key = e.getKeyChar();
+		int code = e.getKeyCode();
+        if (key != KeyEvent.CHAR_UNDEFINED) {
           model.getKeys()[key] = false;
         }
-        model.getCodedKeys()[code] = false;*/
-        if (model.getCurrConfig() != null) {
-          model.getCurrConfig().queueKeyReleased(key, code);
-        }
-      }
+        model.getCodedKeys()[code] = false;
+		if (model.getCurrConfig() != null) {
+		  model.getCurrConfig().queueKeyReleased(key, code);
+		}
+	  }
 
-      @Override
-      public void keyPressed(KeyEvent e) {
-        char key = e.getKeyChar();
-        int code = e.getKeyCode();
-
-        if (model.getCurrConfig() != null) {
-          model.getCurrConfig().queueKeyPressed(key, code);
+	  @Override
+	  public void keyPressed(KeyEvent e) {
+		char key = e.getKeyChar();
+		int code = e.getKeyCode();
+        if (key != KeyEvent.CHAR_UNDEFINED) {
+          model.getKeys()[key] = true;
         }
-      }
-    });
+        model.getCodedKeys()[code] = true;
+        
+		if (model.getCurrConfig() != null) {
+		  model.getCurrConfig().queueKeyPressed(key, code);
+		}
+	  }
+	});
 
 	panel.addMouseMotionListener(new MouseMotionListener() {
 	  final Vec2 posDif = new Vec2();
@@ -115,7 +119,7 @@ public class GameController {
 		pos.set(e.getX(), e.getY());
 		//right click
 		if (e.getButton() == MouseEvent.BUTTON3) {// TODO: I don't think this part of code is ever ran -_-
-		  										  // Why did they put this in the JBox2D O_O
+		  // Why did they put this in the JBox2D O_O
 		  posDif.set(model.getMouse()); //original position
 		  model.setMouse(pos);			//move to this position
 		  posDif.subLocal(pos);			//diff = orginal - end
@@ -190,6 +194,7 @@ public class GameController {
 
   public synchronized void start() {
 	if (!running) {
+	  panel.grabFocus();
 	  frameCount = 0;
 	  animator.start();
 	} else {
@@ -202,7 +207,6 @@ public class GameController {
   }
 
   public void run() {
-	panel.grabFocus();
 	if(panel.render()) { 
 	  update(); 
 	  //panel.paintScreen(); 

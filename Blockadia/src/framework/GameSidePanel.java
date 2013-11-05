@@ -430,7 +430,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 
 	modeButton.addActionListener(new ActionListener() {
 	  @Override
-	  public void actionPerformed(final ActionEvent e) {
+	  public void actionPerformed(final ActionEvent e) {//TODO: if the rule in current gameConfig is not editable
+														//      the BuildMode button should be disabled
 		if (GameModel.getMode() == GameModel.Mode.BUILD_MODE) {
 		  GameModel.setBuildMode(BuildMode.NO_MODE);
 		  GameModel.setMode(GameModel.Mode.GAME_MODE);

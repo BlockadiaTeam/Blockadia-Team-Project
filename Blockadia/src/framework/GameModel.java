@@ -10,6 +10,7 @@ import org.jbox2d.common.Vec2;
 import components.BlockShape;
 import components.BuildConfig;
 import components.GameConfig;
+
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 
@@ -36,9 +37,10 @@ public class GameModel {
   private static DebugDraw gamePanelRenderer;
   private static IGamePanel gamePanel;
   private BuildConfig config;
-  private BuildConfig runningConfig;
   private final Vec2 mouse = new Vec2();
 
+  private final boolean[] keys = new boolean[512];
+  private final boolean[] codedKeys = new boolean[512];
   private float calculatedFPS;
   private float panelWidth;
 
@@ -99,6 +101,24 @@ public class GameModel {
 
   public void setPanelWidth(final float panelWidth) {
 	this.panelWidth = panelWidth;
+  }
+
+  /**
+   * Gets the array of keys, index corresponding to the char value.
+   * 
+   * @return
+   */
+  public boolean[] getKeys(){
+    return keys;
+  }
+
+  /**
+   * Gets the array of coded keys, index corresponding to the coded key value.
+   * 
+   * @return
+   */
+  public boolean[] getCodedKeys(){
+    return codedKeys;
   }
 
   public float getCalculatedFPS() {

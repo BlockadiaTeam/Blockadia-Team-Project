@@ -1,4 +1,4 @@
-package Rules;
+package rules;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.collision.Manifold;
@@ -11,11 +11,17 @@ import org.jbox2d.dynamics.contacts.Contact;
  * */
 public abstract class RuleModel {
 
+  protected boolean editable = true;
+  
+  public boolean isEditable(){
+	return this.editable;
+  }
+  
   public abstract void init();
   
   public abstract void step();
   
-  public abstract void beginContract(Contact contact);
+  public abstract void beginContact(Contact contact);
   
   public abstract void endContact(Contact contact);
   

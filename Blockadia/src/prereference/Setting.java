@@ -19,8 +19,9 @@ public class Setting {
   public final ConstraintType constarintType;
   public boolean enabled;
   public Object value;
-  public final Object minValue;
-  public final Object maxValue;
+  public Object minValue;
+  public Object maxValue;
+  public boolean editable;
 
   public Setting(String settingName, boolean enabled){
 	this.name = settingName;
@@ -29,6 +30,18 @@ public class Setting {
 	minValue = 0;
 	maxValue = 0;
 	value = 0;
+	editable = true;
+  }
+  
+  public Setting(String settingName, boolean enabled, boolean editable){
+	this.name = settingName;
+	this.constarintType = ConstraintType.BOOLEAN;
+	this.enabled = enabled;
+	this.editable = editable;
+	minValue = 0;
+	maxValue = 0;
+	value = 0;
+
   }
 
   public Setting(String settingName, int value, int minValue, int maxValue){
@@ -38,6 +51,17 @@ public class Setting {
 	this.minValue = minValue;
 	this.maxValue = maxValue;
 	this.value = value;
+	this.editable = true;
+  }
+  
+  public Setting(String settingName, int value, int minValue, int maxValue, boolean editable){
+	this.name = settingName;
+	this.constarintType = ConstraintType.RANGE;
+	this.enabled = false;
+	this.minValue = minValue;
+	this.maxValue = maxValue;
+	this.value = value;
+	this.editable = editable;
   }
 
   public Setting(String settingName, Object value, Object minValue, Object maxValue){
@@ -47,6 +71,17 @@ public class Setting {
 	this.minValue = minValue;
 	this.maxValue = maxValue;
 	this.value = value;
+	this.editable = true;
+  }
+  
+  public Setting(String settingName, Object value, Object minValue, Object maxValue, boolean editable){
+	this.name = settingName;
+	this.constarintType = ConstraintType.RANGE;
+	this.enabled = false;
+	this.minValue = minValue;
+	this.maxValue = maxValue;
+	this.value = value;
+	this.editable = editable;
   }
   
   public Setting(String settingName, Object value){
@@ -56,8 +91,19 @@ public class Setting {
 	this.minValue= null;
 	this.maxValue = null;
 	this.value = value;
+	this.editable = true;
   }
 
+  public Setting(String settingName, Object value, boolean editable){
+	this.name = settingName;
+	this.constarintType = ConstraintType.RANGE;
+	this.enabled = false;
+	this.minValue= null;
+	this.maxValue = null;
+	this.value = value;
+	this.editable = editable;
+  }
+  
   public Setting(String settingName, float value, float minValue, float maxValue){
 	this.name = settingName;
 	this.constarintType = ConstraintType.RANGE;
@@ -65,5 +111,16 @@ public class Setting {
 	this.minValue = minValue;
 	this.maxValue = maxValue;
 	this.value = value;
+	this.editable = true;
+  }
+  
+  public Setting(String settingName, float value, float minValue, float maxValue, boolean editable){
+	this.name = settingName;
+	this.constarintType = ConstraintType.RANGE;
+	this.enabled = false;
+	this.minValue = minValue;
+	this.maxValue = maxValue;
+	this.value = value;
+	this.editable = editable;
   }
 }

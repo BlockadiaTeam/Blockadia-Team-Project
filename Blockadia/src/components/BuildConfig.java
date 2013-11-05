@@ -14,9 +14,9 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.World;
 
 import prereference.ConfigSettings;
+import rules.RuleModel;
+import rules.Spacecraft.CrazySpacecraft;
 import utility.TestAABBCallback;
-import Rules.CrazySpacecraft;
-import Rules.RuleModel;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
 import exceptions.InvalidPositionException;
@@ -104,22 +104,6 @@ public abstract class BuildConfig {
 
   public void init(GameModel model) {
 	this.model = model;
-	settings.setConfigName(this);
-	settings.setDisplayOptions(this);
-	
-	switch (settings.getConfigRule()){//TODO
-	case CrazySpacecraft:
-	  rule = new CrazySpacecraft(this);
-	  break;
-	case Customized:
-	  break;
-	case GunBound:
-	  break;
-	case Tetris:
-	  break;
-	default:
-	  return;
-	}
 
 	Vec2 gravity = settings.getWorldGravity();
 	world = new World(gravity);
@@ -127,6 +111,24 @@ public abstract class BuildConfig {
 	BodyDef bodyDef = new BodyDef();
 	groundBody = world.createBody(bodyDef);
 
+	switch (settings.getConfigRule()){//TODO
+	case CrazySpacecraft:
+	  rule = new CrazySpacecraft(this,model);
+	  break;
+	case Customized:
+	  break;
+	case GunBound:
+	  break;
+	case Tetris:
+	  break;
+	case AngryBird:
+	  break;
+	default:
+	  return;
+	}
+	
+	settings.setConfigName(this);
+	settings.setDisplayOptions(this);
 	init(world);
   }
 
@@ -239,6 +241,10 @@ public abstract class BuildConfig {
 	cachedCameraPos.set(argPos);
   }
 
+  public int getPointCount(){
+	return this.pointCount;
+  }
+  
   public World getWorld() {
 	return world;
   }

@@ -36,6 +36,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.Fixture;
 
+import prereference.ConfigSettings;
 import utility.GamePanelRenderer;
 import utility.Log;
 import utility.TestPointCallback;
@@ -97,21 +98,33 @@ public class GamePanel extends JPanel implements IGamePanel{
 
 	  @Override
 	  public void mouseWheelMoved(final MouseWheelEvent e) {
-
 		final DebugDraw d = renderer;
 		final int notches = e.getWheelRotation();
 		final BuildConfig currConfig = model.getCurrConfig();
 		if(currConfig == null){
 		  return;
 		}
+		if(!currConfig.getConfigSettings().getSetting(ConfigSettings.EnableZoom).enabled) return;
 		oldCenter.set(model.getCurrConfig().getWorldMouse());
 
+		float minScale = (float)currConfig.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale).minValue;
+		float maxScale = (float)currConfig.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale).maxValue;
 		if(notches < 0){
-		  trans.mulByTransform(upScale);
-		  currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_IN_SCALE);
+		  if(currConfig.getCachedCameraScale() * ZOOM_IN_SCALE >= maxScale){
+
+		  }
+		  else{
+			trans.mulByTransform(upScale);
+			currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_IN_SCALE);
+		  }
 		}else if(notches > 0){
-		  trans.mulByTransform(downScale);
-		  currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_OUT_SCALE);
+		  if(currConfig.getCachedCameraScale() * ZOOM_OUT_SCALE <= minScale){
+
+		  }
+		  else{
+			trans.mulByTransform(downScale);
+			currConfig.setCachedCameraScale(currConfig.getCachedCameraScale() * ZOOM_OUT_SCALE);
+		  }
 		}
 
 		d.getScreenToWorldToOut(model.getMouse(), newCenter);

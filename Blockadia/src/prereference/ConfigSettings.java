@@ -13,7 +13,7 @@ import components.BuildConfig;
  */
 public class ConfigSettings extends Settings {
   public static enum ConfigType{
-	Tetris,GunBound,CrazySpacecraft,Customized;
+	AngryBird, Tetris, GunBound, CrazySpacecraft, Customized;
   }
   
   public static final String ConfigName = "Config Name";
@@ -51,7 +51,7 @@ public class ConfigSettings extends Settings {
 	addSetting(new Setting(EnableDragScreen, true));
 	addSetting(new Setting(ScreenMoveWithObject, false));
 	addSetting(new Setting(DefaultCameraPos, new Vec2(-30,30)));//TODO: This might change later
-	addSetting(new Setting(DefaultCameraScale, 10f, 0.1f, 10f));
+	addSetting(new Setting(DefaultCameraScale,10f, 0.1f, 10f));
 
 	//Game World Options:
 	addSetting(new Setting(Gravity, new Vec2(0,-10f)));
