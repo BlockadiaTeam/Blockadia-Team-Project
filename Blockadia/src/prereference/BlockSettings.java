@@ -41,27 +41,27 @@ public class BlockSettings extends Settings{
   @Override
   protected void populateDefaultSettings(){
 	//BodyDef
-	addSetting(new Setting(Position, Block.DEFAULT_POS_IN_WORLD, new Vec2(0,0), new Vec2(600,600)));
+	addSetting(new Setting(Position, Block.DEFAULT_POS_IN_WORLD, new Vec2(0,0), new Vec2(600,600))); //done
 	addSetting(new Setting(Angle, 0f, 0f, 360f));
 	addSetting(new Setting(LinearVelocity, new Vec2(0,0), new Vec2(0,0), new Vec2(300,300)));
-	addSetting(new Setting(AngularVelocity, 0f, 0f, 360f));
-	addSetting(new Setting(LinearDamping, 0f, 0f, 360f));
-	addSetting(new Setting(AngularDamping, 0f, 0f, 360f));
-	addSetting(new Setting(AllowSleep, true));
-	addSetting(new Setting(Awake, true));
-	addSetting(new Setting(FixedRotation, false));
-	addSetting(new Setting(Bullet, false));
-	addSetting(new Setting(Type, BodyType.STATIC));
-	addSetting(new Setting(Active, true));
-	addSetting(new Setting(GravityScale, 1f, 0f, 10f));
+	addSetting(new Setting(AngularVelocity, 0f, 0f, 2*Math.PI));
+	addSetting(new Setting(LinearDamping, 0f, 0f, 300*Math.sqrt(2)));
+	addSetting(new Setting(AngularDamping, 0f, 0f, 2*Math.PI));
+	addSetting(new Setting(AllowSleep, false)); //done
+	addSetting(new Setting(Awake, true)); //done
+	addSetting(new Setting(FixedRotation, false)); // done
+	addSetting(new Setting(Bullet, false)); //done
+	addSetting(new Setting(Type, BodyType.STATIC)); //done
+	addSetting(new Setting(Active, true)); //done
+	addSetting(new Setting(GravityScale, 1f, 0f, 10f)); //done
 	
 	//FixtureDef
 	addSetting(new Setting(Shape, new PolygonShape()));//This is just default setting, shape should be done separately in createBlockInWorld()
-	addSetting(new Setting(Friction, 0.2f, 0f, 1f));
-	addSetting(new Setting(Restitution, 0.2f, 0f, 1f));
-	addSetting(new Setting(Density, 0f, 0f, 100f));
+	addSetting(new Setting(Friction, 0.2f, 0f, 1f)); //done
+	addSetting(new Setting(Restitution, 0.2f, 0f, 1f)); //done
+	addSetting(new Setting(Density, 0f, 0f, 100f)); //done
 	addSetting(new Setting(Filter, new Filter()));
-	addSetting(new Setting(IsSensor, false));
+	addSetting(new Setting(IsSensor, false)); //done
   }
   
   /**
