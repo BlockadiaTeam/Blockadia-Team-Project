@@ -112,6 +112,8 @@ public class ConfigSettings extends Settings {
 	  flag += DebugDraw.e_jointBit;
 	}
 	
+	//flag += DebugDraw.e_dynamicTreeBit;
+	
 	return flag;
   }
 }

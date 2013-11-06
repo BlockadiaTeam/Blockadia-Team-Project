@@ -20,7 +20,7 @@ public class BlockadiaMain {
       System.out.println("Could not set the look and feel to nimbus. ");
     }
     
-    GameModel model = new GameModel();
+    GameModel model = new GameModel(); 
     IGamePanel panel = new GamePanel(model);
     JFrame blockadia = new GameFrame(model, panel);
     blockadia.setVisible(true);
