@@ -15,7 +15,6 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.contacts.Contact;
-import org.jbox2d.dynamics.joints.FrictionJointDef;
 
 import prereference.ConfigSettings;
 import prereference.Setting;
@@ -54,7 +53,7 @@ public class CrazySpacecraft extends RuleModel{
 	Setting enableZoom = config.getConfigSettings().getSetting(ConfigSettings.EnableZoom);
 
 	cameraScale.value = 10f;
-	cameraPos.value = new Vec2(-30f,40f);
+	cameraPos.value = new Vec2(-30f,50f);
 	enableZoom.enabled = false;
 
 	//init game
@@ -71,66 +70,85 @@ public class CrazySpacecraft extends RuleModel{
 	  sd.density = 0.0f;
 	  sd.restitution = .4f;
 
+//	  // Left vertical
+//	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(-300.0f, 300.0f));
+//	  ground.createFixture(sd);
+//
+//	  // Right vertical
+//	  shape.set(new Vec2(300.0f, -300.0f), new Vec2(300.0f, 300.0f));
+//	  ground.createFixture(sd);
+//
+//	  // Top horizontal
+//	  shape.set(new Vec2(-300.0f, 300.0f), new Vec2(300.0f, 300.0f));
+//	  ground.createFixture(sd);
+//
+//	  // Bottom horizontal
+//	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(300.0f, -300.0f));
+//	  ground.createFixture(sd);
+	  
 	  // Left vertical
-	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(-300.0f, 300.0f));
+	  shape.set(new Vec2(-30.0f, -30.0f), new Vec2(-30.0f, 30.0f));
 	  ground.createFixture(sd);
 
 	  // Right vertical
-	  shape.set(new Vec2(300.0f, -300.0f), new Vec2(300.0f, 300.0f));
+	  shape.set(new Vec2(30.0f, -30.0f), new Vec2(30.0f, 30.0f));
 	  ground.createFixture(sd);
 
 	  // Top horizontal
-	  shape.set(new Vec2(-300.0f, 300.0f), new Vec2(300.0f, 300.0f));
+	  shape.set(new Vec2(-30.0f, 30.0f), new Vec2(30.0f, 30.0f));
 	  ground.createFixture(sd);
 
 	  // Bottom horizontal
-	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(300.0f, -300.0f));
+	  shape.set(new Vec2(-30.0f, -30.0f), new Vec2(30.0f, -30.0f));
 	  ground.createFixture(sd);
 	}
 
-	{//spacecraft
+	{//spacecraft 
 	  Transform xf1 = new Transform();
-	  xf1.q.set(0.3524f * MathUtils.PI);
-	  Rot.mulToOutUnsafe(xf1.q, new Vec2(1.0f, 0.0f), xf1.p);
-
+	  xf1.q.set(MathUtils.PI);
+	  Rot.mulToOutUnsafe(xf1.q, new Vec2(0f, 0.0f), xf1.p);
 	  Vec2 vertices[] = new Vec2[3];
-	  vertices[0] = Transform.mul(xf1, new Vec2(-1.0f, 0.0f));
-	  vertices[1] = Transform.mul(xf1, new Vec2(1.0f, 0.0f));
-	  vertices[2] = Transform.mul(xf1, new Vec2(0.0f, 0.5f));
-
-	  PolygonShape poly1 = new PolygonShape();
-	  poly1.set(vertices, 3);
+	  vertices[0] = Transform.mul(xf1, new Vec2(-.866f, -.5f));
+	  vertices[1] = Transform.mul(xf1, new Vec2(0.0f, 0.0f));
+	  vertices[2] = Transform.mul(xf1, new Vec2(0.0f, 1.2f));
+	  PolygonShape leftWing = new PolygonShape();
+	  leftWing.set(vertices, 3);
+	  vertices[0] = Transform.mul(xf1, new Vec2(.866f, -.5f));
+	  vertices[1] = Transform.mul(xf1, new Vec2(0.0f, 1.2f));
+	  vertices[2] = Transform.mul(xf1, new Vec2(0.0f, 0.0f));
+	  PolygonShape rightWing = new PolygonShape();
+	  rightWing.set(vertices, 3);
+	  PolygonShape leftWeapon = new PolygonShape();
+	  leftWeapon.setAsBox(.075f, .25f, new Vec2(-.55f,-.4f), 0f);
+	  PolygonShape rightWeapon = new PolygonShape();
+	  rightWeapon.setAsBox(.075f, .25f, new Vec2(.55f,-.4f), 0f);
 
 	  FixtureDef sd1 = new FixtureDef();
-	  sd1.shape = poly1;
-	  sd1.density = 4.0f;
-
-	  Transform xf2 = new Transform();
-	  xf2.q.set(-0.3524f * MathUtils.PI);
-	  Rot.mulToOut(xf2.q, new Vec2(-1.0f, 0.0f), xf2.p);
-
-	  vertices[0] = Transform.mul(xf2, new Vec2(-1.0f, 0.0f));
-	  vertices[1] = Transform.mul(xf2, new Vec2(1.0f, 0.0f));
-	  vertices[2] = Transform.mul(xf2, new Vec2(0.0f, 0.5f));
-
-	  PolygonShape poly2 = new PolygonShape();
-	  poly2.set(vertices, 3);
-
+	  sd1.shape = leftWing;
+	  sd1.density = 2f;
 	  FixtureDef sd2 = new FixtureDef();
-	  sd2.shape = poly2;
-	  sd2.density = 2.0f;	  
-
+	  sd2.shape = rightWing;
+	  sd2.density = 2f;
+	  FixtureDef sd3 = new FixtureDef();
+	  sd3.shape = leftWeapon;
+	  sd3.density = .5f;
+	  FixtureDef sd4 = new FixtureDef();
+	  sd4.shape = rightWeapon;
+	  sd4.density = .5f;
+	  
 	  BodyDef bd = new BodyDef();
 	  bd.type = BodyType.DYNAMIC;
 	  bd.angularDamping = 5.0f;
 	  bd.linearDamping = 0.5f;
-
+	  
 	  bd.position.set(0.0f, 2.0f);
 	  bd.angle = MathUtils.PI;
 	  bd.allowSleep = false;
 	  spacecraft.setSpacecraftBody(config.getWorld().createBody(bd));
 	  spacecraft.getSpacecraftBody().createFixture(sd1);
 	  spacecraft.getSpacecraftBody().createFixture(sd2);
+	  spacecraft.getSpacecraftBody().createFixture(sd3);
+	  spacecraft.getSpacecraftBody().createFixture(sd4);
 	}
 
 	{
@@ -151,23 +169,25 @@ public class CrazySpacecraft extends RuleModel{
 
 		body.createFixture(fd);
 
-		float gravity = 10.0f;
-		float I = body.getInertia();
-		float mass = body.getMass();
-
-		// For a circle: I = 0.5 * m * r * r ==> r = sqrt(2 * I / m)
-		float radius = MathUtils.sqrt(2.0f * I / mass);
-
-		FrictionJointDef jd = new FrictionJointDef();
-		jd.localAnchorA.setZero();
-		jd.localAnchorB.setZero();
-		jd.bodyA = ground;
-		jd.bodyB = body;
-		jd.collideConnected = true;
-		jd.maxForce = mass * gravity;
-		jd.maxTorque = mass * radius * gravity;
-
-		config.getWorld().createJoint(jd);
+		//TODO: Tomorrow: let the blocks randomly move and bind Monster object to it
+		// 		Fix the bug in step()
+//		float gravity = 10.0f;
+//		float I = body.getInertia();
+//		float mass = body.getMass();
+//
+//		// For a circle: I = 0.5 * m * r * r ==> r = sqrt(2 * I / m)
+//		float radius = MathUtils.sqrt(2.0f * I / mass);
+//
+//		FrictionJointDef jd = new FrictionJointDef();
+//		jd.localAnchorA.setZero();
+//		jd.localAnchorB.setZero();
+//		jd.bodyA = ground;
+//		jd.bodyB = body;
+//		jd.collideConnected = true;
+//		jd.maxForce = mass * gravity;
+//		jd.maxTorque = mass * radius * gravity;
+//
+//		config.getWorld().createJoint(jd);
 	  }
 	}
   }
@@ -177,21 +197,21 @@ public class CrazySpacecraft extends RuleModel{
 
 	Body body = spacecraft.getSpacecraftBody();
 	if (model.getKeys()['w']) {
-	  Vec2 f = body.getWorldVector(new Vec2(0.0f, -50.0f));
+	  Vec2 f = body.getWorldVector(new Vec2(0.0f, -30.0f));
 	  Vec2 p = body.getWorldPoint(body.getLocalCenter().add(new Vec2(0.0f, 2.0f)));
 	  body.applyForce(f, p);
 	} else if (model.getKeys()['s']) {
-	  Vec2 f = body.getWorldVector(new Vec2(0.0f, 50.0f));
+	  Vec2 f = body.getWorldVector(new Vec2(0.0f, 30.0f));
 	  Vec2 p = body.getWorldCenter();
 	  body.applyForce(f, p);
 	}
 
 	if (model.getKeys()['a']) {
-	  body.applyTorque(20.0f);
+	  body.applyTorque(30.0f);
 	}
 
 	if (model.getKeys()['d']) {
-	  body.applyTorque(-20.0f);
+	  body.applyTorque(-30.0f);
 	}
 
 	HashSet<Body> nuke = new HashSet<Body>();
