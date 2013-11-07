@@ -39,9 +39,7 @@ import javax.swing.text.PlainDocument;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
-
 import components.BlockShape;
-
 import exceptions.ElementNotExistException;
 import framework.GameModel.BuildMode;
 
@@ -734,7 +732,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
   }
   
   private void showBlockSettingsWindow() {
-	blockSettingsWindow = new BlockSettingsWindow(this.frame, this, ((BlockShape) (components.getSelectedItem())).getShapeName()); // TODO : fix this when i get new code
+	blockSettingsWindow = new BlockSettingsWindow(this.frame, this, ((BlockShape) (components.getSelectedItem())).cloneToBlock()); // TODO : fix this when i get new code
 	blockSettingsWindow.setLocationRelativeTo(frame);
 	blockSettingsWindow.setVisible(true);
   }

@@ -42,11 +42,11 @@ public class BlockSettings extends Settings{
   protected void populateDefaultSettings(){
 	//BodyDef
 	addSetting(new Setting(Position, Block.DEFAULT_POS_IN_WORLD, new Vec2(0,0), new Vec2(600,600))); //done
-	addSetting(new Setting(Angle, 0f, 0f, 360f));
+	addSetting(new Setting(Angle, 0f, 0f, 360f)); // dir
 	addSetting(new Setting(LinearVelocity, new Vec2(0,0), new Vec2(0,0), new Vec2(300,300)));
-	addSetting(new Setting(AngularVelocity, 0f, 0f, 2*Math.PI));
-	addSetting(new Setting(LinearDamping, 0f, 0f, 300*Math.sqrt(2)));
-	addSetting(new Setting(AngularDamping, 0f, 0f, 2*Math.PI));
+	addSetting(new Setting(AngularVelocity, 0f, 0f, 2*Math.PI)); // slider
+	addSetting(new Setting(LinearDamping, 0f, 0f, 300*Math.sqrt(2))); // slider
+	addSetting(new Setting(AngularDamping, 0f, 0f, 2*Math.PI)); // slider
 	addSetting(new Setting(AllowSleep, false)); //done
 	addSetting(new Setting(Awake, true)); //done
 	addSetting(new Setting(FixedRotation, false)); // done

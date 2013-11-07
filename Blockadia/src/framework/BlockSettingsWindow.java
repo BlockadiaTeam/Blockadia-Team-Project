@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -35,73 +36,77 @@ public class BlockSettingsWindow extends JDialog{
 
   final GameSidePanel parent;
   final Block block;
-  private BlockSettings blockSettings;
-  
-  
-  private final JLabel positionLabel = new JLabel("Position: ");
-  private final JLabel typeLabel = new JLabel("Type: ");
-  private final JLabel gravityLabel = new JLabel("Gravity: ");
-  private final JLabel allowSleepLabel = new JLabel("Allow Sleep: ");
-  private final JLabel awakeLabel = new JLabel("Awake: ");
-  private final JLabel fixedRotationLabel = new JLabel("Fixed Rotation: ");
-  private final JLabel activeLabel = new JLabel("Active: ");
-  private final JLabel bulletLabel = new JLabel("Enable Bullets: ");
-  private final JLabel positionHelperLabel = new JLabel();
-  private final JLabel typeHelperLabel = new JLabel();
-  private final JLabel restitutionLabel = new JLabel("Restitution: ");
-  private final JLabel frictionLabel = new JLabel("Friction: ");
-  private final JLabel frictionScaleLabel = new JLabel((int)((float)blockSettings.getSetting(BlockSettings.Friction).minValue)
-	  + "             " + ((float)blockSettings.getSetting(BlockSettings.Friction).maxValue)/2 + "              " 
-	  + (int)((float)blockSettings.getSetting(BlockSettings.Friction).maxValue));
-  private final JLabel restitutionScaleLabel = new JLabel((int)((float)blockSettings.getSetting(BlockSettings.Restitution).minValue)
-	  + "             " + ((float)blockSettings.getSetting(BlockSettings.Restitution).maxValue/2) + "              " 
-	  + (int)((float)blockSettings.getSetting(BlockSettings.Restitution).maxValue));
-  private final JLabel densityLabel = new JLabel("Density: ");
-  private final JLabel sensorLabel = new JLabel("Enable Sensor: ");
-  private final JCheckBox allowSleepBox = new JCheckBox();
-  private final JCheckBox awakeBox = new JCheckBox();
-  private final JCheckBox fixedRotationBox = new JCheckBox();
-  private final JCheckBox activeBox = new JCheckBox();
-  private final JCheckBox bulletBox = new JCheckBox();
-  private final JCheckBox sensorBox = new JCheckBox();
-  private TextFieldWithPlaceHolder xPosition = new TextFieldWithPlaceHolder(" x-axis", StringType.PLACEHOLDER);
-  private TextFieldWithPlaceHolder yPosition = new TextFieldWithPlaceHolder(" y-axis", StringType.PLACEHOLDER);
-  private TextFieldWithPlaceHolder densityInput = new TextFieldWithPlaceHolder((int)((float)blockSettings.getSetting(BlockSettings.Density).minValue) 
-	  + " - " + (int)((float)blockSettings.getSetting(BlockSettings.Density).maxValue) , StringType.PLACEHOLDER);
+  //private BlockSettings blockSettings;
+
+
+  private JLabel positionLabel;
+  private JLabel typeLabel;
+  private JLabel gravityLabel;
+  private JLabel allowSleepLabel;
+  private JLabel awakeLabel;
+  private JLabel fixedRotationLabel;
+  private JLabel activeLabel;
+  private JLabel bulletLabel;
+  private JLabel positionHelperLabel;
+  private JLabel typeHelperLabel;
+  private JLabel restitutionLabel;
+  private JLabel frictionLabel;
+  private JLabel frictionScaleLabel;
+  private JLabel restitutionScaleLabel;
+  private JLabel densityLabel;
+  private JLabel sensorLabel;
+  private JLabel angularVelocityLabel;
+  private JLabel angularVelocityScaleLabel;
+  private JCheckBox allowSleepBox;
+  private JCheckBox awakeBox;
+  private JCheckBox fixedRotationBox;
+  private JCheckBox activeBox;
+  private JCheckBox bulletBox;
+  private JCheckBox sensorBox;
+  private TextFieldWithPlaceHolder xPosition;
+  private TextFieldWithPlaceHolder yPosition;
+  private TextFieldWithPlaceHolder densityInput;
   private String[] types = {BodyType.STATIC.toString(), BodyType.DYNAMIC.toString(), BodyType.KINEMATIC.toString()};
-  private JComboBox<?> typeList = new JComboBox(types);
-  private JSlider gravityScale = new JSlider((int)((float)blockSettings.getSetting(BlockSettings.GravityScale).minValue), 
-	  (int)((float)blockSettings.getSetting(BlockSettings.GravityScale).maxValue), JSlider.HORIZONTAL);
-  private JSlider frictionScale = new JSlider((int)((float)blockSettings.getSetting(BlockSettings.Friction).minValue)*10, 
-	  (int)((float)blockSettings.getSetting(BlockSettings.Friction).maxValue)*10, JSlider.HORIZONTAL);
-  private JSlider restitutionScale = new JSlider((int)((float)blockSettings.getSetting(BlockSettings.Restitution).minValue)*10, 
-	  (int)((float)blockSettings.getSetting(BlockSettings.Restitution).maxValue)*10, JSlider.HORIZONTAL);
+  private JComboBox<?> typeList;
+  private JSlider gravityScale;
+  private JSlider frictionScale;
+  private JSlider restitutionScale;
+  private JSlider angularVelocitySlider;
+  
+  // for angle TODO
+  private DirectionPanel anglePanel;
+  private JLabel angleLabel;
+  private TextFieldWithPlaceHolder angleInput;
+  
+  private final JButton saveButton = new JButton("Save");
+  private final JButton cancelButton = new JButton("Cancel");
+  private boolean dirty;
 
 
   // All inputs are stored in these
   private String currentType;
-  private boolean allowSleep = blockSettings.getSetting(BlockSettings.AllowSleep).enabled;
-  private boolean awake = blockSettings.getSetting(BlockSettings.Awake).enabled;
-  private boolean fixedRotation = blockSettings.getSetting(BlockSettings.FixedRotation).enabled;
-  private boolean active = blockSettings.getSetting(BlockSettings.Active).enabled;
-  private boolean bullet = blockSettings.getSetting(BlockSettings.Bullet).enabled;
-  private boolean sensor = blockSettings.getSetting(BlockSettings.IsSensor).enabled;
+  private boolean allowSleep;
+  private boolean awake;
+  private boolean fixedRotation;
+  private boolean active;
+  private boolean bullet;
+  private boolean sensor;
 
-  private float gravityScaleValue = (float)blockSettings.getSetting(BlockSettings.GravityScale).value;
-  private float frictionScaleValue = (float)blockSettings.getSetting(BlockSettings.Friction).value;
-  private float restitutionScaleValue = (float)blockSettings.getSetting(BlockSettings.Restitution).value;
-  private float densityValue = (float)blockSettings.getSetting(BlockSettings.Density).value;
+  private float gravityScaleValue;
+  private float frictionScaleValue;
+  private float restitutionScaleValue;
+  private float densityValue;
+  private float angularVelocityValue;
 
   public BlockSettingsWindow(GameFrame frame, GameSidePanel parentPanel, Block block) {
 
 	// init the window
 	super(frame, true);
 	setLayout(new BorderLayout());
-	this.block = block;
-	blockSettings = block.getSettings();
 	this.setPreferredSize(new Dimension(650,500));
-	//this.blockSettings = blockSettings;
-	addListeners();
+	this.block = block;
+	init(this.block);
+	addListeners(this.block);
 
 	JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -119,6 +124,13 @@ public class BlockSettingsWindow extends JDialog{
 	tabbedPane.addTab("Physics  ", bodyIcon, panel2,
 		"Physic settings");
 	tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
+	
+	// Buttons
+	saveButton.setBounds(420, 430, 100, 30);
+	cancelButton.setBounds(525, 430, 100, 30);
+	this.add(saveButton);
+	this.add(cancelButton);
+	
 
 	// Help icons
 	Image helpImage = null;
@@ -139,6 +151,67 @@ public class BlockSettingsWindow extends JDialog{
 	//this.setBounds(12, 12, 400, 400);
 	this.pack();
 
+  }
+
+  private void init(Block block) {
+
+	positionLabel = new JLabel("Position: ");
+	typeLabel = new JLabel("Type: ");
+	gravityLabel = new JLabel("Gravity: ");
+	allowSleepLabel = new JLabel("Allow Sleep: ");
+	awakeLabel = new JLabel("Awake: ");
+	fixedRotationLabel = new JLabel("Fixed Rotation: ");
+	activeLabel = new JLabel("Active: ");
+	bulletLabel = new JLabel("Enable Bullets: ");
+	positionHelperLabel = new JLabel();
+	typeHelperLabel = new JLabel();
+	restitutionLabel = new JLabel("Restitution: ");
+	frictionLabel = new JLabel("Friction: ");
+	frictionScaleLabel = new JLabel((int)((float)block.getSettings().getSetting(BlockSettings.Friction).minValue)
+		+ "             " + ((float)block.getSettings().getSetting(BlockSettings.Friction).maxValue)/2 + "              " 
+		+ (int)((float)block.getSettings().getSetting(BlockSettings.Friction).maxValue));
+	restitutionScaleLabel = new JLabel((int)((float)block.getSettings().getSetting(BlockSettings.Restitution).minValue)
+		+ "             " + ((float)block.getSettings().getSetting(BlockSettings.Restitution).maxValue/2) + "              " 
+		+ (int)((float)block.getSettings().getSetting(BlockSettings.Restitution).maxValue));
+	angularVelocityScaleLabel = new JLabel("0           pi          2pi");
+	densityLabel = new JLabel("Density: ");
+	sensorLabel = new JLabel("Enable Sensor: ");
+	angularVelocityLabel = new JLabel("Angular Velocity: ");
+	allowSleepBox = new JCheckBox();
+	awakeBox = new JCheckBox();
+	fixedRotationBox = new JCheckBox();
+	activeBox = new JCheckBox();
+	bulletBox = new JCheckBox();
+	sensorBox = new JCheckBox();
+	xPosition = new TextFieldWithPlaceHolder(" x-axis", StringType.PLACEHOLDER);
+	yPosition = new TextFieldWithPlaceHolder(" y-axis", StringType.PLACEHOLDER);
+	densityInput = new TextFieldWithPlaceHolder((int)((float)block.getSettings().getSetting(BlockSettings.Density).minValue) 
+		+ " - " + (int)((float)block.getSettings().getSetting(BlockSettings.Density).maxValue) , StringType.PLACEHOLDER);
+
+	typeList = new JComboBox(types);
+	gravityScale = new JSlider((int)((float)block.getSettings().getSetting(BlockSettings.GravityScale).minValue), 
+		(int)((float)block.getSettings().getSetting(BlockSettings.GravityScale).maxValue), JSlider.HORIZONTAL);
+	frictionScale = new JSlider((int)((float)block.getSettings().getSetting(BlockSettings.Friction).minValue)*10, 
+		(int)((float)block.getSettings().getSetting(BlockSettings.Friction).maxValue)*10, JSlider.HORIZONTAL);
+	restitutionScale = new JSlider((int)((float)block.getSettings().getSetting(BlockSettings.Restitution).minValue)*10, 
+		(int)((float)block.getSettings().getSetting(BlockSettings.Restitution).maxValue)*10, JSlider.HORIZONTAL);
+	angularVelocitySlider = new JSlider(0, (int)((float)block.getSettings().getSetting(BlockSettings.AngularVelocity).minValue*100),
+		(int)((double)block.getSettings().getSetting(BlockSettings.AngularVelocity).maxValue*100), JSlider.HORIZONTAL);
+
+	allowSleep = block.getSettings().getSetting(BlockSettings.AllowSleep).enabled;
+	awake = block.getSettings().getSetting(BlockSettings.Awake).enabled;
+	fixedRotation = block.getSettings().getSetting(BlockSettings.FixedRotation).enabled;
+	active = block.getSettings().getSetting(BlockSettings.Active).enabled;
+	bullet = block.getSettings().getSetting(BlockSettings.Bullet).enabled;
+	sensor = block.getSettings().getSetting(BlockSettings.IsSensor).enabled;
+
+	gravityScaleValue = (float)block.getSettings().getSetting(BlockSettings.GravityScale).value;
+	frictionScaleValue = (float)block.getSettings().getSetting(BlockSettings.Friction).value;
+	restitutionScaleValue = (float)block.getSettings().getSetting(BlockSettings.Restitution).value;
+	densityValue = (float)block.getSettings().getSetting(BlockSettings.Density).value;
+	angularVelocityValue = (float)block.getSettings().getSetting(BlockSettings.AngularVelocity).value;
+
+	dirty = false;
   }
 
   protected JComponent makeFixtureDefTab() {
@@ -191,7 +264,7 @@ public class BlockSettingsWindow extends JDialog{
 	densityInput.setBounds(60, 130, 55, 30);
 	sensorLabel.setBounds(10, 170, 90, 30);
 	sensorBox.setBounds(105, 170, 50, 30);
-	
+
 	// set boolean defaults
 	sensorBox.setSelected(sensor);
 
@@ -233,6 +306,13 @@ public class BlockSettingsWindow extends JDialog{
 	gravityScale.setValue((int)gravityScaleValue);
 	gravityScale.setPaintTicks(true);
 	gravityScale.setPaintLabels(true);
+	
+	// Angular Velocity Slider
+	angularVelocitySlider.setMajorTickSpacing((int)((double)block.getSettings().getSetting(BlockSettings.AngularVelocity).maxValue*100)/3);
+	angularVelocitySlider.setMinorTickSpacing((int)((double)block.getSettings().getSetting(BlockSettings.AngularVelocity).maxValue*100)/6);
+	angularVelocitySlider.setValue((int)angularVelocityValue);
+	angularVelocitySlider.setPaintTicks(true);
+	angularVelocitySlider.setPaintLabels(false);
 
 	// set boolean defaults
 	allowSleepBox.setSelected(allowSleep);
@@ -280,6 +360,9 @@ public class BlockSettingsWindow extends JDialog{
 	activeLabel.setBounds(10, 190, 100, 20);
 	bulletBox.setBounds(100, 210, 20, 20);
 	bulletLabel.setBounds(10, 210, 100, 20);
+	angularVelocityLabel.setBounds(340, 15, 100, 20);
+	angularVelocitySlider.setBounds(450, 15, 100, 20);
+	angularVelocityScaleLabel.setBounds(453, 33, 100, 20);
 
 	// Adding
 	panel.add(positionHelperLabel);
@@ -301,11 +384,14 @@ public class BlockSettingsWindow extends JDialog{
 	panel.add(activeLabel);
 	panel.add(bulletBox);
 	panel.add(bulletLabel);
+	panel.add(angularVelocityLabel);
+	panel.add(angularVelocitySlider);
+	panel.add(angularVelocityScaleLabel);
 
 	return panel;
   }
 
-  private void addListeners() {
+  private void addListeners(final Block block) {
 
 	typeList.addActionListener(new ActionListener() {
 	  @Override
@@ -314,6 +400,7 @@ public class BlockSettingsWindow extends JDialog{
 		String newSelection = (String)choice.getSelectedItem();
 		if (!currentType.equals(newSelection)) {
 		  currentType = newSelection;
+		  dirty = true;
 		  System.out.println(currentType);
 		}
 	  }
@@ -324,6 +411,7 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (allowSleep != allowSleepBox.isSelected()) {
 		  allowSleep = allowSleepBox.isSelected();
+		  dirty = true;
 		  System.out.println(allowSleep);
 		}      
 	  }
@@ -334,6 +422,7 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (awake != awakeBox.isSelected()) {
 		  awake = awakeBox.isSelected();
+		  dirty = true;
 		  System.out.println(awake);
 		}      
 	  }
@@ -344,6 +433,7 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (fixedRotation != fixedRotationBox.isSelected()) {
 		  fixedRotation = fixedRotationBox.isSelected();
+		  dirty = true;
 		  System.out.println(fixedRotation);
 		}      
 	  }
@@ -354,6 +444,7 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (active != activeBox.isSelected()) {
 		  active = activeBox.isSelected();
+		  dirty = true;
 		  System.out.println(active);
 		}      
 	  }
@@ -364,6 +455,7 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (bullet != bulletBox.isSelected()) {
 		  bullet = bulletBox.isSelected();
+		  dirty = true;
 		  System.out.println(bullet);
 		}      
 	  }
@@ -374,8 +466,8 @@ public class BlockSettingsWindow extends JDialog{
 	  public void actionPerformed(ActionEvent e) {
 		if (sensor != sensorBox.isSelected()) {
 		  sensor = sensorBox.isSelected();
+		  dirty = true;
 		  System.out.println(sensor);
-		  blockSettings.getSetting(BlockSettings.IsSensor).enabled = sensor;
 		}      
 	  }
 	});
@@ -386,9 +478,8 @@ public class BlockSettingsWindow extends JDialog{
 		JSlider source = (JSlider)e.getSource();
 		if (!source.getValueIsAdjusting()) {
 		  gravityScaleValue = source.getValue();
+		  dirty = true;
 		  System.out.println(gravityScaleValue);
-		  blockSettings.getSetting(BlockSettings.GravityScale).value = gravityScaleValue;
-		  System.out.println("G: " + blockSettings.getSetting(BlockSettings.GravityScale).value);
 		}
 	  }
 	});
@@ -399,8 +490,8 @@ public class BlockSettingsWindow extends JDialog{
 		JSlider source = (JSlider)e.getSource();
 		if (!source.getValueIsAdjusting()) {
 		  frictionScaleValue = (float) (source.getValue()/10.0);
+		  dirty = true;
 		  System.out.println(frictionScaleValue);
-		  blockSettings.getSetting(BlockSettings.Friction).value = frictionScaleValue;
 		}
 	  }
 	});
@@ -411,11 +502,62 @@ public class BlockSettingsWindow extends JDialog{
 		JSlider source = (JSlider)e.getSource();
 		if (!source.getValueIsAdjusting()) {
 		  restitutionScaleValue = (float) (source.getValue()/10.0);
+		  dirty = true;
 		  System.out.println(restitutionScaleValue);
-		  blockSettings.getSetting(BlockSettings.Restitution).value = restitutionScaleValue;
 		}
+	  }
+	});
+	
+	angularVelocitySlider.addChangeListener(new ChangeListener() {
+	  @Override
+	  public void stateChanged(ChangeEvent e) {
+		JSlider source = (JSlider)e.getSource();
+		if (!source.getValueIsAdjusting()) {
+		  angularVelocityValue = (float) (source.getValue()/100.0);
+		  dirty = true;
+		  System.out.println(angularVelocityValue);
+		}
+	  }
+	});
+	
+	saveButton.addActionListener(new ActionListener() {
+	  @Override
+	  public void actionPerformed(final ActionEvent e) {
+		block.getSettings().getSetting(BlockSettings.GravityScale).value = gravityScaleValue;
+		block.getSettings().getSetting(BlockSettings.AllowSleep).enabled = allowSleep;
+		block.getSettings().getSetting(BlockSettings.Awake).enabled = awake;
+		block.getSettings().getSetting(BlockSettings.FixedRotation).enabled = fixedRotation;
+		block.getSettings().getSetting(BlockSettings.Active).enabled = active;
+		block.getSettings().getSetting(BlockSettings.Bullet).value = bullet;
+		block.getSettings().getSetting(BlockSettings.IsSensor).enabled = sensor;
+		block.getSettings().getSetting(BlockSettings.GravityScale).value = gravityScaleValue;
+		block.getSettings().getSetting(BlockSettings.Friction).value = frictionScaleValue;
+		block.getSettings().getSetting(BlockSettings.Type).value = currentType;
+		System.out.println("" +
+		block.getSettings().getSetting(BlockSettings.GravityScale).value + "\n" +
+		block.getSettings().getSetting(BlockSettings.AllowSleep).enabled  + "\n" +
+		block.getSettings().getSetting(BlockSettings.Awake).enabled + "\n" +
+		block.getSettings().getSetting(BlockSettings.FixedRotation).enabled + "\n" +
+		block.getSettings().getSetting(BlockSettings.Active).enabled + "\n" +
+		block.getSettings().getSetting(BlockSettings.Bullet).value + "\n" +
+		block.getSettings().getSetting(BlockSettings.IsSensor).enabled + "\n" +
+		block.getSettings().getSetting(BlockSettings.GravityScale).value + "\n" +
+		block.getSettings().getSetting(BlockSettings.Friction).value + "\n" +
+		block.getSettings().getSetting(BlockSettings.Type).value);
+	  }
+	});
+	
+	cancelButton.addActionListener(new ActionListener() {
+	  @Override
+	  public void actionPerformed(final ActionEvent e) {
+		dispose();
 	  }
 	});
 
   }
+  
+	public Block getBlock(){
+	  return block;
+	}
+  
 }
