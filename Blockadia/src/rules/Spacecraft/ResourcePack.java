@@ -6,7 +6,7 @@ import rules.Spacecraft.CrazySpacecraft.MovementType;
 
 public class ResourcePack {
   
-  public static int ResourcePackGroupIndex = -2;
+  public static final int ResourcePackGroupIndex = -2;
 
   private Body resourcePackBody;
   private MovementType movement; 

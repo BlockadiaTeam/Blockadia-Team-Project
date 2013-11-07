@@ -3,16 +3,22 @@ package rules.Spacecraft;
 import org.jbox2d.dynamics.Body;
 
 public class Spacecraft {
+  
+  public static final int SpacecraftGroupIndex = -1;
+  
   private Body spacecraftBody;
   private String id;
   private int level;
   private int hp;
+  private int numOfRockets;
+  //Rocket
   
   public Spacecraft(){
 	id = "Alex the sky-raider";
 	spacecraftBody = null;
 	level = 0;
 	hp = 100;
+	numOfRockets = getRocketsByLevel();
   }
   
   public Body getSpacecraftBody() {
@@ -48,13 +54,20 @@ public class Spacecraft {
 	this.id = id;
   }
   
+  public int getNumOfRockets() {
+	return numOfRockets;
+  }
+
+  private int getRocketsByLevel(){
+	return level+3;
+  }
+  
   @Override
   public boolean equals(Object otherObj){
 	if (!(otherObj instanceof Spacecraft))return false;
 	Spacecraft anotherCraft = (Spacecraft)otherObj;
 	if(!id.equals(anotherCraft.getId())) return false;
 	if(level != anotherCraft.getLevel()) return false;
-	if(hp != anotherCraft.getHp()) return false;
 
 	return true;
   }

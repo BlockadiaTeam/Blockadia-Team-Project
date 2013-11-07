@@ -1,7 +1,9 @@
 package rules.Spacecraft;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.jbox2d.callbacks.ContactImpulse;
@@ -15,6 +17,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.JointEdge;
@@ -41,6 +44,7 @@ public class CrazySpacecraft extends RuleModel{
   private Spacecraft spacecraft;
   private ResourcePack[] resourcePacks;
   private int numOfResourcePacks;
+  private List<Obstacle> obstacles;
   private int stepCount = 0;
 
   private Map<ResourcePack, PrismaticJoint> pj;
@@ -59,6 +63,7 @@ public class CrazySpacecraft extends RuleModel{
 	for(int i = 0 ; i < numOfResourcePacks; i++){
 	  resourcePacks[i] = new ResourcePack();
 	}
+	obstacles = new ArrayList<Obstacle>();
 
 	pj = new HashMap<ResourcePack, PrismaticJoint>();
 	init();
@@ -93,25 +98,18 @@ public class CrazySpacecraft extends RuleModel{
 	  sd.density = 0.0f;
 	  sd.restitution = 1f;
 
-	  //	  // Left vertical
-	  //	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(-300.0f, 300.0f));
-	  //	  ground.createFixture(sd);
-	  //
-	  //	  // Right vertical
-	  //	  shape.set(new Vec2(300.0f, -300.0f), new Vec2(300.0f, 300.0f));
-	  //	  ground.createFixture(sd);
-	  //
-	  //	  // Top horizontal
-	  //	  shape.set(new Vec2(-300.0f, 300.0f), new Vec2(300.0f, 300.0f));
-	  //	  ground.createFixture(sd);
-	  //
-	  //	  // Bottom horizontal
-	  //	  shape.set(new Vec2(-300.0f, -300.0f), new Vec2(300.0f, -300.0f));
-	  //	  ground.createFixture(sd);
-
+	  Obstacle bound = new Bound();
+	  Fixture boundFixture;
 	  // Left vertical
 	  shape.set(new Vec2(-30.0f, -30.0f), new Vec2(-30.0f, 30.0f));
-	  ground.createFixture(sd);
+	  bound.setObstacleFixture(ground.createFixture(sd));
+	  MovementType movement = randomMovement(bd);
+//	  String id = resourcePacks[i].getId();
+//	  int rand = (int)(Math.random()*10000);
+//	  id = id.replace("0000", ""+rand);
+//	  resourcePacks[i].setId(id);
+//	  bound.//TODO
+
 
 	  // Right vertical
 	  shape.set(new Vec2(30.0f, -30.0f), new Vec2(30.0f, 30.0f));
