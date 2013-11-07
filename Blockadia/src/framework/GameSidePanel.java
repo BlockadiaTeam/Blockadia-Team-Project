@@ -734,9 +734,9 @@ public class GameSidePanel extends JPanel implements ActionListener{
   }
   
   private void showBlockSettingsWindow() {
-//	blockSettingsWindow = new BlockSettingsWindow(this.frame, this, ((BlockShape) (components.getSelectedItem())).getShapeName()); // TODO : fix this when i get new code
-//	blockSettingsWindow.setLocationRelativeTo(frame);
-//	blockSettingsWindow.setVisible(true);
+	blockSettingsWindow = new BlockSettingsWindow(this.frame, this, ((BlockShape) (components.getSelectedItem())).cloneToBlock()); // TODO : fix this when i get new code
+	blockSettingsWindow.setLocationRelativeTo(frame);
+	blockSettingsWindow.setVisible(true);
   }
 
   private void showNewShapeWindow() {
