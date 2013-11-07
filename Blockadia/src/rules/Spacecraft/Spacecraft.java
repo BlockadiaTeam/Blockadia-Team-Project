@@ -1,5 +1,8 @@
 package rules.Spacecraft;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jbox2d.dynamics.Body;
 
 public class Spacecraft {
@@ -10,17 +13,24 @@ public class Spacecraft {
   private String id;
   private int level;
   private int hp;
-  private int numOfRockets;
+  private int maxRockets;
+
   //Rocket
+  private Map<String, Rocket> rockets;
   
   public Spacecraft(){
 	id = "Alex the sky-raider";
 	spacecraftBody = null;
 	level = 0;
 	hp = 100;
-	numOfRockets = getRocketsByLevel();
+	rockets = new HashMap<String, Rocket>();
+	maxRockets = getNumOfRocketsByLevel();
   }
   
+  private int getNumOfRocketsByLevel() {
+	return level + 5;
+  }
+
   public Body getSpacecraftBody() {
 	return spacecraftBody;
   }
@@ -54,14 +64,23 @@ public class Spacecraft {
 	this.id = id;
   }
   
-  public int getNumOfRockets() {
-	return numOfRockets;
+  public Map<String, Rocket> getRockets() {
+	return rockets;
   }
 
-  private int getRocketsByLevel(){
-	return level+3;
+  public void setRockets(Map<String, Rocket> rockets) {
+	this.rockets = rockets;
   }
-  
+
+  public int getMaxRockets() {
+	return maxRockets;
+  }
+
+  public void levelUp(){
+	//TODO: update hp(maybe reset?)
+	level++;
+	maxRockets = getNumOfRocketsByLevel();
+  }
   @Override
   public boolean equals(Object otherObj){
 	if (!(otherObj instanceof Spacecraft))return false;

@@ -1,9 +1,7 @@
 package rules.Spacecraft;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import org.jbox2d.callbacks.ContactImpulse;
@@ -17,7 +15,6 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.JointEdge;
@@ -41,12 +38,12 @@ public class CrazySpacecraft extends RuleModel{
   private BuildConfig config;
   private GameModel model;
 
+  private int stepCount = 0;
+
   private Spacecraft spacecraft;
   private ResourcePack[] resourcePacks;
   private int numOfResourcePacks;
-  private List<Obstacle> obstacles;
-  private int stepCount = 0;
-
+  private Map<String,Obstacle> obstacles;
   private Map<ResourcePack, PrismaticJoint> pj;
 
   public static enum MovementType{
@@ -63,8 +60,7 @@ public class CrazySpacecraft extends RuleModel{
 	for(int i = 0 ; i < numOfResourcePacks; i++){
 	  resourcePacks[i] = new ResourcePack();
 	}
-	obstacles = new ArrayList<Obstacle>();
-
+	obstacles = new HashMap<String,Obstacle>();
 	pj = new HashMap<ResourcePack, PrismaticJoint>();
 	init();
   }
@@ -98,30 +94,61 @@ public class CrazySpacecraft extends RuleModel{
 	  sd.density = 0.0f;
 	  sd.restitution = 1f;
 
-	  Obstacle bound = new Bound();
-	  Fixture boundFixture;
 	  // Left vertical
+	  Obstacle bound = new Bound();
 	  shape.set(new Vec2(-30.0f, -30.0f), new Vec2(-30.0f, 30.0f));
 	  bound.setObstacleFixture(ground.createFixture(sd));
-	  MovementType movement = randomMovement(bd);
-//	  String id = resourcePacks[i].getId();
-//	  int rand = (int)(Math.random()*10000);
-//	  id = id.replace("0000", ""+rand);
-//	  resourcePacks[i].setId(id);
-//	  bound.//TODO
-
-
+	  String obstacleId = bound.getId();
+	  while(obstacles.containsKey(obstacleId)){
+		obstacleId = Bound.OriginalID;
+		int rand = (int)(Math.random()*10000);
+		obstacleId = obstacleId.replace("0000", ""+rand);
+	  }
+	  bound.setId(obstacleId);
+	  obstacles.put(bound.getId(), bound);
+	  
 	  // Right vertical
+	  bound = new Bound();
 	  shape.set(new Vec2(30.0f, -30.0f), new Vec2(30.0f, 30.0f));
-	  ground.createFixture(sd);
+	  bound.setObstacleFixture(ground.createFixture(sd));
+	  obstacleId = bound.getId();
+	  while(obstacles.containsKey(obstacleId)){
+		obstacleId = Bound.OriginalID;
+		int rand = (int)(Math.random()*10000);
+		obstacleId = obstacleId.replace("0000", ""+rand);
+	  }
+	  bound.setId(obstacleId);
+	  obstacles.put(bound.getId(), bound);
 
 	  // Top horizontal
+	  bound = new Bound();
 	  shape.set(new Vec2(-30.0f, 30.0f), new Vec2(30.0f, 30.0f));
-	  ground.createFixture(sd);
+	  bound.setObstacleFixture(ground.createFixture(sd));
+	  obstacleId = bound.getId();
+	  while(obstacles.containsKey(obstacleId)){
+		obstacleId = Bound.OriginalID;
+		int rand = (int)(Math.random()*10000);
+		obstacleId = obstacleId.replace("0000", ""+rand);
+	  }
+	  bound.setId(obstacleId);
+	  obstacles.put(bound.getId(), bound);
 
 	  // Bottom horizontal
+	  bound = new Bound();
 	  shape.set(new Vec2(-30.0f, -30.0f), new Vec2(30.0f, -30.0f));
-	  ground.createFixture(sd);
+	  bound.setObstacleFixture(ground.createFixture(sd));
+	  obstacleId = bound.getId();
+	  while(obstacles.containsKey(obstacleId)){
+		obstacleId = Bound.OriginalID;
+		int rand = (int)(Math.random()*10000);
+		obstacleId = obstacleId.replace("0000", ""+rand);
+	  }
+	  bound.setId(obstacleId);
+	  obstacles.put(bound.getId(), bound);
+	}
+	
+	{//obstacles: TODO
+	  
 	}
 
 	{//spacecraft 

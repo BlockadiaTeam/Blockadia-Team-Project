@@ -363,6 +363,18 @@ public abstract class BuildConfig {
 		throw new InvalidPositionException("The position has been occupied");
 	  }
 
+//	  while(blocksMap.containsKey(block.getBlockName())){
+//		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
+//		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);
+//		  newName += "-("+(int)(Math.random()*10000)+")";
+//		  block.setBlockName(newName);
+//		}else{
+//		  String newName = block.getBlockName();
+//		  newName += "-("+(int)(Math.random()*10000)+")";
+//		  block.setBlockName(newName);
+//		}
+//	  }
+	  
 	  if(blocksMap.containsKey(block.getBlockName())){
 		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
 		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);
@@ -374,6 +386,7 @@ public abstract class BuildConfig {
 		  block.setBlockName(newName);
 		}
 	  }
+
 	}
 
 	blocksMap.put(block.getBlockName(), block);

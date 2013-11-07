@@ -5,6 +5,7 @@ import org.jbox2d.dynamics.Fixture;
 public class Obstacle {
 
   public static final int ObstacleGroupIndex = -3;
+  public static final String OriginalID = "Obstacle-(0000)";
   
   protected Fixture obstacleFixture;
   protected String id;
@@ -12,7 +13,7 @@ public class Obstacle {
   
   public Obstacle(){
 	obstacleFixture = null;
-	id = "Obstacle-(0000)";
+	id = OriginalID;
 	hp = 1000;
   }
   
@@ -39,5 +40,14 @@ public class Obstacle {
   
   public void setHp(int hp) {
 	this.hp = hp;
+  }
+  
+  @Override
+  public boolean equals(Object otherObj){
+	if (!(otherObj instanceof Obstacle))return false;
+	Obstacle anotherObstacle = (Obstacle)otherObj;
+	if(!id.equals(anotherObstacle.getId())) return false;
+
+	return true;
   }
 }
