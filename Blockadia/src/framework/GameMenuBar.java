@@ -97,7 +97,7 @@ public class GameMenuBar extends JMenuBar{
 	// New
 	ImageIcon icon = null;
 	Image image = null;
-	icon = new ImageIcon("res/menu/New-Icon.png");
+	icon = new ImageIcon(getClass().getResource("/images/New-Icon.png"));
 	image = icon.getImage().getScaledInstance(18, 18, 0);
 	icon.setImage(image);
 	newItem = new JMenuItem(" New ", icon);
@@ -106,7 +106,7 @@ public class GameMenuBar extends JMenuBar{
 	fileMenu.add(newItem);
 
 	// Open
-	icon = new ImageIcon("res/menu/Open-Icon.png");
+	icon = new ImageIcon(getClass().getResource("/images/Open-Icon.png"));
 	image = icon.getImage().getScaledInstance(18, 18, 0);
 	icon.setImage(image);
 	openItem = new JMenuItem(" Open ",icon);
@@ -117,7 +117,7 @@ public class GameMenuBar extends JMenuBar{
 	fileMenu.addSeparator();
 
 	// Save
-	icon = new ImageIcon("res/menu/Save-Icon.png");
+	icon = new ImageIcon(getClass().getResource("/images/Save-Icon.png"));
 	image = icon.getImage().getScaledInstance(18, 18, 0);
 	icon.setImage(image);
 	saveItem = new JMenuItem(" Save ",icon);
@@ -126,7 +126,7 @@ public class GameMenuBar extends JMenuBar{
 	fileMenu.add(saveItem);
 
 	// Save As...
-	icon = new ImageIcon("res/menu/Save-As-Icon.png");
+	icon = new ImageIcon(getClass().getResource("/images/Save-As-Icon.png"));
 	image = icon.getImage().getScaledInstance(18, 18, 0);
 	icon.setImage(image);
 	saveAsItem = new JMenuItem(" Save As ",icon);

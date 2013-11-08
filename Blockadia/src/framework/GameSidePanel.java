@@ -39,9 +39,7 @@ import javax.swing.text.PlainDocument;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
-
 import components.BlockShape;
-
 import exceptions.ElementNotExistException;
 import framework.GameModel.BuildMode;
 
@@ -179,8 +177,8 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	resetButton.setAlignmentX(CENTER_ALIGNMENT);
 	ImageIcon icon = null;
 	Image image = null;
-
-	icon = new ImageIcon("res/side/Build.png");
+	
+	icon = new ImageIcon(getClass().getResource("/images/Build.png"));
 	image = icon.getImage().getScaledInstance(60, 50,
 		java.awt.Image.SCALE_SMOOTH);
 	icon.setImage(image);
@@ -190,7 +188,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	modeButton.setToolTipText("Click to enter game mode");
 	modeButton.setPreferredSize(new Dimension(80, 80));
 
-	icon = new ImageIcon("res/side/Stop.png");
+	icon = new ImageIcon(getClass().getResource("/images/Stop.png"));
 	image = icon.getImage().getScaledInstance(25, 25,
 		java.awt.Image.SCALE_SMOOTH);
 	icon.setImage(image);
@@ -198,7 +196,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	playPauseButton = new JButton("  Stop", icon);
 	playPauseButton.setToolTipText("Click to pause the game.");
 
-	icon = new ImageIcon("res/side/Reset.png");
+	icon = new ImageIcon(getClass().getResource("/images/Reset.png"));
 	image = icon.getImage().getScaledInstance(25, 25,
 		java.awt.Image.SCALE_SMOOTH);
 	icon.setImage(image);
@@ -445,7 +443,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		  GameInfoBar.updateInfo("Mode: Game");
 		  try {//Update buttons & panel:
 			buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Build Mode", "Click to enter game mode.",
-				"res/side/Build.png", new Rectangle(0,0,60, 50));
+				"/images/Build.png", new Rectangle(0,0,60, 50));
 		  } catch (final Exception e1) {
 			System.out.println(e1);
 		  }
@@ -466,7 +464,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		  GameInfoBar.updateInfo("Mode: Build");
 		  try {
 			buttonRenderer(ButtonType.TEXT_IMAGE, modeButton, "Game Mode", "Click to enter build mode.",
-				"res/side/Game.png", new Rectangle(0,0,60,50));
+				"/images/Game.png", new Rectangle(0,0,60,50));
 		  } catch (final Exception e1) {
 			System.out.println(e1);
 		  }
@@ -650,7 +648,6 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	settingsButton.addActionListener(new ActionListener() {
 	  @Override
 	  public void actionPerformed(final ActionEvent e) {
-		System.out.println("stop it");
 		showBlockSettingsWindow();
 	  }
 	});
@@ -821,10 +818,10 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	  }
 	  if (imageBound == null) {
 		throw new Exception("Invalid imageBound");
-	  }
+	  }	  
 	  ImageIcon icon = null;
 	  Image image = null;
-	  icon = new ImageIcon(filePath);
+	  icon = new ImageIcon(getClass().getResource(filePath));
 	  image = icon.getImage().getScaledInstance(imageBound.width,
 		  imageBound.height, java.awt.Image.SCALE_SMOOTH);
 	  icon.setImage(image);
@@ -846,7 +843,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	  }
 	  ImageIcon icon = null;
 	  Image image = null;
-	  icon = new ImageIcon(filePath);
+	  icon = new ImageIcon(getClass().getResource(filePath));
 	  image = icon.getImage().getScaledInstance(imageBound.width,
 		  imageBound.height, java.awt.Image.SCALE_SMOOTH);
 	  icon.setImage(image);
@@ -862,14 +859,14 @@ public class GameSidePanel extends JPanel implements ActionListener{
 	if (!model.pause) {
 	  try {
 		buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Stop", "Click to pause the game.",
-			"res/side/Stop.png", new Rectangle(0,0,25,25));
+			"/images/Stop.png", new Rectangle(0,0,25,25));
 	  } catch (final Exception e1) {
 		System.out.println(e1);
 	  }
 	} else {
 	  try {
 		buttonRenderer(ButtonType.TEXT_IMAGE, playPauseButton, " Play", "Click to start the game.",
-			"res/side/Play.png", new Rectangle(0,0,25,25));
+			"/images/Play.png", new Rectangle(0,0,25,25));
 	  } catch (final Exception e1) {
 		System.out.println(e1);
 	  }
