@@ -31,6 +31,7 @@ import utility.ContactPoint;
 import components.BuildConfig;
 import components.GameConfig;
 
+import framework.GameController;
 import framework.GameModel;
 
 public class CrazySpacecraft extends RuleModel{
@@ -39,6 +40,7 @@ public class CrazySpacecraft extends RuleModel{
   private GameModel model;
 
   private int stepCount = 0;
+  private int cooldownCountDown = 0;
 
   private Spacecraft spacecraft;
   private ResourcePack[] resourcePacks;
@@ -104,9 +106,9 @@ public class CrazySpacecraft extends RuleModel{
 		int rand = (int)(Math.random()*10000);
 		obstacleId = obstacleId.replace("0000", ""+rand);
 	  }
-	  bound.setId(obstacleId);
+	  bound.setId(obstacleId); 
 	  obstacles.put(bound.getId(), bound);
-	  
+
 	  // Right vertical
 	  bound = new Bound();
 	  shape.set(new Vec2(30.0f, -30.0f), new Vec2(30.0f, 30.0f));
@@ -147,8 +149,12 @@ public class CrazySpacecraft extends RuleModel{
 	  obstacles.put(bound.getId(), bound);
 	}
 	
-	{//obstacles: TODO
+	{//monsters: TODO
 	  
+	}
+
+	{//obstacles: TODO
+
 	}
 
 	{//spacecraft 
@@ -232,7 +238,7 @@ public class CrazySpacecraft extends RuleModel{
 
   @Override
   public void step() {
-
+	//Deal with input
 	Body body = spacecraft.getSpacecraftBody();
 	if (model.getKeys()['w']) {
 	  Vec2 f = body.getWorldVector(new Vec2(0.0f, -30.0f));
@@ -247,11 +253,20 @@ public class CrazySpacecraft extends RuleModel{
 	if (model.getKeys()['a']) {
 	  body.applyTorque(30.0f);
 	}
-
 	if (model.getKeys()['d']) {
 	  body.applyTorque(-30.0f);
 	}
 
+	//Deal with cooldown
+	if(cooldownCountDown <= 0){
+	  cooldownCountDown = 0;
+	  spacecraft.setOnCD(false);
+	}else{
+	  cooldownCountDown--;
+	}
+	//Log.print(cooldownCountDown);
+	
+	//Deal with collisions
 	for(Map.Entry<ResourcePack, PrismaticJoint> entry: pj.entrySet()){
 	  if(Math.abs(entry.getValue().getJointTranslation()) >= Math.abs(entry.getValue().getUpperLimit())){
 		entry.getValue().setMotorSpeed(-entry.getValue().getMotorSpeed());
@@ -368,6 +383,14 @@ public class CrazySpacecraft extends RuleModel{
   public void keyPressed(char c, int code) {
 	// TODO Auto-generated method stub
 	//Log.print("Key Pressed: "+ c+ "  "+ code);
+	if(model.getCodedKeys()[32]){
+	  if(spacecraft.shoot(config.getWorld())){
+		float cooldown = spacecraft.getCooldown();
+		float timestep = 1000f/GameController.DEFAULT_FPS;
+		cooldownCountDown = (int)(cooldown/timestep);
+		spacecraft.setOnCD(true);
+	  }
+	}
   }
 
   @Override
