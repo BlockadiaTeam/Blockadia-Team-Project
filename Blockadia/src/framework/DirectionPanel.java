@@ -4,15 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
@@ -20,8 +18,8 @@ import utility.TextFieldWithPlaceHolder;
 
 @SuppressWarnings("serial")
 public class DirectionPanel extends JPanel {
-
-    private BufferedImage arrow;
+  
+  	private Image arrow;
     private Point mousePosition;
     private float angle = 90;
     private boolean lock = false;
@@ -36,13 +34,7 @@ public class DirectionPanel extends JPanel {
 
     public DirectionPanel(TextFieldWithPlaceHolder angleIndicatorField) {
 
-	try {
-	    // All images must be of size 190x190 and format .png
-	    // Use http://www.picresize.com to resize .png
-	    arrow = ImageIO.read(new File("res/side/Direction-Arrow.png"));
-	} catch (final IOException ex) {
-	    System.out.println("Image error.");
-	}
+	arrow = new ImageIcon(getClass().getResource("/images/Direction-Arrow.png")).getImage();
 	this.angleIndicatorField = angleIndicatorField;
 	setLayout(new BorderLayout());
 	setBackground(Color.BLACK);
