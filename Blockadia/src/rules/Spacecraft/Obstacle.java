@@ -10,11 +10,13 @@ public class Obstacle {
   protected Fixture obstacleFixture;
   protected String id;
   protected int hp;
+  protected int maxHp;
   
   public Obstacle(){
 	obstacleFixture = null;
 	id = OriginalID;
-	hp = 1000;
+	maxHp = 1000;
+	hp = maxHp;
   }
   
   public Fixture getObstacleFixture() {
@@ -40,6 +42,14 @@ public class Obstacle {
   
   public void setHp(int hp) {
 	this.hp = hp;
+  }
+  
+  public int getMaxHp() {
+	return maxHp;
+  }
+  
+  public void setMaxHp(int maxHp) {
+	this.maxHp = maxHp;
   }
   
   @Override

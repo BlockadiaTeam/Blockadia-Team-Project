@@ -15,6 +15,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.JointEdge;
@@ -43,27 +44,40 @@ public class CrazySpacecraft extends RuleModel{
   private int cooldownCountDown = 0;
 
   private Spacecraft spacecraft;
+  
+  private Map<String,Obstacle> obstacles;
+  
+  private Map<String,Monster> monsters;
+  private int numOfMonsters;
+  private Map<String, PrismaticJoint> pjForMonster;
+  
+  //TODO: change this into a map so i can keep track of the num of resourcePacks left
   private ResourcePack[] resourcePacks;
   private int numOfResourcePacks;
-  private Map<String,Obstacle> obstacles;
-  private Map<ResourcePack, PrismaticJoint> pj;
+  private Map<ResourcePack, PrismaticJoint> pjForResourcePack;
 
   public static enum MovementType{
 	NoMovement, Linear,Circular,BackForth
   }
 
-  public CrazySpacecraft(BuildConfig buildConfig, GameModel model){
-	this.config = buildConfig;
-	this.model = model;
-	this.editable = false;
+  public CrazySpacecraft(BuildConfig buildConfig, GameModel gameModel){
+	config = buildConfig;
+	model = gameModel;
+	editable = false;
 	numOfResourcePacks = 10;
 	spacecraft = new Spacecraft();
 	resourcePacks = new ResourcePack[numOfResourcePacks];//TODO: This might depend on which map the spacecraft is in O_O
 	for(int i = 0 ; i < numOfResourcePacks; i++){
 	  resourcePacks[i] = new ResourcePack();
 	}
+	pjForResourcePack = new HashMap<ResourcePack, PrismaticJoint>();
+	
 	obstacles = new HashMap<String,Obstacle>();
-	pj = new HashMap<ResourcePack, PrismaticJoint>();
+
+	monsters = new HashMap<String, Monster>();
+	numOfMonsters = 6;
+	pjForMonster = new HashMap<String,PrismaticJoint>();
+	
 	init();
   }
 
@@ -148,9 +162,13 @@ public class CrazySpacecraft extends RuleModel{
 	  bound.setId(obstacleId);
 	  obstacles.put(bound.getId(), bound);
 	}
-	
+
 	{//monsters: TODO
-	  
+	  //1. Spawn point
+	  //2. Size
+	  //3. Draw the shape
+	  //4. Set the random movements
+	  //5. Create body and fixture and put into the map
 	}
 
 	{//obstacles: TODO
@@ -203,10 +221,10 @@ public class CrazySpacecraft extends RuleModel{
 	  bd.angle = MathUtils.PI;
 	  bd.allowSleep = false;
 	  spacecraft.setSpacecraftBody(config.getWorld().createBody(bd));
-	  spacecraft.getSpacecraftBody().createFixture(sd1);
-	  spacecraft.getSpacecraftBody().createFixture(sd2);
-	  spacecraft.getSpacecraftBody().createFixture(sd3);
-	  spacecraft.getSpacecraftBody().createFixture(sd4);
+	  spacecraft.getSpacecraftBody().createFixture(sd1).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
+	  spacecraft.getSpacecraftBody().createFixture(sd2).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
+	  spacecraft.getSpacecraftBody().createFixture(sd3).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
+	  spacecraft.getSpacecraftBody().createFixture(sd4).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
 	}
 
 	{//Resource packs
@@ -264,16 +282,16 @@ public class CrazySpacecraft extends RuleModel{
 	}else{
 	  cooldownCountDown--;
 	}
-	//Log.print(cooldownCountDown);
-	
+
 	//Deal with collisions
-	for(Map.Entry<ResourcePack, PrismaticJoint> entry: pj.entrySet()){
+	for(Map.Entry<ResourcePack, PrismaticJoint> entry: pjForResourcePack.entrySet()){
 	  if(Math.abs(entry.getValue().getJointTranslation()) >= Math.abs(entry.getValue().getUpperLimit())){
 		entry.getValue().setMotorSpeed(-entry.getValue().getMotorSpeed());
 	  }
 	}
 
 	HashSet<Body> nuke = new HashSet<Body>();
+	HashSet<Fixture> dead = new HashSet<Fixture>();
 	for (int i = 0; i < config.getPointCount(); i++) {
 	  ContactPoint point = GameConfig.points[i];
 
@@ -293,6 +311,28 @@ public class CrazySpacecraft extends RuleModel{
 	  }
 
 	  //TODO: Spacecraft hitting an obstacle
+	  //TODO: Spacecraft hitting a monster
+
+	  //Rocket hitting obstacles(including bounds)
+	  if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
+		if(point.fixtureB.getUserData() != null && point.fixtureB.getUserData() instanceof Obstacle){
+		  Rocket rocket = (Rocket)body1.getUserData();
+		  rocket.applyDamage(point.fixtureB.getUserData());
+		  spacecraft.getRockets().remove(((Rocket)body1.getUserData()).getId());
+		  nuke.add(body1);
+		}
+	  }
+
+	  if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
+		if(point.fixtureA.getUserData() != null && point.fixtureA.getUserData() instanceof Obstacle){
+		  Rocket rocket = (Rocket)body2.getUserData();
+		  rocket.applyDamage(point.fixtureA.getUserData());
+		  spacecraft.getRockets().remove(((Rocket)body2.getUserData()).getId());
+		  nuke.add(body2);
+		}
+	  }
+	  
+	  //TODO: check if any hitting object has <0 hp
 	}
 
 	for (Body b : nuke) {
@@ -300,14 +340,14 @@ public class CrazySpacecraft extends RuleModel{
 	  if(je != null){
 		if(je.joint.getType() == JointType.PRISMATIC){
 		  if(je.joint.getUserData() != null && je.joint.getUserData() instanceof ResourcePack){
-			pj.remove(je.joint.getUserData());
+			pjForResourcePack.remove(je.joint.getUserData());
 		  }
 		}
 		while(je.next != null){
 		  je = je.next;
 		  if(je.joint.getType() == JointType.PRISMATIC){
 			if(je.joint.getUserData() != null && je.joint.getUserData() instanceof ResourcePack){
-			  pj.remove(je.joint.getUserData());
+			  pjForResourcePack.remove(je.joint.getUserData());
 			}
 		  }
 		}
@@ -345,7 +385,7 @@ public class CrazySpacecraft extends RuleModel{
 	Body body1 = contact.m_fixtureA.getBody();
 	Body body2 = contact.m_fixtureB.getBody();
 
-	//Spacecraft hitting a resourcePack
+	//Spacecraft hitting a resourcePack: disable contact
 	if(body1.getUserData() != null && body1.getUserData() instanceof Spacecraft){
 	  if(body2.getUserData() != null && body2.getUserData() instanceof ResourcePack){
 		contact.setEnabled(false);
@@ -356,9 +396,21 @@ public class CrazySpacecraft extends RuleModel{
 		contact.setEnabled(false);
 	  }
 	}
-
 	//TODO: Spacecraft hitting an obstacle
+	//TODO: Spacecraft hitting a monster
 
+	//Rockets hitting resource packs: disable contact
+	if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
+	  if(body2.getUserData() != null && body2.getUserData() instanceof ResourcePack){
+		contact.setEnabled(false);
+	  }
+	}
+
+	if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
+	  if(body1.getUserData() != null && body1.getUserData() instanceof ResourcePack){
+		contact.setEnabled(false);
+	  }
+	}
   }
 
   @Override
@@ -522,6 +574,6 @@ public class CrazySpacecraft extends RuleModel{
 	pjd.enableMotor = true;
 	PrismaticJoint joint = (PrismaticJoint)config.getWorld().createJoint(pjd);
 	joint.setUserData(resourcePack);
-	pj.put(resourcePack, joint);
+	pjForResourcePack.put(resourcePack, joint);
   }
 }

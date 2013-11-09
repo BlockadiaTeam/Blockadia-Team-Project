@@ -2,16 +2,18 @@ package rules.Spacecraft;
 
 import org.jbox2d.dynamics.Body;
 
+import utility.Log;
+
 public class Rocket {
-  public static final int RocketGroupIndex = -5;
+  public static final int RocketGroupIndex = Spacecraft.SpacecraftGroupIndex;
   public static enum RocketType{
 	NormalBullet, Laser, DoubleLaser, Rocket, Flame, SpreadBullet, ChaseBullet;
   }
   
   public static final String OriginalID = "Rocket-(0000)";
 
-  //cooldown or recharging
-  public static final int NormalBulletCD = 1000;
+  //cooldown or re-charging
+  public static final int NormalBulletCD = 200;
   public static final int LaserCD = 2000;
   public static final int DoubleLaserCD = 2000;
   public static final int RocketCD = 1000;
@@ -61,15 +63,14 @@ public class Rocket {
 	else if(object instanceof Monster){
 	  applyDamage((Monster)object);
 	}
+	else{
+	  Log.print("Can't apply damage to this unknow type object: "+object.getClass().toString());
+	}
   }
 
-  private void applyDamage(Spacecraft spacecraft){
+  private void applyDamage(Spacecraft spacecraft){}
 
-  }
-
-  private void applyDamage(Bound bound){
-
-  }
+  private void applyDamage(Bound bound){}
 
   private void applyDamage(Obstacle obstacle){
 
@@ -110,5 +111,16 @@ public class Rocket {
 
   public void setId(String id) {
 	this.id = id;
+  }
+  
+  @Override
+  public Rocket clone(){
+	Rocket newRocket = new Rocket();
+	newRocket.type = this.type;
+	newRocket.rocketBody = null;
+	newRocket.id = this.id;
+	newRocket.baseDamage = this.baseDamage;
+	
+	return newRocket;
   }
 }

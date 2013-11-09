@@ -125,7 +125,6 @@ public class GameSidePanel extends JPanel implements ActionListener{
   private boolean expandVelocity = false;
   private boolean expandForce = false;
   private boolean dirty = false;
-  public static boolean test = true; // TODO:DELETE LATER
   private final JScrollPane scroll = new JScrollPane(optionPanel,
 	  JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 	  JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);

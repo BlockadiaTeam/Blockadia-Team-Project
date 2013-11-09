@@ -22,7 +22,8 @@ public class Spacecraft {
   private String id;
   private int level;
   private int hp;
-
+  private int maxHp;
+  
   //Rocket
   private int maxRockets;
   private RocketType rocketType;
@@ -33,7 +34,8 @@ public class Spacecraft {
 	id = "Alex the sky-raider";
 	spacecraftBody = null;
 	level = 0;
-	hp = 100;
+	maxHp = 100;
+	hp = maxHp;
 	rocketType = RocketType.NormalBullet;
 	rockets = new HashMap<String, Rocket>();
 	maxRockets = getNumOfRocketsByLevel();
@@ -66,6 +68,14 @@ public class Spacecraft {
 
   public void setHp(int hp) {
 	this.hp = hp;
+  }
+
+  public int getMaxHp() {
+	return maxHp;
+  }
+
+  public void setMaxHp(int maxHp) {
+	this.maxHp = maxHp;
   }
 
   public String getId() {
@@ -168,6 +178,7 @@ public class Spacecraft {
 	level++;
 	maxRockets = getNumOfRocketsByLevel();
   }
+  
   @Override
   public boolean equals(Object otherObj){
 	if (!(otherObj instanceof Spacecraft))return false;
@@ -218,26 +229,17 @@ public class Spacecraft {
 
 	String rocketId = rocket.getId();
 	if(rocketNum == 2 && leftSpawnPt != null && rightSpawnPt != null){
-	  Vec2 velocity = spacecraftBody.getLinearVelocity().clone();
-	  if(spacecraftBody.getLinearVelocity().length() <= 30f){
-		//velocity = 45f
-		velocity.normalize();
-		velocity.mulLocal(45f);
-	  }
-	  else{
-		//velocity = currVelocity + 15;
-		Vec2 increment = velocity.clone();
-		increment.normalize();
-		increment.mulLocal(15f);
-		velocity.addLocal(increment);
-	  }
+	  Vec2 velocity = spacecraftBody.getWorldPoint(new Vec2(0f,-1f));
+	  velocity.subLocal(spacecraftBody.getWorldCenter().clone());
+	  velocity.normalize();
+	  velocity.mulLocal(70f);
 
 	  if(rocket.getType() == RocketType.NormalBullet){
 		//left bullet
 		BodyDef bd = new BodyDef();
 		bd.type = BodyType.DYNAMIC;
 		bd.linearVelocity.set(velocity);
-		bd.bullet = true;
+		bd.bullet = false;
 		bd.position.set(leftSpawnPt);
 		CircleShape bullet = new CircleShape();
 		bullet.setRadius(.1f);
@@ -245,7 +247,6 @@ public class Spacecraft {
 		fd.shape = bullet;
 		fd.density = 1f;
 		fd.filter.groupIndex = Rocket.RocketGroupIndex;
-		//Unique id
 		while(rockets.containsKey(rocketId)){
 		  rocketId = Rocket.OriginalID;
 		  int rand = (int)(Math.random()*10000);
@@ -255,11 +256,21 @@ public class Spacecraft {
 		rocket.setRocketBody(world.createBody(bd));
 		rocket.getRocketBody().createFixture(fd);
 		rockets.put(rocket.getId(), rocket);
-		
+
+		Rocket rightRocket = rocket.clone();
 		//right bullet
-		bd = new BodyDef();
 		bd.position.set(rightSpawnPt);
-		//TODO
+		bd.bullet = false;
+		rocketId = Rocket.OriginalID;
+		while(rockets.containsKey(rocketId)){
+		  rocketId = Rocket.OriginalID;
+		  int rand = (int)(Math.random()*10000);
+		  rocketId = rocketId.replace("0000", ""+rand);
+		}
+		rightRocket.setId(rocketId);
+		rightRocket.setRocketBody(world.createBody(bd));
+		rightRocket.getRocketBody().createFixture(fd);
+		rockets.put(rightRocket.getId(), rightRocket);
 	  }
 	}
 	return true;
