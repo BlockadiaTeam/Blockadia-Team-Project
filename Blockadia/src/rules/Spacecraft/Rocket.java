@@ -11,6 +11,7 @@ public class Rocket {
   }
   
   public static final String OriginalID = "Rocket-(0000)";
+  public static final float DefaultBaseDamage = 20f;
 
   //cooldown or re-charging
   public static final int NormalBulletCD = 200;
@@ -41,7 +42,7 @@ public class Rocket {
 
   public Rocket(){
 	this.type = DefaultRocketType;
-	this.baseDamage = 50f;
+	this.baseDamage = 20f;
 	this.id = OriginalID;
   }
 
@@ -77,7 +78,10 @@ public class Rocket {
   }
 
   private void applyDamage(Monster monster){
-	//TODO: finish this
+	//For now, just use currHp - dmg as dmg equation
+	float currHp = monster.getHp();
+	currHp -= this.baseDamage;
+	monster.setHp((int)currHp);
   }
 
   public Body getRocketBody() {

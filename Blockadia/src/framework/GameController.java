@@ -207,6 +207,10 @@ public class GameController {
   }
 
   public void run() {
+	if(!model.pause){
+	  panel.grabFocus();
+	}
+	
 	if(panel.render()) { 
 	  update(); 
 	  //panel.paintScreen(); 

@@ -39,7 +39,9 @@ import javax.swing.text.PlainDocument;
 
 import utility.TextFieldWithPlaceHolder;
 import utility.TextFieldWithPlaceHolder.StringType;
+
 import components.BlockShape;
+
 import exceptions.ElementNotExistException;
 import framework.GameModel.BuildMode;
 
@@ -453,7 +455,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 			optionPanel.setPreferredSize(new Dimension(200,450));
 			scroll.setSize(230,495);
 		  }
-		  {//Update the screen //TODO: is controller.loopInit() correct?
+		  {//Update the screen
 			controller.loopInit();
 			model.pause = true;
 			updatePlayPauseButton();
@@ -467,7 +469,7 @@ public class GameSidePanel extends JPanel implements ActionListener{
 		  } catch (final Exception e1) {
 			System.out.println(e1);
 		  }
-		  {//1st: stop the game if it is running //TODO: is controller.loopInit() correct?
+		  {//1st: stop the game if it is running
 			controller.loopInit();
 			model.pause = true;
 			updatePlayPauseButton();

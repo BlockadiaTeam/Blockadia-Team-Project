@@ -192,12 +192,10 @@ public class Spacecraft {
   public boolean shoot(World world){
 	//check cool down and max num rockets
 	if(this.onCD){
-	  Log.print("Rocket on CD, not ready to shoot");
 	  return false;
 	}
 
 	if(this.getRockets().size() >= (this.getMaxRockets() * this.getRocketNumPerShot())){
-	  Log.print("Rockets reloading, not ready to shoot");
 	  return false;
 	}
 
@@ -278,6 +276,6 @@ public class Spacecraft {
 
   private float getBaseDamageByRocket() {
 	// TODO 
-	return 50f;
+	return Rocket.DefaultBaseDamage;
   }
 }
