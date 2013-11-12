@@ -239,7 +239,7 @@ public class Spacecraft {
 		BodyDef bd = new BodyDef();
 		bd.type = BodyType.DYNAMIC;
 		bd.linearVelocity.set(velocity);
-		bd.bullet = false;
+		bd.bullet = true;
 		bd.position.set(leftSpawnPt);
 		CircleShape bullet = new CircleShape();
 		bullet.setRadius(.1f);
@@ -260,7 +260,7 @@ public class Spacecraft {
 		Rocket rightRocket = rocket.clone();
 		//right bullet
 		bd.position.set(rightSpawnPt);
-		bd.bullet = false;
+		bd.bullet = true;
 		rocketId = Rocket.OriginalID;
 		while(rockets.containsKey(rocketId)){
 		  rocketId = Rocket.OriginalID;

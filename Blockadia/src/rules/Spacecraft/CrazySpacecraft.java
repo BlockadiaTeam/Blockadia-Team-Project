@@ -44,13 +44,13 @@ public class CrazySpacecraft extends RuleModel{
   private int cooldownCountDown = 0;
 
   private Spacecraft spacecraft;
-  
+
   private Map<String,Obstacle> obstacles;
-  
+
   private Map<String,Monster> monsters;
   private int numOfMonsters;
   private Map<String, PrismaticJoint> pjForMonster;
-  
+
   //TODO: change this into a map so i can keep track of the num of resourcePacks left
   private ResourcePack[] resourcePacks;
   private int numOfResourcePacks;
@@ -71,18 +71,21 @@ public class CrazySpacecraft extends RuleModel{
 	  resourcePacks[i] = new ResourcePack();
 	}
 	pjForResourcePack = new HashMap<ResourcePack, PrismaticJoint>();
-	
+
 	obstacles = new HashMap<String,Obstacle>();
 
 	monsters = new HashMap<String, Monster>();
 	numOfMonsters = 6;
 	pjForMonster = new HashMap<String,PrismaticJoint>();
-	
+
 	init();
   }
 
   @Override
   public void init() {
+	//init keyboard input
+	model.initKeyboard();
+
 	//init world
 	config.getWorld().setGravity(new Vec2(0f,0f));
 
@@ -164,11 +167,33 @@ public class CrazySpacecraft extends RuleModel{
 	}
 
 	{//monsters: TODO
-	  //1. Spawn point
-	  //2. Size
-	  //3. Draw the shape
-	  //4. Set the random movements
-	  //5. Create body and fixture and put into the map
+	  Monster monster = null;
+	  for(int i = 0; i < numOfMonsters ; i++){
+		monster = new Monster();
+		String monsterId = monster.getId();
+		while(monsters.containsKey(monsterId)){
+		  monsterId = Monster.OriginalID;
+		  int rand = (int)( Math.random() * 10000);
+		  monsterId = monsterId.replace("0000", ""+rand);
+		}
+		monster.setId(monsterId);
+
+		double limit = 50.0f * Math.random() - 25.0f;
+		float x = (float) limit;
+		limit = 50.0f * Math.random() - 5.0f;
+		float y = (float) limit;
+		Vec2 monsterSpawnPt = new Vec2(x,y);	//TODO: make sure its not too close to the spaceship
+		BodyDef bd = new BodyDef();
+		bd.type = BodyType.DYNAMIC;
+		bd.position.set(monsterSpawnPt);
+		//bd.fixedRotation = false;
+		monster.setMonsterBody(config.getWorld().createBody(bd));
+		//4. Set the random movements
+
+		createMonsterBody(monster);
+		randomMovement(monster);
+	  }
+
 	}
 
 	{//obstacles: TODO
@@ -283,13 +308,20 @@ public class CrazySpacecraft extends RuleModel{
 	  cooldownCountDown--;
 	}
 
-	//Deal with collisions
+	//Deal with prismatic joints: change direction
 	for(Map.Entry<ResourcePack, PrismaticJoint> entry: pjForResourcePack.entrySet()){
 	  if(Math.abs(entry.getValue().getJointTranslation()) >= Math.abs(entry.getValue().getUpperLimit())){
 		entry.getValue().setMotorSpeed(-entry.getValue().getMotorSpeed());
 	  }
 	}
+	
+	for(Map.Entry<String, PrismaticJoint> entry: pjForMonster.entrySet()){
+	  if(Math.abs(entry.getValue().getJointTranslation()) >= Math.abs(entry.getValue().getUpperLimit())){
+		entry.getValue().setMotorSpeed(-entry.getValue().getMotorSpeed());
+	  }
+	}
 
+	//Deal with collisions
 	HashSet<Body> nuke = new HashSet<Body>();
 	HashSet<Fixture> dead = new HashSet<Fixture>();
 	for (int i = 0; i < config.getPointCount(); i++) {
@@ -331,8 +363,26 @@ public class CrazySpacecraft extends RuleModel{
 		  nuke.add(body2);
 		}
 	  }
-	  
-	  //TODO: check if any hitting object has <0 hp
+
+	  if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
+		if(body2.getUserData() != null && body2.getUserData() instanceof Monster){
+		  Rocket rocket = (Rocket)body1.getUserData();
+		  rocket.applyDamage(body2.getUserData());
+		  spacecraft.getRockets().remove(((Rocket)body1.getUserData()).getId());
+		  nuke.add(body1);
+		}
+	  }
+
+	  if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
+		if(body1.getUserData() != null && body1.getUserData() instanceof Monster){
+		  Rocket rocket = (Rocket)body2.getUserData();
+		  rocket.applyDamage(body1.getUserData());
+		  spacecraft.getRockets().remove(((Rocket)body2.getUserData()).getId());
+		  nuke.add(body2);
+		}
+	  }
+
+	  //TODO: check if any hitted object has <0 hp
 	}
 
 	for (Body b : nuke) {
@@ -353,6 +403,7 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 
+	  //TODO: deal with pjForMonster
 	  config.getWorld().destroyBody(b);
 	}
 
@@ -396,44 +447,34 @@ public class CrazySpacecraft extends RuleModel{
 		contact.setEnabled(false);
 	  }
 	}
-	//TODO: Spacecraft hitting an obstacle
-	//TODO: Spacecraft hitting a monster
 
 	//Rockets hitting resource packs: disable contact
 	if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
-	  if(body2.getUserData() != null && body2.getUserData() instanceof ResourcePack){
+	  if(body2.getUserData() != null 
+		  && (body2.getUserData() instanceof ResourcePack || body2.getUserData() instanceof Monster)){
 		contact.setEnabled(false);
 	  }
 	}
 
 	if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
-	  if(body1.getUserData() != null && body1.getUserData() instanceof ResourcePack){
+	  if(body1.getUserData() != null 
+		  && (body1.getUserData() instanceof ResourcePack || body1.getUserData() instanceof Monster)){
 		contact.setEnabled(false);
 	  }
 	}
   }
 
   @Override
-  public void postSolve(Contact contact, ContactImpulse impulse) {
-	// TODO Auto-generated method stub
-	//Log.print("postSolve is called");
-  }
+  public void postSolve(Contact contact, ContactImpulse impulse) {}
 
   @Override
-  public void keyTyped(char c, int code) {
-	// TODO Auto-generated method stub
-	//Log.print("Key Typed: "+ c+ "  "+ code);
-  }
+  public void keyTyped(char c, int code) {}
 
   @Override
-  public void keyReleased(char c, int code) {
-	// TODO Auto-generated method stub
-	//Log.print("Key Released: "+ c+ "  "+ code);
-  }
+  public void keyReleased(char c, int code) {}
 
   @Override
   public void keyPressed(char c, int code) {
-	// TODO Auto-generated method stub
 	//Log.print("Key Pressed: "+ c+ "  "+ code);
 	if(model.getCodedKeys()[32]){
 	  if(spacecraft.shoot(config.getWorld())){
@@ -446,21 +487,43 @@ public class CrazySpacecraft extends RuleModel{
   }
 
   @Override
-  public void mouseUp(Vec2 pos) {
-	// TODO Auto-generated method stub
-	//Log.print("Mouse up at: " + pos.toString());
-  }
+  public void mouseUp(Vec2 pos) {}
 
   @Override
-  public void mouseDown(Vec2 pos) {
-	// TODO Auto-generated method stub
-	//Log.print("Mouse down at: " + pos.toString());
-  }
+  public void mouseDown(Vec2 pos) {}
 
   @Override
-  public void mouseMove(Vec2 pos) {
-	// TODO Auto-generated method stub
-	//Log.print("Mouse move to: " + pos.toString());
+  public void mouseMove(Vec2 pos) {}
+
+  private void createMonsterBody(Monster monster){
+	if(monster.getMonsterBody() == null) return;
+	Body body = monster.getMonsterBody();
+
+	Vec2 vertices[] = new Vec2[3];
+	vertices[0] = new Vec2(0f,1.5f);
+	vertices[1] = new Vec2(-1.299f, -.75f);
+	vertices[2] = new Vec2(1.299f, -.75f);
+	PolygonShape part1 = new PolygonShape();
+	part1.set(vertices, 3);
+
+	vertices[0] = new Vec2(0f,-1.5f);
+	vertices[1] = new Vec2(1.299f, .75f);
+	vertices[2] = new Vec2(-1.299f, .75f);
+	PolygonShape part2 = new PolygonShape();
+	part2.set(vertices, 3);
+
+	FixtureDef sd1 = new FixtureDef();
+	sd1.shape = part1;
+	sd1.density = 2f;
+	sd1.restitution = .5f;
+	sd1.filter.groupIndex = Monster.MonsterGroupIndex;
+	FixtureDef sd2 = new FixtureDef();
+	sd2.shape = part2;
+	sd2.density = 2f;
+	sd2.restitution = .5f;
+	sd2.filter.groupIndex = Monster.MonsterGroupIndex;
+	body.createFixture(sd1);
+	body.createFixture(sd2);
   }
 
   private MovementType randomMovement(BodyDef bd){
@@ -504,6 +567,23 @@ public class CrazySpacecraft extends RuleModel{
 	}
   }
 
+  private void randomMovement(Monster monster){
+	int rand = (int)(4 * Math.random() + 0.9999999f);
+	switch (rand){
+	case 1:
+	  linearMovement(monster);
+	  break;
+	case 2:
+	  circularMovement(monster);
+	  break;
+	case 3:
+	  backForthMovement(monster);
+	  break;
+	default:
+	  break;
+	}
+  }
+
   private void linearMovement(BodyDef bd){
 	double rand = Math.random();
 	int multiplier = 1;
@@ -529,6 +609,32 @@ public class CrazySpacecraft extends RuleModel{
 
   private void linearMovement(ResourcePack resourcePack){}
 
+  private void linearMovement(Monster monster){
+	if (monster.getMonsterBody() == null) return;
+
+	Body body = monster.getMonsterBody();
+	double rand = Math.random();
+	int multiplier = 1;
+	if(rand < .5d && rand > 0d){
+	  multiplier = -1;
+	}
+	else if(rand > 0.5d && rand < 1d){
+	  multiplier = 1;
+	}
+	float randX =(float) (5.0f * Math.random() + 0.99999999f) * multiplier;
+
+	rand = Math.random();
+	if(rand < .5d && rand > 0d){
+	  multiplier = -1;
+	}
+	else if(rand > 0.5d && rand < 1d){
+	  multiplier = 1;
+	}
+
+	float randY =(float) (5.0f * Math.random() + 0.99999999f) * multiplier;
+	body.setLinearVelocity(new Vec2(randX,randY));
+  }
+
   private void circularMovement(BodyDef bd){}
 
   private void circularMovement(ResourcePack resourcePack){
@@ -547,6 +653,26 @@ public class CrazySpacecraft extends RuleModel{
 	rjd.initialize(resourcePackBody, body2, anchor);
 	rjd.motorSpeed = MathUtils.PI;
 	rjd.maxMotorTorque = 15.0f;
+	rjd.enableMotor = true;
+	config.getWorld().createJoint(rjd);
+  }
+
+  private void circularMovement(Monster monster){
+	//Revolute Joint:
+	//body1 & body2
+	Body body = monster.getMonsterBody();
+	Body body2 = config.getGroundBody();
+
+	//anchor
+	double randLength = (5f * Math.random() + 4.99999999f);
+	double randAngle = (2 * Math.PI * Math.random());
+	Vec2 shift = new Vec2((float)(randLength * Math.cos(randAngle)), (float)(randLength * Math.sin(randAngle)));
+	Vec2 anchor = body.getWorldCenter().add(shift);
+
+	RevoluteJointDef rjd = new RevoluteJointDef();
+	rjd.initialize(body, body2, anchor);
+	rjd.motorSpeed = MathUtils.PI;
+	rjd.maxMotorTorque = 100.0f;
 	rjd.enableMotor = true;
 	config.getWorld().createJoint(rjd);
   }
@@ -575,5 +701,29 @@ public class CrazySpacecraft extends RuleModel{
 	PrismaticJoint joint = (PrismaticJoint)config.getWorld().createJoint(pjd);
 	joint.setUserData(resourcePack);
 	pjForResourcePack.put(resourcePack, joint);
+  }
+  
+  private void backForthMovement(Monster monster){
+	//Prismatic Joint:
+	//body1 & body2
+	Body body1 = monster.getMonsterBody();
+	Body body2 = config.getGroundBody();
+
+	//anchor
+	double randLength = (5f * Math.random() + 4.99999999f);
+	double randAngle = (2 * Math.PI * Math.random());
+	Vec2 shift = new Vec2((float)(randLength * Math.cos(randAngle)), (float)(randLength * Math.sin(randAngle)));
+
+	PrismaticJointDef pjd = new PrismaticJointDef();
+	pjd.initialize(body1, body2, body1.getWorldCenter(), shift);
+	pjd.lowerTranslation = -1f * (float)randLength;
+	pjd.upperTranslation = 1f * (float)randLength;
+	pjd.enableLimit = true;
+	pjd.motorSpeed = (float)(randLength/4d);
+	pjd.maxMotorForce = 100f;
+	pjd.enableMotor = true;
+	PrismaticJoint joint = (PrismaticJoint)config.getWorld().createJoint(pjd);
+	joint.setUserData(monster);
+	pjForMonster.put(monster.getId(), joint);
   }
 }

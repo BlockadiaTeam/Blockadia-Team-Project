@@ -77,7 +77,7 @@ public class Rocket {
   }
 
   private void applyDamage(Monster monster){
-
+	//TODO: finish this
   }
 
   public Body getRocketBody() {

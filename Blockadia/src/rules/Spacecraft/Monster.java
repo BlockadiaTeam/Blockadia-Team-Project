@@ -5,7 +5,7 @@ import org.jbox2d.dynamics.Body;
 import rules.Spacecraft.CrazySpacecraft.MovementType;
 
 public class Monster {
-  public static final int MonsterGroupIndex = -4;
+  public static final int MonsterGroupIndex = ResourcePack.ResourcePackGroupIndex;
   public static final String OriginalID = "Monster-(0000)";
   
   private Body monsterBody;
@@ -15,7 +15,7 @@ public class Monster {
   private int hp;
   private int maxHp;  
   
-  //TODO: monster shooting dangerous bombs at you WHATUP
+  //TODO: monster shooting dangerous bombs at you.... WHATUP
   
   public Monster(){
 	monsterBody = null;

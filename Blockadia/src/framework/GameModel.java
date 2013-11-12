@@ -39,8 +39,8 @@ public class GameModel {
   private BuildConfig config;
   private final Vec2 mouse = new Vec2();
 
-  private final boolean[] keys = new boolean[512];
-  private final boolean[] codedKeys = new boolean[512];
+  private boolean[] keys = new boolean[512];
+  private boolean[] codedKeys = new boolean[512];
   private float calculatedFPS;
   private float panelWidth;
 
@@ -58,6 +58,11 @@ public class GameModel {
 	populateBlockShapes();
   }
 
+  public void initKeyboard(){
+	keys = new boolean[512];
+	codedKeys = new boolean[512];
+  }
+  
   public static Mode getMode() {
 	return mode;
   }
@@ -109,7 +114,7 @@ public class GameModel {
    * @return
    */
   public boolean[] getKeys(){
-    return keys;
+	return keys;
   }
 
   /**
@@ -118,7 +123,7 @@ public class GameModel {
    * @return
    */
   public boolean[] getCodedKeys(){
-    return codedKeys;
+	return codedKeys;
   }
 
   public float getCalculatedFPS() {
