@@ -37,7 +37,8 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.Fixture;
 
 import prereference.ConfigSettings;
-import utility.GamePanelRenderer;
+import render.CustomizedRenderer;
+import render.GamePanelRenderer;
 import utility.Log;
 import utility.TestPointCallback;
 
@@ -68,6 +69,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 
   private final GameModel model;
   private final GamePanelRenderer renderer;
+  private final CustomizedRenderer customizedRenderer;
 
   private final Vec2 dragginMouse = new Vec2();
   private boolean dragging = false;
@@ -84,6 +86,7 @@ public class GamePanel extends JPanel implements IGamePanel{
   public GamePanel(final GameModel argModel){
 	this.setBackground(Color.black);
 	this.renderer = new GamePanelRenderer(this);
+	this.customizedRenderer = new CustomizedRenderer(renderer);
 	trans = (OBBViewportTransform)renderer.getViewportTranform();
 	this.model = argModel;
 	updateSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -831,6 +834,11 @@ public class GamePanel extends JPanel implements IGamePanel{
   @Override
   public DebugDraw getGamePanelRenderer() {
 	return renderer;
+  }
+  
+  @Override
+  public CustomizedRenderer getCustomizedRenderer(){
+	return customizedRenderer;
   }
 
   public Graphics2D getGamePanelGraphics() {

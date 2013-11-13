@@ -89,11 +89,13 @@ public class CrazySpacecraft extends RuleModel{
 	Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
 	Setting enableZoom = config.getConfigSettings().getSetting(ConfigSettings.EnableZoom);
 	Setting drawJoints = config.getConfigSettings().getSetting(ConfigSettings.DrawJoints);
+	Setting drawShapes = config.getConfigSettings().getSetting(ConfigSettings.DrawShapes);
 	cameraScale.value = 10f;
 	cameraPos.value = new Vec2(-30f,50f);
 	enableZoom.enabled = false;
 	drawJoints.enabled = false;
-
+	drawShapes.enabled = false;		//Turn off the default rendering
+									//TODO: turn on the customized rendering
 	//init game
 	Body ground;
 	{

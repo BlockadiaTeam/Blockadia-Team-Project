@@ -117,17 +117,14 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
 
   private void keyTyped(char c, int code) {
-	// TODO Auto-generated method stub
 	rule.keyTyped(c, code);
   }
 
   private void keyReleased(char c, int code) {
-	// TODO Auto-generated method stub
 	rule.keyReleased(c, code);
   }
 
   private void keyPressed(char c, int code) {
-	// TODO Auto-generated method stub
 	rule.keyPressed(c, code);
   }
 
@@ -136,7 +133,6 @@ public class GameConfig extends BuildConfig implements ContactListener{
   }
 
   private void mouseDown(Vec2 pos) {
-	// TODO Auto-generated method stub
 	rule.mouseDown(pos);
   }
 
@@ -167,21 +163,16 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	rule.step();
 
 	world.drawDebugData();
-
   }
-
 
   @Override
   public void beginContact(Contact contact) {
-	// TODO Auto-generated method stub
 	rule.beginContact(contact);
   }
 
   @Override
   public void endContact(Contact contact) {
-	// TODO Auto-generated method stub
 	rule.endContact(contact);
-
   }
 
   private final PointState[] state1 = new PointState[Settings.maxManifoldPoints];
@@ -220,7 +211,6 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   @Override
   public void postSolve(Contact contact, ContactImpulse impulse) {
-	// TODO Auto-generated method stub
 	rule.postSolve(contact, impulse);
   }
 
