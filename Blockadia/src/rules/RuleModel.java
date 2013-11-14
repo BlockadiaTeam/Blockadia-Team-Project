@@ -41,4 +41,5 @@ public abstract class RuleModel {
 
   public abstract void mouseMove(Vec2 pos);
   
+  public abstract void customizedPainting(); 
 }

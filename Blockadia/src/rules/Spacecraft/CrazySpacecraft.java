@@ -1,22 +1,24 @@
 package rules.Spacecraft;
 
+import java.awt.Image;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import javax.swing.ImageIcon;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.shapes.EdgeShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.MathUtils;
-import org.jbox2d.common.Rot;
-import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
+import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.JointEdge;
 import org.jbox2d.dynamics.joints.JointType;
@@ -26,6 +28,8 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import prereference.ConfigSettings;
 import prereference.Setting;
+import render.CustomizedRenderer;
+import render.CustomizedRenderer.ImageType;
 import rules.RuleModel;
 import utility.ContactPoint;
 
@@ -39,6 +43,7 @@ public class CrazySpacecraft extends RuleModel{
 
   private BuildConfig config;
   private GameModel model;
+  private CustomizedRenderer renderer = null;
 
   private int cooldownCountDown = 0;
 
@@ -53,6 +58,10 @@ public class CrazySpacecraft extends RuleModel{
   private Map<String, ResourcePack> resourcePacks;
   private int numOfResourcePacks;
   private Map<ResourcePack, PrismaticJoint> pjForResourcePack;
+
+  //customized rendering:
+  ImageIcon icon = null;
+  Image spacecraftImg = null;
 
   public static enum MovementType{
 	NoMovement, Linear,Circular,BackForth
@@ -94,8 +103,13 @@ public class CrazySpacecraft extends RuleModel{
 	cameraPos.value = new Vec2(-30f,50f);
 	enableZoom.enabled = false;
 	drawJoints.enabled = false;
-	drawShapes.enabled = false;		//Turn off the default rendering
-									//TODO: turn on the customized rendering
+	//drawShapes.enabled = false;										//Turn off the default rendering
+	//if(!drawShapes.enabled){
+	  renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
+	//}
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/spaceship.png"));
+	spacecraftImg = icon.getImage();
+
 	//init game
 	Body ground;
 	{
@@ -195,41 +209,45 @@ public class CrazySpacecraft extends RuleModel{
 	}
 
 	{//spacecraft 
-	  Transform xf1 = new Transform();
-	  xf1.q.set(MathUtils.PI);
-	  Rot.mulToOutUnsafe(xf1.q, new Vec2(0f, 0.0f), xf1.p);
-	  Vec2 vertices[] = new Vec2[3];
-	  vertices[0] = Transform.mul(xf1, new Vec2(-.866f, -.5f));
-	  vertices[1] = Transform.mul(xf1, new Vec2(0.0f, 0.0f));
-	  vertices[2] = Transform.mul(xf1, new Vec2(0.0f, 1.2f));
-	  PolygonShape leftWing = new PolygonShape();
-	  leftWing.set(vertices, 3);
-	  vertices[0] = Transform.mul(xf1, new Vec2(.866f, -.5f));
-	  vertices[1] = Transform.mul(xf1, new Vec2(0.0f, 1.2f));
-	  vertices[2] = Transform.mul(xf1, new Vec2(0.0f, 0.0f));
-	  PolygonShape rightWing = new PolygonShape();
-	  rightWing.set(vertices, 3);
+	  Vec2 vertices[] = new Vec2[6];
+	  
+	  vertices[0] = new Vec2(-.75f,.5f).mul(.75f);
+	  vertices[1] = new Vec2(-.25f,-1.5f).mul(.75f);
+	  vertices[2] = new Vec2(.25f,-1.5f).mul(.75f);
+	  vertices[3] = new Vec2(.75f,.5f).mul(.75f);
+	  PolygonShape front = new PolygonShape();
+	  front.set(vertices, 4);
+	  vertices[0] = new Vec2(-1f,.5f).mul(.75f);
+	  vertices[1] = new Vec2(-1f,.25f).mul(.75f);
+	  vertices[2] = new Vec2(1f,.25f).mul(.75f);
+	  vertices[3] = new Vec2(1f,.5f).mul(.75f);
+	  PolygonShape back = new PolygonShape();
+	  back.set(vertices, 4);
 	  PolygonShape leftWeapon = new PolygonShape();
-	  leftWeapon.setAsBox(.075f, .25f, new Vec2(-.55f,-.4f), 0f);
+	  leftWeapon.setAsBox(.075f, .45f, new Vec2(-1f,0f), 0f);
 	  PolygonShape rightWeapon = new PolygonShape();
-	  rightWeapon.setAsBox(.075f, .25f, new Vec2(.55f,-.4f), 0f);
+	  rightWeapon.setAsBox(.075f, .45f, new Vec2(1f,0f), 0f);
 
 	  FixtureDef sd1 = new FixtureDef();
-	  sd1.shape = leftWing;
+	  sd1.shape = front;
 	  sd1.density = 2f;
 	  sd1.restitution = .5f;
+	  sd1.filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
 	  FixtureDef sd2 = new FixtureDef();
-	  sd2.shape = rightWing;
+	  sd2.shape = back;
 	  sd2.density = 2f;
 	  sd2.restitution = .5f;
+	  sd2.filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
 	  FixtureDef sd3 = new FixtureDef();
 	  sd3.shape = leftWeapon;
 	  sd3.density = .5f;
 	  sd3.restitution = .5f;
+	  sd3.filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
 	  FixtureDef sd4 = new FixtureDef();
 	  sd4.shape = rightWeapon;
 	  sd4.density = .5f;
 	  sd4.restitution = .5f;
+	  sd4.filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
 
 	  BodyDef bd = new BodyDef();
 	  bd.type = BodyType.DYNAMIC;
@@ -240,10 +258,10 @@ public class CrazySpacecraft extends RuleModel{
 	  bd.angle = MathUtils.PI;
 	  bd.allowSleep = false;
 	  spacecraft.setSpacecraftBody(config.getWorld().createBody(bd));
-	  spacecraft.getSpacecraftBody().createFixture(sd1).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
-	  spacecraft.getSpacecraftBody().createFixture(sd2).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
-	  spacecraft.getSpacecraftBody().createFixture(sd3).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
-	  spacecraft.getSpacecraftBody().createFixture(sd4).m_filter.groupIndex = Spacecraft.SpacecraftGroupIndex;
+	  spacecraft.getSpacecraftBody().createFixture(sd1);
+	  spacecraft.getSpacecraftBody().createFixture(sd2);
+	  spacecraft.getSpacecraftBody().createFixture(sd3);
+	  spacecraft.getSpacecraftBody().createFixture(sd4);
 	}
 
 	{//Resource packs
@@ -500,7 +518,9 @@ public class CrazySpacecraft extends RuleModel{
   public void mouseUp(Vec2 pos) {}
 
   @Override
-  public void mouseDown(Vec2 pos) {}
+  public void mouseDown(Vec2 pos) {
+	//GameModel.getGamePanel().getCustomizedRenderer().drawSolidCircle(pos, 1f, null, Color.white);
+  }
 
   @Override
   public void mouseMove(Vec2 pos) {}
@@ -735,5 +755,52 @@ public class CrazySpacecraft extends RuleModel{
 	PrismaticJoint joint = (PrismaticJoint)config.getWorld().createJoint(pjd);
 	joint.setUserData(monster);
 	pjForMonster.put(monster.getId(), joint);
+  }
+
+  @Override
+  public void customizedPainting() {
+	if (renderer == null) {
+	  return;
+	}
+
+	World world = config.getWorld();
+	for(Body b = world.getBodyList(); b!= null; b = b.getNext()){
+	  if(b.getUserData() != null && b.getUserData() instanceof Spacecraft){
+		drawSpacecraft();
+	  }
+	  else if(b.getUserData() != null && b.getUserData() instanceof Rocket){
+		//TODO
+	  }
+	  else if(b.getUserData() != null && b.getUserData() instanceof Monster){
+
+	  }
+	  else if (b.getUserData() == null){
+		for(Fixture f = b.getFixtureList(); f != null; f = f.getNext()){
+		  if(f.getUserData() != null && f.getUserData() instanceof Obstacle){
+			if(f.getUserData() instanceof Bound){
+
+			}else{
+
+			}
+		  }
+		}
+	  }
+	}
+  }
+
+  private void drawSpacecraft() {
+	//calculate the angle:
+	Body body = spacecraft.getSpacecraftBody();
+	Vec2 head = body.getWorldPoint(new Vec2(0,1));
+	Vec2 direction = head.sub(body.getWorldCenter()); 
+	Vec2 up = new Vec2(0,1);
+	float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	if(direction.x > 0){
+	  angle = -angle;
+	}
+	angle += Math.PI;
+	
+	renderer.drawImage(spacecraft.getSpacecraftBody().getWorldCenter(), 3f, 3f, 
+		spacecraftImg, ImageType.GameObject, angle);
   }
 }

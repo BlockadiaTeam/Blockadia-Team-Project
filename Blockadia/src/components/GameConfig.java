@@ -163,6 +163,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	rule.step();
 
 	world.drawDebugData();
+	rule.customizedPainting();
   }
 
   @Override
