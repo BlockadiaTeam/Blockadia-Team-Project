@@ -5,7 +5,7 @@
 	<classpathentry kind="lib" path="save"/>
 	<classpathentry kind="lib" path="JBox2D/jbox2d-library-2.2.1.1-javadoc.jar"/>
 	<classpathentry kind="lib" path="JBox2D/jbox2d-library-2.2.1.1-sources.jar"/>
-	<classpathentry kind="lib" path="JBox2D/jbox2d-library-2.2.1.1.jar"/>
+	<classpathentry kind="lib" path="JBox2D/jbox2d-library-2.2.1.1.jar" sourcepath="C:/development/repository/org/jbox2d/jbox2d-library/2.2.1.1/jbox2d-library-2.2.1.1-sources.jar"/>
 	<classpathentry kind="lib" path="JBox2D/jbox2d-serialization-1.1.0-jar-with-dependencies.jar"/>
 	<classpathentry kind="lib" path="JBox2D/jbox2d-serialization-1.1.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="JBox2D/jbox2d-serialization-1.1.0-sources.jar"/>

@@ -27,10 +27,8 @@ import prereference.ConfigSettings;
 import prereference.Setting;
 import rules.RuleModel;
 import utility.ContactPoint;
-
 import components.BuildConfig;
 import components.GameConfig;
-
 import framework.GameController;
 import framework.GameModel;
 
