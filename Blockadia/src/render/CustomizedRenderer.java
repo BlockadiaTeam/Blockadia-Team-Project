@@ -98,10 +98,10 @@ public class CustomizedRenderer {
    * Note: the angle is the angle to rotate the image counter-clockwisely
    * */
   public void drawImage(Vec2 worldCenter, float worldWidth, float worldHeight, 
-	  Image image, ImageType imageType, float angleRadians){
+	  Image image, float angleRadians){
 	//get image center on screen
 	old.getWorldToScreenToOut(worldCenter, c);
-	
+
 	//get width & height on screen
 	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
 	Vec2 move = dest.sub(worldCenter.clone());
@@ -111,36 +111,59 @@ public class CustomizedRenderer {
 	move = dest.sub(worldCenter.clone());
 	old.getViewportTranform().getWorldVectorToScreen(move, move);
 	float h = move.length();
-	
-	AffineTransform xfm = new AffineTransform();
-	//xfm.rotate(-angleRadians,w/2,h/2);
-	//xfm.rotate(-angleRadians,image.getWidth(null),image.getHeight(null));
 
+	AffineTransform xfm = new AffineTransform();
 	xfm.translate(c.x, c.y);
 	float sx = w/image.getWidth(null);
 	float sy = h/image.getHeight(null);
 	xfm.rotate(-angleRadians);
 	xfm.scale(sx, sy);
 	xfm.translate(-((1/sx)/2) * w, -((1/sx)/2)*h);
-	
-	Graphics2D g = getGraphics();
-	if(imageType == ImageType.GameObject){
-		g.drawImage(image, xfm, null);
-	}
-	else if(imageType == ImageType.WorldBackground){
-	  //g.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
-	}
-	//g.rotate(0);
-//	g.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer); this can be used to draw the background
-//	g.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, bgcolor, observer);
 
-//	g.drawImage(img, op, x, y);
-//	g.drawImage(img, x, y, observer);
-//	g.drawImage(img, x, y, bgcolor, observer);
-//	g.drawImage(img, x, y, worldWidth, worldHeight, observer);
-//	g.drawImage(img, x, y, width, height, bgcolor, observer);
+	Graphics2D g = getGraphics();
+	g.drawImage(image, xfm, null);
   }
 
+  /**Detail about this method ask Alex ;D
+   * Example use: CrazySpacecraft.java*/
+  public void drawBackgroundImage(Image image, Vec2 imageCenter, Vec2 offsetToWorldCenter,float movementScale){
+	Graphics2D g = getGraphics();
+	float imgW = image.getWidth(null);
+	float imgH = image.getHeight(null);
+	float screenW = GameModel.getGamePanel().getWidth();
+	float screenH = GameModel.getGamePanel().getHeight();
+	
+	float x1 = offsetToWorldCenter.x;
+	float y1 = offsetToWorldCenter.y;
+	float x2 = 0.0f;
+	float y2 = 0.0f;
+	
+	x2 = x1/(screenW/imgW);
+	y2 = y1/(screenH/imgH);
+	Vec2 offsetOnBG = new Vec2(x2,y2).mul(movementScale);
+	imageCenter.subLocal(offsetOnBG);
+	
+	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
+		(int)(imageCenter.x-screenW/2), (int)(imageCenter.y-screenH/2),
+		(int)(imageCenter.x+screenW/2),(int)(imageCenter.y+screenH/2), null);
+  }
+
+  public void drawStaticBackgroundImage(Image image){
+	Graphics2D g = getGraphics();
+	float screenW = GameModel.getGamePanel().getWidth();
+	float screenH = GameModel.getGamePanel().getHeight();
+	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
+		0, 0, image.getWidth(null),image.getHeight(null), null);
+  }
+
+  public void drawStaticBackgroundImage(Image image, int sx1, int sy1, int sx2, int sy2){
+	Graphics2D g = getGraphics();
+	float screenW = GameModel.getGamePanel().getWidth();
+	float screenH = GameModel.getGamePanel().getHeight();
+	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
+		sx1, sy1, sx2, sy2, null);
+  }
+  
   public IViewportTransform getViewportTranform(){
 	return old.getViewportTranform();
   }

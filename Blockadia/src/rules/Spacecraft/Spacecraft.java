@@ -1,7 +1,10 @@
 package rules.Spacecraft;
 
+import java.awt.Image;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.ImageIcon;
 
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.common.Vec2;
@@ -198,6 +201,8 @@ public class Spacecraft {
 	if(this.getRockets().size() >= (this.getMaxRockets() * this.getRocketNumPerShot())){
 	  return false;
 	}
+	
+	ImageIcon icon = null;
 
 	//Spawn points
 	Vec2 leftSpawnPt = null;
@@ -233,6 +238,8 @@ public class Spacecraft {
 	  velocity.mulLocal(70f);
 
 	  if(rocket.getType() == RocketType.NormalBullet){
+		icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/bullet1.gif"));
+		Image image = icon.getImage();
 		//left bullet
 		BodyDef bd = new BodyDef();
 		bd.type = BodyType.DYNAMIC;
@@ -254,7 +261,8 @@ public class Spacecraft {
 		rocket.setRocketBody(world.createBody(bd));
 		rocket.getRocketBody().createFixture(fd);
 		rockets.put(rocket.getId(), rocket);
-
+		rocket.setImage(image);
+		
 		Rocket rightRocket = rocket.clone();
 		//right bullet
 		bd.position.set(rightSpawnPt);

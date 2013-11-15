@@ -1,6 +1,7 @@
 package rules.Spacecraft;
 
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,8 +30,8 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 import prereference.ConfigSettings;
 import prereference.Setting;
 import render.CustomizedRenderer;
-import render.CustomizedRenderer.ImageType;
 import rules.RuleModel;
+import rules.Spacecraft.Rocket.RocketType;
 import utility.ContactPoint;
 
 import components.BuildConfig;
@@ -62,6 +63,12 @@ public class CrazySpacecraft extends RuleModel{
   //customized rendering:
   ImageIcon icon = null;
   Image spacecraftImg = null;
+  Image[] resourcePackImg = null;
+  Image background = null;
+  
+  //TODO: Find a thread-safe data structure to handle explosion
+  
+  Vec2 worldCenter;
 
   public static enum MovementType{
 	NoMovement, Linear,Circular,BackForth
@@ -96,19 +103,36 @@ public class CrazySpacecraft extends RuleModel{
 	//init game specific settings
 	Setting cameraScale = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale);
 	Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
+	Setting screenMoveWithObj = config.getConfigSettings().getSetting(ConfigSettings.ScreenMoveWithObject);
 	Setting enableZoom = config.getConfigSettings().getSetting(ConfigSettings.EnableZoom);
+	Setting enableDrag = config.getConfigSettings().getSetting(ConfigSettings.EnableDragScreen);
 	Setting drawJoints = config.getConfigSettings().getSetting(ConfigSettings.DrawJoints);
 	Setting drawShapes = config.getConfigSettings().getSetting(ConfigSettings.DrawShapes);
 	cameraScale.value = 10f;
 	cameraPos.value = new Vec2(-30f,50f);
+	worldCenter = new Vec2(0f,20f);
+	//screenMoveWithObj.enabled = true;
 	enableZoom.enabled = false;
+	enableDrag.enabled = false;
 	drawJoints.enabled = false;
-	//drawShapes.enabled = false;										//Turn off the default rendering
-	//if(!drawShapes.enabled){
+	drawShapes.enabled = false;										//Turn off the default rendering
+	if(!drawShapes.enabled){
 	  renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
-	//}
+	}
 	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/spaceship.png"));
 	spacecraftImg = icon.getImage();
+	resourcePackImg = new Image[3];
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/ResourcePack3.png"));
+	resourcePackImg[0] = icon.getImage();
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/ResourcePack2.png"));;
+	resourcePackImg[1] = icon.getImage();
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/VespeneGas.png"));
+	resourcePackImg[2] = icon.getImage();
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/background.jpg"));
+	//1920 x 1080
+	background = icon.getImage();
+	explosion = Toolkit.getDefaultToolkit().
+		createImage(getClass().getResource("/rules/Spacecraft/SpacecraftImage/explosion1.gif"));
 
 	//init game
 	Body ground;
@@ -189,6 +213,10 @@ public class CrazySpacecraft extends RuleModel{
 		}
 		monster.setId(monsterId);
 
+		icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/Monster1.png"));
+		Image image = icon.getImage();
+		monster.setMonsterImg(image);
+
 		double limit = 50.0f * Math.random() - 25.0f;
 		float x = (float) limit;
 		limit = 50.0f * Math.random() - 5.0f;
@@ -197,10 +225,11 @@ public class CrazySpacecraft extends RuleModel{
 		BodyDef bd = new BodyDef();
 		bd.type = BodyType.DYNAMIC;
 		bd.position.set(monsterSpawnPt);
-		//bd.fixedRotation = false;
+		bd.fixedRotation = true;
 		monster.setMonsterBody(config.getWorld().createBody(bd));
 		createMonsterBody(monster);
 		randomMovement(monster);
+		monsters.put(monster.getId(), monster);
 	  }
 	}
 
@@ -210,7 +239,7 @@ public class CrazySpacecraft extends RuleModel{
 
 	{//spacecraft 
 	  Vec2 vertices[] = new Vec2[6];
-	  
+
 	  vertices[0] = new Vec2(-.75f,.5f).mul(.75f);
 	  vertices[1] = new Vec2(-.25f,-1.5f).mul(.75f);
 	  vertices[2] = new Vec2(.25f,-1.5f).mul(.75f);
@@ -285,6 +314,23 @@ public class CrazySpacecraft extends RuleModel{
 		int rand = (int)(Math.random()*10000);
 		id = id.replace("0000", ""+rand);
 		resourcePack.setId(id);
+		rand = (int)(3* Math.random() + 0.99999999f);
+		Image image = null;
+		switch(rand){
+		case 1:
+		  image = resourcePackImg[0];
+		  break;
+		case 2:
+		  image = resourcePackImg[1];
+		  break;
+		case 3:
+		  image = resourcePackImg[2];
+		  break;
+		default:
+		  image = resourcePackImg[0];
+		  break;
+		}
+		resourcePack.setImage(image);
 		resourcePack.setMovement(movement);
 		resourcePack.setResourcePackBody(config.getWorld().createBody(bd));
 		resourcePack.getResourcePackBody().createFixture(fd);
@@ -353,11 +399,13 @@ public class CrazySpacecraft extends RuleModel{
 	  //Spacecraft hitting a resourcePack
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Spacecraft){
 		if(body2.getUserData() != null && body2.getUserData() instanceof ResourcePack){
+		  ((ResourcePack)body2.getUserData()).setImage(null);
 		  nuke.add(body2);
 		}
 	  }
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Spacecraft){
 		if(body1.getUserData() != null && body1.getUserData() instanceof ResourcePack){
+		  ((ResourcePack)body1.getUserData()).setImage(null);
 		  nuke.add(body1);
 		}
 	  }
@@ -366,6 +414,7 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
 		if(point.fixtureB.getUserData() != null && point.fixtureB.getUserData() instanceof Obstacle){
 		  Rocket rocket = (Rocket)body1.getUserData();
+		  rocket.setImage(null);
 		  rocket.applyDamage(point.fixtureB.getUserData());
 		  spacecraft.getRockets().remove(((Rocket)body1.getUserData()).getId());
 		  nuke.add(body1);
@@ -378,6 +427,7 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
 		if(point.fixtureA.getUserData() != null && point.fixtureA.getUserData() instanceof Obstacle){
 		  Rocket rocket = (Rocket)body2.getUserData();
+		  rocket.setImage(null);
 		  rocket.applyDamage(point.fixtureA.getUserData());
 		  spacecraft.getRockets().remove(((Rocket)body2.getUserData()).getId());
 		  nuke.add(body2);
@@ -390,8 +440,11 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Rocket){
 		if(body2.getUserData() != null && body2.getUserData() instanceof Monster){
 		  spacecraft.getRockets().remove(((Rocket)body1.getUserData()).getId());
+		  ((Rocket) body1.getUserData()).setImage(null);
 		  nuke.add(body1);
 		  if(((Monster)body2.getUserData()).getHp() <= 0){
+			monsters.remove(((Monster)body2.getUserData()).getId());
+			((Monster)body2.getUserData()).setMonsterImg(null);
 			nuke.add(body2);
 		  }
 		}
@@ -400,8 +453,11 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Rocket){
 		if(body1.getUserData() != null && body1.getUserData() instanceof Monster){
 		  spacecraft.getRockets().remove(((Rocket)body2.getUserData()).getId());
+		  ((Rocket) body2.getUserData()).setImage(null);
 		  nuke.add(body2);
 		  if(((Monster)body1.getUserData()).getHp() <= 0){
+			monsters.remove(((Monster)body1.getUserData()).getId());
+			((Monster)body1.getUserData()).setMonsterImg(null);
 			nuke.add(body1);
 		  }
 		}
@@ -415,12 +471,18 @@ public class CrazySpacecraft extends RuleModel{
 		  if(je.joint.getUserData() != null && je.joint.getUserData() instanceof ResourcePack){
 			pjForResourcePack.remove(je.joint.getUserData());
 		  }
+		  else if(je.joint.getUserData() != null && je.joint.getUserData() instanceof Monster){
+			pjForMonster.remove(((Monster)je.joint.getUserData()).getId());
+		  }
 		}
 		while(je.next != null){
 		  je = je.next;
 		  if(je.joint.getType() == JointType.PRISMATIC){
 			if(je.joint.getUserData() != null && je.joint.getUserData() instanceof ResourcePack){
 			  pjForResourcePack.remove(je.joint.getUserData());
+			}
+			else if(je.joint.getUserData() != null && je.joint.getUserData() instanceof Monster){
+			  pjForMonster.remove(((Monster)je.joint.getUserData()).getId());
 			}
 		  }
 		}
@@ -429,6 +491,14 @@ public class CrazySpacecraft extends RuleModel{
 	  //TODO: deal with pjForMonster
 	  config.getWorld().destroyBody(b);
 	}
+
+	if(!config.getConfigSettings().getSetting(ConfigSettings.ScreenMoveWithObject).enabled) return;
+	Vec2 center = spacecraft.getSpacecraftBody().getWorldCenter().clone();
+	//center.subLocal(new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2));
+	Vec2 shift = new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2);
+	GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(shift, shift);
+	center.subLocal(shift);
+	GameModel.getGamePanelRenderer().getViewportTranform().setCenter(center);
   }
 
   @Override
@@ -471,6 +541,7 @@ public class CrazySpacecraft extends RuleModel{
 		if(body2.getUserData() instanceof Monster){
 		  Rocket rocket = (Rocket)body1.getUserData();
 		  rocket.applyDamage(body2.getUserData());
+		  explosionAnimationTimer = 60;
 		}
 		contact.setEnabled(false);
 	  }
@@ -486,6 +557,7 @@ public class CrazySpacecraft extends RuleModel{
 		if(body1.getUserData() instanceof Monster){
 		  Rocket rocket = (Rocket)body2.getUserData();
 		  rocket.applyDamage(body1.getUserData());
+		  explosionAnimationTimer = 60;
 		}
 		contact.setEnabled(false);
 	  }
@@ -529,31 +601,64 @@ public class CrazySpacecraft extends RuleModel{
 	if(monster.getMonsterBody() == null) return;
 	Body body = monster.getMonsterBody();
 
-	Vec2 vertices[] = new Vec2[3];
-	vertices[0] = new Vec2(0f,1.5f);
-	vertices[1] = new Vec2(-1.299f, -.75f);
-	vertices[2] = new Vec2(1.299f, -.75f);
-	PolygonShape part1 = new PolygonShape();
-	part1.set(vertices, 3);
+	PolygonShape mainBody = new PolygonShape();
+	mainBody.setAsBox(.75f, 1.15f, new Vec2(0f,1f), 0f);
+	FixtureDef main = new FixtureDef();
+	main.shape = mainBody;
+	main.density = 2f;
+	main.restitution = .2f;
+	main.filter.groupIndex = Monster.MonsterGroupIndex;
+	body.createFixture(main);
 
-	vertices[0] = new Vec2(0f,-1.5f);
-	vertices[1] = new Vec2(1.299f, .75f);
-	vertices[2] = new Vec2(-1.299f, .75f);
-	PolygonShape part2 = new PolygonShape();
-	part2.set(vertices, 3);
 
+	PolygonShape leftArm = new PolygonShape();
+	Vec2 vertices[] = new Vec2[6];
+	vertices[0] = new Vec2(-1.5f,.5f).addLocal(0,0.75f);
+	vertices[1] = new Vec2(-1.5f,-.5f).addLocal(0,0.75f);
+	vertices[2] = new Vec2(-.75f, -.5f).addLocal(0,0.75f);
+	vertices[3] = new Vec2(-.75f, -0f).addLocal(0,0.75f);
+	vertices[4] = new Vec2(-1.2f, -0f).addLocal(0,0.75f);
+	vertices[5] = new Vec2(-1.2f, .5f).addLocal(0,0.75f);
+	leftArm.set(vertices, 6);
 	FixtureDef sd1 = new FixtureDef();
-	sd1.shape = part1;
+	sd1.shape = leftArm;
 	sd1.density = 2f;
-	sd1.restitution = .5f;
+	sd1.restitution = .2f;
 	sd1.filter.groupIndex = Monster.MonsterGroupIndex;
-	FixtureDef sd2 = new FixtureDef();
-	sd2.shape = part2;
-	sd2.density = 2f;
-	sd2.restitution = .5f;
-	sd2.filter.groupIndex = Monster.MonsterGroupIndex;
 	body.createFixture(sd1);
+
+	PolygonShape rightArm = new PolygonShape();
+	vertices[0] = new Vec2(-vertices[0].x,vertices[0].y);
+	vertices[1] = new Vec2(-vertices[1].x,vertices[1].y);
+	vertices[2] = new Vec2(-vertices[2].x,vertices[2].y);
+	vertices[3] = new Vec2(-vertices[3].x,vertices[3].y);
+	vertices[4] = new Vec2(-vertices[4].x,vertices[4].y);
+	vertices[5] = new Vec2(-vertices[5].x,vertices[5].y);
+	rightArm.set(vertices, 6);
+	FixtureDef sd2 = new FixtureDef();
+	sd2.shape = rightArm;
+	sd2.density = 2f;
+	sd2.restitution = .2f;
+	sd2.filter.groupIndex = Monster.MonsterGroupIndex;
 	body.createFixture(sd2);
+
+	PolygonShape leftLeg = new PolygonShape();
+	leftLeg.setAsBox(0.375f, .25f, new Vec2(-1.125f,-.35f), 0f);
+	FixtureDef sd3 = new FixtureDef();
+	sd3.shape = leftLeg;
+	sd3.density = 2f;
+	sd3.restitution = .2f;
+	sd3.filter.groupIndex = Monster.MonsterGroupIndex;
+	body.createFixture(sd3);
+
+	PolygonShape rightLeg = new PolygonShape();
+	rightLeg.setAsBox(0.375f, .25f, new Vec2(1.125f,-.35f), 0f);
+	FixtureDef sd4 = new FixtureDef();
+	sd4.shape = rightLeg;
+	sd4.density = 2f;
+	sd4.restitution = .2f;
+	sd4.filter.groupIndex = Monster.MonsterGroupIndex;
+	body.createFixture(sd4);
   }
 
   private MovementType randomMovement(BodyDef bd){
@@ -763,16 +868,21 @@ public class CrazySpacecraft extends RuleModel{
 	  return;
 	}
 
+	drawBackground();
+
 	World world = config.getWorld();
 	for(Body b = world.getBodyList(); b!= null; b = b.getNext()){
 	  if(b.getUserData() != null && b.getUserData() instanceof Spacecraft){
 		drawSpacecraft();
 	  }
+	  else if(b.getUserData() != null && b.getUserData() instanceof ResourcePack){
+		drawResourcePack(b);
+	  }
 	  else if(b.getUserData() != null && b.getUserData() instanceof Rocket){
-		//TODO
+		drawRocket(b);
 	  }
 	  else if(b.getUserData() != null && b.getUserData() instanceof Monster){
-
+		drawMonster(b);
 	  }
 	  else if (b.getUserData() == null){
 		for(Fixture f = b.getFixtureList(); f != null; f = f.getNext()){
@@ -786,6 +896,55 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 	}
+
+	//TODO: handle explosions: using a map
+	if(explosionAnimationTimer > 0){
+	  renderer.drawImage(spacecraft.getSpacecraftBody().getWorldCenter(), 3f, 3f, 
+		  explosion, 0f);
+	  explosionAnimationTimer--;
+	}
+  }
+
+  private void drawBackground() {
+	Vec2 offsetToWorldCenter = spacecraft.getSpacecraftBody().getWorldCenter().clone();
+	//offsetToWorldCenter.subLocal(GameModel.getGamePanelRenderer().getViewportTranform().getCenter());
+	offsetToWorldCenter.subLocal(worldCenter);
+
+	Vec2  imageCenter = new Vec2(background.getWidth(null)/2,background.getHeight(null)/2);
+	//renderer.drawBackgroundImage(background, imageCenter, offsetToWorldCenter,3);
+	renderer.drawStaticBackgroundImage(background);
+  }
+
+  private void drawRocket(Body body) {
+	Rocket rocket = (Rocket) body.getUserData();
+	if(rocket.getType() == RocketType.NormalBullet){
+	  if(rocket.getImage() == null) return;
+	  renderer.drawImage(body.getWorldCenter(), .3f, .3f, 
+		  rocket.getImage(), 0f);
+	}
+  }
+
+  private void drawMonster(Body body) {
+	Monster monster = (Monster) body.getUserData();
+	if(monster.getMonsterImg() == null) return;
+	renderer.drawImage(body.getWorldCenter(), 3f, 3f, 
+		monster.getMonsterImg(), 0f);	
+  }
+
+  private void drawResourcePack(Body body) {
+	//calculate the angle:
+	ResourcePack pack = (ResourcePack) body.getUserData();
+	Vec2 up = new Vec2(0,1);
+	Vec2 head = body.getWorldPoint(up);
+	Vec2 direction = head.sub(body.getWorldCenter());
+	float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	if(direction.x > 0){
+	  angle = -angle;
+	}
+
+	if(pack.getImage() == null) return;
+	renderer.drawImage(body.getWorldCenter(), 1.5f, 1.5f, 
+		pack.getImage(), angle);
   }
 
   private void drawSpacecraft() {
@@ -799,8 +958,8 @@ public class CrazySpacecraft extends RuleModel{
 	  angle = -angle;
 	}
 	angle += Math.PI;
-	
-	renderer.drawImage(spacecraft.getSpacecraftBody().getWorldCenter(), 3f, 3f, 
-		spacecraftImg, ImageType.GameObject, angle);
+
+	renderer.drawImage(body.getWorldCenter(), 3f, 3f, 
+		spacecraftImg, angle);
   }
 }

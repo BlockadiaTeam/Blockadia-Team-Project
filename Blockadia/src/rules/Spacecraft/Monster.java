@@ -1,5 +1,7 @@
 package rules.Spacecraft;
 
+import java.awt.Image;
+
 import org.jbox2d.dynamics.Body;
 
 import rules.Spacecraft.CrazySpacecraft.MovementType;
@@ -10,6 +12,7 @@ public class Monster {
   
   private Body monsterBody;
   private MovementType movement;
+  private Image monsterImg;
   private String id;
   private int level;
   private int hp;
@@ -19,6 +22,7 @@ public class Monster {
   
   public Monster(){
 	monsterBody = null;
+	monsterImg = null;
 	movement = MovementType.NoMovement;
 	id = OriginalID;
 	level = 0;
@@ -73,6 +77,14 @@ public class Monster {
 
   public void setMovement(MovementType movement) {
 	this.movement = movement;
+  }
+
+  public Image getMonsterImg() {
+	return monsterImg;
+  }
+
+  public void setMonsterImg(Image monsterImg) {
+	this.monsterImg = monsterImg;
   }
 
   @Override

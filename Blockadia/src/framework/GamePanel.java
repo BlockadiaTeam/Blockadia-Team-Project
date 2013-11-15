@@ -714,6 +714,11 @@ public class GamePanel extends JPanel implements IGamePanel{
 		if((e.getModifiersEx() & (leftMouseMask | rightMouseMask)) == leftMouseMask) {
 		  return;
 		}
+		
+		if(!model.getCurrConfig().getConfigSettings().getSetting(ConfigSettings.EnableDragScreen).enabled) {
+		  return;
+		}
+		
 		BuildConfig currConfig = model.getCurrConfig();
 		if (currConfig == null) {
 		  return;
@@ -841,6 +846,7 @@ public class GamePanel extends JPanel implements IGamePanel{
 	return customizedRenderer;
   }
 
+  @Override
   public Graphics2D getGamePanelGraphics() {
 	return g;
   }

@@ -24,6 +24,10 @@ public interface IGamePanel {
   
   public Graphics2D getGamePanelGraphics();
 
+  public int getWidth();
+  
+  public int getHeight();
+  
   /**
    * Gets the display-specific panel renderer
    * @return

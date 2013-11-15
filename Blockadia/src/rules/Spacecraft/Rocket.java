@@ -1,5 +1,7 @@
 package rules.Spacecraft;
 
+import java.awt.Image;
+
 import org.jbox2d.dynamics.Body;
 
 import utility.Log;
@@ -36,11 +38,14 @@ public class Rocket {
   //TODO: how long it last(for laser, double laser, flame)
   
   private Body rocketBody;
+  private Image image;
   private RocketType type;
   private float baseDamage;
   private String id;
 
   public Rocket(){
+	this.rocketBody = null;
+	this.setImage(null);
 	this.type = DefaultRocketType;
 	this.baseDamage = 20f;
 	this.id = OriginalID;
@@ -109,6 +114,14 @@ public class Rocket {
 	this.type = type;
   }
 
+  public Image getImage() {
+	return image;
+  }
+
+  public void setImage(Image image) {
+	this.image = image;
+  }
+
   public String getId() {
 	return id;
   }
@@ -124,6 +137,7 @@ public class Rocket {
 	newRocket.rocketBody = null;
 	newRocket.id = this.id;
 	newRocket.baseDamage = this.baseDamage;
+	newRocket.image = this.image;
 	
 	return newRocket;
   }
