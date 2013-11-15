@@ -1,5 +1,6 @@
 package render;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -124,6 +125,36 @@ public class CustomizedRenderer {
 	g.drawImage(image, xfm, null);
   }
 
+  public void drawImageWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, 
+	  Image image, float angleRadians,float alpha){
+	
+	//get image center on screen
+	old.getWorldToScreenToOut(worldCenter, c);
+
+	//get width & height on screen
+	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
+	Vec2 move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float w = move.length();
+	dest = new Vec2(worldCenter.x, worldCenter.y + worldHeight);
+	move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float h = move.length();
+
+	AffineTransform xfm = new AffineTransform();
+	xfm.translate(c.x, c.y);
+	float sx = w/image.getWidth(null);
+	float sy = h/image.getHeight(null);
+	xfm.rotate(-angleRadians);
+	xfm.scale(sx, sy);
+	xfm.translate(-((1/sx)/2) * w, -((1/sx)/2)*h);
+
+	Graphics2D g = getGraphics();
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
+	g.drawImage(image, xfm, null);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
+  }
+  
   /**Detail about this method ask Alex ;D
    * Example use: CrazySpacecraft.java*/
   public void drawBackgroundImage(Image image, Vec2 imageCenter, Vec2 offsetToWorldCenter,float movementScale){

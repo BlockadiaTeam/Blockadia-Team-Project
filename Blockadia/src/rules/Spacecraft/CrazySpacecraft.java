@@ -1,18 +1,20 @@
 package rules.Spacecraft;
 
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.ImageIcon;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.collision.Manifold;
+import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.EdgeShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.MathUtils;
+import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -31,6 +33,7 @@ import prereference.ConfigSettings;
 import prereference.Setting;
 import render.CustomizedRenderer;
 import rules.RuleModel;
+import rules.Spacecraft.Explosion.ExplosionType;
 import rules.Spacecraft.Rocket.RocketType;
 import utility.ContactPoint;
 
@@ -61,13 +64,15 @@ public class CrazySpacecraft extends RuleModel{
   private Map<ResourcePack, PrismaticJoint> pjForResourcePack;
 
   //customized rendering:
-  ImageIcon icon = null;
-  Image spacecraftImg = null;
-  Image[] resourcePackImg = null;
-  Image background = null;
-  
+  private ImageIcon icon = null;
+  private Image spacecraftImg = null;
+  private Image[] resourcePackImg = null;
+  private Image background = null;
+  private Image rocketMonsterExp = null;
+
   //TODO: Find a thread-safe data structure to handle explosion
-  
+  private ConcurrentHashMap<String, Explosion> explosions;
+
   Vec2 worldCenter;
 
   public static enum MovementType{
@@ -88,6 +93,8 @@ public class CrazySpacecraft extends RuleModel{
 	monsters = new HashMap<String, Monster>();
 	numOfMonsters = 6;
 	pjForMonster = new HashMap<String,PrismaticJoint>();
+
+	explosions = new ConcurrentHashMap<String, Explosion>();
 
 	init();
   }
@@ -131,8 +138,8 @@ public class CrazySpacecraft extends RuleModel{
 	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/background.jpg"));
 	//1920 x 1080
 	background = icon.getImage();
-	explosion = Toolkit.getDefaultToolkit().
-		createImage(getClass().getResource("/rules/Spacecraft/SpacecraftImage/explosion1.gif"));
+	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/explosion2.png"));
+	rocketMonsterExp = icon.getImage();
 
 	//init game
 	Body ground;
@@ -541,7 +548,39 @@ public class CrazySpacecraft extends RuleModel{
 		if(body2.getUserData() instanceof Monster){
 		  Rocket rocket = (Rocket)body1.getUserData();
 		  rocket.applyDamage(body2.getUserData());
-		  explosionAnimationTimer = 60;
+
+		  Explosion explosion = new Explosion();
+		  String id = explosion.getId();
+		  while(explosions.containsKey(id)){
+			id = Explosion.OriginalID;
+			int rand = (int)( Math.random() * 10000);
+			id = id.replace("0000", ""+rand);
+		  }
+		  explosion.setId(id);
+
+		  WorldManifold wm = new WorldManifold();
+		  wm.initialize(contact.m_manifold, new Transform(), .1f, new Transform(), .1f);
+		  if(contact.getManifold().pointCount == 1){
+			explosion.setPoint(wm.points[0]);
+		  }
+
+		  explosion.setImage(rocketMonsterExp);
+		  explosion.setTimer(15);
+		  explosion.setMaxTimer(explosion.getTimer());
+		  if(rocket.getType() == RocketType.NormalBullet){
+			explosion.setType(ExplosionType.BulletMonster);
+		  }
+
+		  Vec2 direction = wm.normal.clone();
+		  Vec2 up = new Vec2(0,1);
+		  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+		  if(direction.x > 0){
+			angle = -angle;
+		  }
+		  //angle += Math.PI;
+		  explosion.setImageAngle(angle);
+
+		  explosions.put(explosion.getId(), explosion);
 		}
 		contact.setEnabled(false);
 	  }
@@ -557,7 +596,39 @@ public class CrazySpacecraft extends RuleModel{
 		if(body1.getUserData() instanceof Monster){
 		  Rocket rocket = (Rocket)body2.getUserData();
 		  rocket.applyDamage(body1.getUserData());
-		  explosionAnimationTimer = 60;
+
+		  Explosion explosion = new Explosion();
+		  String id = explosion.getId();
+		  while(explosions.containsKey(id)){
+			id = Explosion.OriginalID;
+			int rand = (int)( Math.random() * 10000);
+			id = id.replace("0000", ""+rand);
+		  }
+		  explosion.setId(id);
+
+		  WorldManifold wm = new WorldManifold();
+		  wm.initialize(contact.m_manifold, body1.getTransform(), .1f, body2.getTransform(), .1f);
+		  if(contact.getManifold().pointCount == 1){
+			explosion.setPoint(wm.points[0]);
+		  }
+
+		  explosion.setImage(rocketMonsterExp);
+		  explosion.setTimer(15);
+		  explosion.setMaxTimer(explosion.getTimer());
+		  if(rocket.getType() == RocketType.NormalBullet){
+			explosion.setType(ExplosionType.BulletMonster);
+		  }
+
+		  Vec2 direction = wm.normal.clone();
+		  Vec2 up = new Vec2(0,1);
+		  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+		  if(direction.x > 0){
+			angle = -angle;
+		  }
+		  //angle += Math.PI;
+		  explosion.setImageAngle(angle);
+
+		  explosions.put(explosion.getId(), explosion);
 		}
 		contact.setEnabled(false);
 	  }
@@ -897,22 +968,34 @@ public class CrazySpacecraft extends RuleModel{
 	  }
 	}
 
-	//TODO: handle explosions: using a map
-	if(explosionAnimationTimer > 0){
-	  renderer.drawImage(spacecraft.getSpacecraftBody().getWorldCenter(), 3f, 3f, 
-		  explosion, 0f);
-	  explosionAnimationTimer--;
+	//Handle explosions
+	for(Map.Entry<String, Explosion> entry : explosions.entrySet()){
+	  Explosion explosion = entry.getValue();
+	  if(explosion.getTimer() > 0){
+		explosion.setTimer(explosion.getTimer()-1);
+
+		if(explosion.getType() == ExplosionType.BulletMonster){
+		  float rand = (float)(Math.random()+ 1.9999999f);
+		  renderer.drawImageWithTransparency(explosion.getPoint(),rand, rand,
+			  explosion.getImage(), explosion.getImageAngle(),explosion.getAlpha());
+		}
+
+		explosion.decreaseTransparency();
+	  }
+	  else{
+		explosions.remove(explosion.getId());
+	  }
 	}
   }
 
   private void drawBackground() {
 	Vec2 offsetToWorldCenter = spacecraft.getSpacecraftBody().getWorldCenter().clone();
-	//offsetToWorldCenter.subLocal(GameModel.getGamePanelRenderer().getViewportTranform().getCenter());
-	offsetToWorldCenter.subLocal(worldCenter);
+	offsetToWorldCenter.subLocal(GameModel.getGamePanelRenderer().getViewportTranform().getCenter());
+	//offsetToWorldCenter.subLocal(worldCenter);
 
 	Vec2  imageCenter = new Vec2(background.getWidth(null)/2,background.getHeight(null)/2);
-	//renderer.drawBackgroundImage(background, imageCenter, offsetToWorldCenter,3);
-	renderer.drawStaticBackgroundImage(background);
+	renderer.drawBackgroundImage(background, imageCenter, offsetToWorldCenter,1);
+	//renderer.drawStaticBackgroundImage(background);
   }
 
   private void drawRocket(Body body) {
