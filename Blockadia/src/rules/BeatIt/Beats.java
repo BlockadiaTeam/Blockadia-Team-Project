@@ -12,17 +12,15 @@ public class Beats {
   public int speed;
   public Color beatColor;
   private Body beatsBody;
-  private byte id;
+  private String id;
   public static enum Position {
 	A, S, SPACE, K, L
   }
   private Position position;
 
   public Beats(){
-	this.id = 0;
+	this.id = "Beat-(0000)";
 	this.beatsBody = null;
-	speed = DEFAULT_SPEED;
-	beatColor = Color.BLUE;
   }
 
   public Body getBeatsBody() {
@@ -65,5 +63,21 @@ public class Beats {
 	  		 break;
 	}
   }
+  
+//  @Override
+//  public int hashCode(){
+//	final int prime = 31;
+//	int result = 1;
+//	result = prime * result + id.hashCode();
+//	result = prime * result + movement.hashCode();
+//	return result;
+//  }
+//  @Override
+//  public boolean equals(Object otherObj){
+//	if (!(otherObj instanceof ResourcePack))return false;
+//	ResourcePack anotherResourcePack = (ResourcePack)otherObj;
+//	if(!id.equals(anotherResourcePack.getId())) return false;
+//	return true;
+//  }
 
 }
