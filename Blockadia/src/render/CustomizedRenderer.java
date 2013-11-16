@@ -90,6 +90,18 @@ public class CustomizedRenderer {
   public void drawString(float x, float y, String s, Color color){
 	old.drawString(x, y, s, getColor3f(color));
   }
+  
+  public void drawStringWithTransparency(float x, float y, String s, Color color, float alpha){
+	Graphics2D g = getGraphics();
+	if (g== null)  {
+	  return;
+	}
+	
+	g.setColor(color);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
+	g.drawString(s, x, y);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
+  }
 
   public void drawString(Vec2 pos, String s, Color color){
 	this.drawString(pos.x, pos.y, s, color);
@@ -173,7 +185,7 @@ public class CustomizedRenderer {
 	y2 = y1/(screenH/imgH);
 	Vec2 offsetOnBG = new Vec2(x2,y2).mul(movementScale);
 	imageCenter.subLocal(offsetOnBG);
-	
+
 	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
 		(int)(imageCenter.x-screenW/2), (int)(imageCenter.y-screenH/2),
 		(int)(imageCenter.x+screenW/2),(int)(imageCenter.y+screenH/2), null);

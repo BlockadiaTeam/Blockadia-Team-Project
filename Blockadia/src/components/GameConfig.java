@@ -37,19 +37,11 @@ import framework.GameModel;
  * */
 public class GameConfig extends BuildConfig implements ContactListener{
 
-  public static final int MAX_CONTACT_POINTS = 4048;
-
   // keep these static so we don't have to recreate them every time
-  public final static ContactPoint[] points = new ContactPoint[MAX_CONTACT_POINTS];
-  static {
-	for (int i = 0; i < MAX_CONTACT_POINTS; i++) {
-	  points[i] = new ContactPoint();
-	}
-  }
-
+ 
   @Override
   public void init(World world){
-
+	
 	pointCount = 0;
 
 	world.setContactListener(this);
@@ -76,7 +68,11 @@ public class GameConfig extends BuildConfig implements ContactListener{
 		block.createBlockInWorld(getWorld());
 	  }
 	}
-
+	
+	for (int i = 0; i < MAX_CONTACT_POINTS; i++) {
+	  points[i] = new ContactPoint();
+	}
+	
 	//initDomino();
 	//initBolbTest();
 	//initCompoundShape();
@@ -88,7 +84,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	if(!inputQueue.isEmpty()){
 	  synchronized (inputQueue) {
 		while(!inputQueue.isEmpty()){
-		  QueueItem item = inputQueue.pop();
+		  EventQueueItem item = inputQueue.pop();
 		  switch(item.type){
 		  case MouseMove:
 			mouseMove(item.pos);

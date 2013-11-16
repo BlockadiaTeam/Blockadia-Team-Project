@@ -3,6 +3,7 @@ package rules.Spacecraft;
 import java.awt.Image;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +24,7 @@ import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
+import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.JointEdge;
 import org.jbox2d.dynamics.joints.JointType;
 import org.jbox2d.dynamics.joints.PrismaticJoint;
@@ -35,11 +37,15 @@ import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.Spacecraft.Explosion.ExplosionType;
 import rules.Spacecraft.Rocket.RocketType;
+import rules.Spacecraft.SimpleDelay.ActionType;
 import utility.ContactPoint;
+import utility.DynamicTextLine;
+import utility.LinkedListItem;
+import utility.Log;
 
 import components.BuildConfig;
-import components.GameConfig;
 
+import exceptions.ElementNotExistException;
 import framework.GameController;
 import framework.GameModel;
 
@@ -49,6 +55,8 @@ public class CrazySpacecraft extends RuleModel{
   private GameModel model;
   private CustomizedRenderer renderer = null;
 
+  private int level = 1;
+  
   private int cooldownCountDown = 0;
 
   private Spacecraft spacecraft;
@@ -70,8 +78,9 @@ public class CrazySpacecraft extends RuleModel{
   private Image background = null;
   private Image rocketMonsterExp = null;
 
-  //TODO: Find a thread-safe data structure to handle explosion
   private ConcurrentHashMap<String, Explosion> explosions;
+  private LinkedList<SimpleDelay> delays;
+  private DynamicTextLine textLines;
 
   Vec2 worldCenter;
 
@@ -84,23 +93,91 @@ public class CrazySpacecraft extends RuleModel{
 	model = gameModel;
 	editable = false;
 	numOfResourcePacks = 10;
+	level = 1;
 	spacecraft = new Spacecraft();
+	
 	resourcePacks = new HashMap<String,ResourcePack>();
 	pjForResourcePack = new HashMap<ResourcePack, PrismaticJoint>();
 
 	obstacles = new HashMap<String,Obstacle>();
 
 	monsters = new HashMap<String, Monster>();
-	numOfMonsters = 6;
 	pjForMonster = new HashMap<String,PrismaticJoint>();
 
 	explosions = new ConcurrentHashMap<String, Explosion>();
+	delays = new LinkedList<SimpleDelay>();
+	textLines = new DynamicTextLine();
 
 	init();
+  }
+  
+  private void initLevel(int level){
+	if(level <= 1){
+	  numOfMonsters = 6;
+	  spacecraft.setRocketType(RocketType.NormalBullet);
+	}
+	else if(level  == 2){
+	  numOfMonsters = 7;
+	  spacecraft.setRocketType(RocketType.Laser);
+	}
+	else if(level == 3){
+	  numOfMonsters = 8;
+	  //TODO: spread rocket?
+	}
+  }
+  
+  private void nextLevel() {
+	level++;
+	initWorld();
+	init();
+  }
+
+  private void initWorld() {
+	for(Body b = config.getWorld().getBodyList(); b!= null; b = b.getNext()){
+	  config.getWorld().destroyBody(b);
+	}
+	for(Joint j = config.getWorld().getJointList(); j != null ; j = j.getNext()){
+	  config.getWorld().destroyJoint(j);
+	}
+	spacecraft = new Spacecraft();
+	resourcePacks = new HashMap<String,ResourcePack>();
+	pjForResourcePack = new HashMap<ResourcePack, PrismaticJoint>();
+	monsters = new HashMap<String, Monster>();
+	pjForMonster = new HashMap<String,PrismaticJoint>();
+	explosions = new ConcurrentHashMap<String, Explosion>();
+	textLines = new DynamicTextLine();
+	obstacles = new HashMap<String,Obstacle>();
   }
 
   @Override
   public void init() {
+	initLevel(level);
+	Log.print("numOfMonsters: "+numOfMonsters);
+	//init game message
+	TextLine textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("Welcome to play game demo: Crazy Spaceship!");
+	textLines.addAtBack(textLine);
+	textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("In this game, you will need to collect those resource packs that flying randomly in the space.");
+	textLines.addAtBack(textLine);
+	textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("- Don't get too close to those monsters!");
+	textLines.addAtBack(textLine);
+	textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("- If you can't avoid them, shoot them by slamming your space bar!");
+	textLines.addAtBack(textLine);
+	textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("Control: W S A D + Space");
+	textLines.addAtBack(textLine);
+	textLine = new TextLine();
+	textLine.setTimer(500);textLine.setMaxTimer(500);
+	textLine.setString("Enjoy! ;)");
+	textLines.addAtBack(textLine);
 	//init keyboard input
 	model.initKeyboard();
 
@@ -349,9 +426,48 @@ public class CrazySpacecraft extends RuleModel{
 
   @Override
   public void step() {
-	//Check if the game is finished
-	if(resourcePacks.size() <= 0){
-	  model.pause = true;
+	if(!delays.isEmpty()){
+	  SimpleDelay delay = delays.peek();
+	  if(delay.getTimer() > 0){
+		if(delay.getTimer() == delay.getMaxTimer()){//Start notification
+		  if(delay.getStartNotification() != null){
+			textLines.addAtBack(delay.getStartNotification());
+		  }
+
+		  if(delay.getStartAction() != ActionType.NoAction){
+			//TODO
+		  }
+		}
+		delay.setTimer(delay.getTimer()-1);
+		model.pause = true;
+	  }
+	  else if(delay.getTimer() == 0){
+		if(delay.getEndNotification() != null){
+		  textLines.addAtBack(delay.getEndNotification());
+		}
+
+		if(delay.getEndAction() != ActionType.NoAction){
+		  switch (delay.getEndAction()){
+		  case Restart:
+			break;
+		  case NextLevel:
+			nextLevel();
+			break;
+		  case Exit:
+			break;
+		  default:
+			break;
+		  }
+		}
+		delays.removeFirst();
+		if(delays.isEmpty()){
+		  model.pause = false;
+		}
+	  }
+	  else{
+		//TODO: what happens if timer is negative?
+	  }
+	  return;
 	}
 
 	//Deal with input
@@ -398,7 +514,7 @@ public class CrazySpacecraft extends RuleModel{
 	HashSet<Body> nuke = new HashSet<Body>();
 	HashSet<Fixture> dead = new HashSet<Fixture>();
 	for (int i = 0; i < config.getPointCount(); i++) {
-	  ContactPoint point = GameConfig.points[i];
+	  ContactPoint point = config.points[i];
 
 	  Body body1 = point.fixtureA.getBody();
 	  Body body2 = point.fixtureB.getBody();
@@ -495,31 +611,55 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 
-	  //TODO: deal with pjForMonster
 	  config.getWorld().destroyBody(b);
 	}
 
-	if(!config.getConfigSettings().getSetting(ConfigSettings.ScreenMoveWithObject).enabled) return;
-	Vec2 center = spacecraft.getSpacecraftBody().getWorldCenter().clone();
-	//center.subLocal(new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2));
-	Vec2 shift = new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2);
-	GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(shift, shift);
-	center.subLocal(shift);
-	GameModel.getGamePanelRenderer().getViewportTranform().setCenter(center);
+	if(config.getConfigSettings().getSetting(ConfigSettings.ScreenMoveWithObject).enabled){
+	  Vec2 center = spacecraft.getSpacecraftBody().getWorldCenter().clone();
+	  //center.subLocal(new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2));
+	  Vec2 shift = new Vec2(GameModel.getGamePanel().getWidth()/2,GameModel.getGamePanel().getHeight()/2);
+	  GameModel.getGamePanelRenderer().getViewportTranform().getScreenVectorToWorld(shift, shift);
+	  center.subLocal(shift);
+	  GameModel.getGamePanelRenderer().getViewportTranform().setCenter(center);
+	}
+
+	if(resourcePacks.size() <= 0){
+	  SimpleDelay delay = new SimpleDelay(60,"Congratulations! You have finished this level");
+	  String delayId = delay.getId();
+	  int rand = (int)( Math.random() * 10000);
+	  delayId = delayId.replace("0000", ""+rand);
+	  delay.setId(delayId);
+	  delays.add(delay);
+	  
+	  delay = new SimpleDelay(60,"Next level starts at: 3...");
+	  delayId = delay.getId();
+	  rand = (int)( Math.random() * 10000);
+	  delayId = delayId.replace("0000", ""+rand);
+	  delay.setId(delayId);
+	  delays.add(delay);
+
+	  delay = new SimpleDelay(60,"Next level starts at: 2...");
+	  delayId = delay.getId();
+	  rand = (int)( Math.random() * 10000);
+	  delayId = delayId.replace("0000", ""+rand);
+	  delay.setId(delayId);
+	  delays.add(delay);
+
+	  delay = new SimpleDelay(60,"Next level starts at: 1...");
+	  delayId = delay.getId();
+	  rand = (int)( Math.random() * 10000);
+	  delayId = delayId.replace("0000", ""+rand);
+	  delay.setId(delayId);
+	  delay.setEndAction(ActionType.NextLevel);
+	  delays.add(delay);
+	}
   }
 
   @Override
-  public void beginContact(Contact contact) {
-	// TODO Auto-generated method stub
-	//Log.print("beignContact is called");
-
-  }
+  public void beginContact(Contact contact) {}
 
   @Override
-  public void endContact(Contact contact) {
-	// TODO Auto-generated method stub
-	//Log.print("endContact is called");
-  }
+  public void endContact(Contact contact) {}
 
   @Override
   public void preSolve(Contact contact, Manifold oldManifold) {
@@ -532,12 +672,18 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body2.getUserData() != null && body2.getUserData() instanceof ResourcePack){
 		contact.setEnabled(false);
 		resourcePacks.remove(((ResourcePack)body2.getUserData()).getId());
+		TextLine textLine = new TextLine();
+		textLine.setString("You got a resource pack! There are only "+resourcePacks.size()+" left.");
+		textLines.addAtBack(textLine);
 	  }
 	}
 	if(body2.getUserData() != null && body2.getUserData() instanceof Spacecraft){
 	  if(body1.getUserData() != null && body1.getUserData() instanceof ResourcePack){
 		contact.setEnabled(false);
 		resourcePacks.remove(((ResourcePack)body1.getUserData()).getId());
+		TextLine textLine = new TextLine();
+		textLine.setString("You got a resource pack! There are only "+resourcePacks.size()+" left.");
+		textLines.addAtBack(textLine);
 	  }
 	}
 
@@ -546,6 +692,7 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body2.getUserData() != null 
 		  && (body2.getUserData() instanceof ResourcePack || body2.getUserData() instanceof Monster)){
 		if(body2.getUserData() instanceof Monster){
+
 		  Rocket rocket = (Rocket)body1.getUserData();
 		  rocket.applyDamage(body2.getUserData());
 
@@ -594,6 +741,7 @@ public class CrazySpacecraft extends RuleModel{
 	  if(body1.getUserData() != null 
 		  && (body1.getUserData() instanceof ResourcePack || body1.getUserData() instanceof Monster)){
 		if(body1.getUserData() instanceof Monster){
+
 		  Rocket rocket = (Rocket)body2.getUserData();
 		  rocket.applyDamage(body1.getUserData());
 
@@ -625,7 +773,6 @@ public class CrazySpacecraft extends RuleModel{
 		  if(direction.x > 0){
 			angle = -angle;
 		  }
-		  //angle += Math.PI;
 		  explosion.setImageAngle(angle);
 
 		  explosions.put(explosion.getId(), explosion);
@@ -780,7 +927,7 @@ public class CrazySpacecraft extends RuleModel{
 	  linearMovement(monster);
 	  break;
 	case 2:
-	  circularMovement(monster);
+	  //circularMovement(monster);
 	  break;
 	case 3:
 	  backForthMovement(monster);
@@ -941,6 +1088,8 @@ public class CrazySpacecraft extends RuleModel{
 
 	drawBackground();
 
+	drawTextLines();
+
 	World world = config.getWorld();
 	for(Body b = world.getBodyList(); b!= null; b = b.getNext()){
 	  if(b.getUserData() != null && b.getUserData() instanceof Spacecraft){
@@ -969,6 +1118,35 @@ public class CrazySpacecraft extends RuleModel{
 	}
 
 	//Handle explosions
+	drawExplosions();
+  }
+
+  private void drawTextLines() {
+	LinkedListItem<TextLine> curr = new LinkedListItem<TextLine>();
+	for(curr = textLines.getHead(); curr != null; curr = curr.getNext()){
+	  TextLine textline = curr.getElement();
+	  
+	  if(textline.getTimer() > 0 && textline.getTextline() <= 140){
+		textline.setTimer(textline.getTimer()-1);
+		renderer.drawStringWithTransparency(5f, textline.getTextline(), 
+			textline.getString(), textline.getColor(), textline.getAlpha());
+		if(textline.getTimer() <= textline.getTimeStartFading()){
+		  textline.decreaseTransparency();
+		}
+	  }
+	  else if(textline.getTimer() <= 0){
+		try {
+		  textLines.remove(curr.getElement());
+		} catch (ElementNotExistException e) {
+		  e.printStackTrace();
+		}
+	  }
+	}
+
+
+  }
+
+  private void drawExplosions() {
 	for(Map.Entry<String, Explosion> entry : explosions.entrySet()){
 	  Explosion explosion = entry.getValue();
 	  if(explosion.getTimer() > 0){

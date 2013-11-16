@@ -16,6 +16,7 @@ import org.jbox2d.dynamics.World;
 import prereference.ConfigSettings;
 import rules.RuleModel;
 import rules.Spacecraft.CrazySpacecraft;
+import utility.ContactPoint;
 import utility.TestAABBCallback;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
@@ -31,8 +32,11 @@ import framework.GameModel;
  * */
 
 public abstract class BuildConfig {
-
+  
+  public static final int MAX_CONTACT_POINTS = 4048;
   public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
+
+  public final ContactPoint[] points = new ContactPoint[MAX_CONTACT_POINTS];
 
   /*  public static enum ConfigType{
 	Tetris("Tetris"),
@@ -78,7 +82,7 @@ public abstract class BuildConfig {
   protected final Vec2 cachedCameraPos = new Vec2();
   protected boolean hasCachedCamera = false;
 
-  protected final LinkedList<QueueItem> inputQueue;
+  protected final LinkedList<EventQueueItem> inputQueue;
 
   protected Map<String, BlockShape> shapesMap;
   protected List<BlockShape> shapesList;
@@ -88,7 +92,7 @@ public abstract class BuildConfig {
   protected RuleModel rule;
 
   public BuildConfig(){
-	inputQueue = new LinkedList<QueueItem>();
+	inputQueue = new LinkedList<EventQueueItem>();
 	shapesMap = new HashMap<String, BlockShape>();
 	shapesList = new ArrayList<BlockShape>();
 	blocksMap = new HashMap<String, Block>();
@@ -265,37 +269,37 @@ public abstract class BuildConfig {
 
   public void queueMouseMove(Vec2 pos){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.MouseMove, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseMove, pos));
 	}
   }
 
   public void queueMouseDown(Vec2 pos){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.MouseDown, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseDown, pos));
 	}
   }
 
   public void queueMouseUp(Vec2 pos){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.MouseUp, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseUp, pos));
 	}
   }
 
   public void queueKeyPressed(char c, int code){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.KeyPressed, c , code));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.KeyPressed, c , code));
 	}
   }
 
   public void queueKeyReleased(char c, int code){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.KeyReleased, c , code));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.KeyReleased, c , code));
 	}
   }
 
   public void queueKeyTyped(char c, int code){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new QueueItem(QueueItemType.KeyTyped, c , code));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.KeyTyped, c , code));
 	}
   }
 
@@ -440,18 +444,18 @@ enum QueueItemType{
   MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
 }
 
-class QueueItem{
+class EventQueueItem{
   public QueueItemType type;
   public Vec2 pos;
   public char c;
   public int code;
 
-  public QueueItem(QueueItemType type, Vec2 pos){
+  public EventQueueItem(QueueItemType type, Vec2 pos){
 	this.type = type;
 	this.pos = pos.clone();
   }
 
-  public QueueItem(QueueItemType type, char c, int code){
+  public EventQueueItem(QueueItemType type, char c, int code){
 	this.type = type;
 	this.c = c;
 	this.code = code;

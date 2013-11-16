@@ -931,7 +931,6 @@ public class GamePanel extends JPanel implements IGamePanel{
 			g2d.fillRect((int)(theRect.getX()*10), (int)(theRect.getY()*10), 
 				(int)(theRect.getWidth()*10),(int)(theRect.getHeight()*10));
 		  }
-
 		}
 		g2d.scale(1, 1);
 	  }
