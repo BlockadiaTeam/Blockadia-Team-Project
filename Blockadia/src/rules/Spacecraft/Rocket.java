@@ -17,7 +17,7 @@ public class Rocket {
 
   //cooldown or re-charging
   public static final int NormalBulletCD = 200;
-  public static final int LaserCD = 2000;
+  public static final int LaserCD = 1000;
   public static final int DoubleLaserCD = 2000;
   public static final int RocketCD = 1000;
   public static final int FlameCD = 2000;

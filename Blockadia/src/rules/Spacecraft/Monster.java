@@ -17,7 +17,7 @@ public class Monster {
   private int level;
   private int hp;
   private int maxHp;  
-  
+
   //TODO: monster shooting dangerous bombs at you.... WHATUP
   
   public Monster(){

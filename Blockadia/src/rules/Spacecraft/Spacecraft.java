@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 
 import org.jbox2d.collision.shapes.CircleShape;
+import org.jbox2d.common.Color3f;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -16,6 +17,7 @@ import org.jbox2d.dynamics.World;
 
 import rules.Spacecraft.Rocket.RocketType;
 import utility.Log;
+import framework.GameModel;
 
 public class Spacecraft {
 
@@ -26,7 +28,7 @@ public class Spacecraft {
   private int level;
   private int hp;
   private int maxHp;
-  
+
   //Rocket
   private int maxRockets;
   private RocketType rocketType;
@@ -145,7 +147,7 @@ public class Spacecraft {
 	return maxRockets;
   }
 
-  private int getRocketNumPerShot(){
+  public int getRocketNumPerShot(){
 	int rocketNum = 0;
 	switch(rocketType){
 	case NormalBullet:
@@ -181,7 +183,7 @@ public class Spacecraft {
 	level++;
 	maxRockets = getNumOfRocketsByLevel();
   }
-  
+
   @Override
   public boolean equals(Object otherObj){
 	if (!(otherObj instanceof Spacecraft))return false;
@@ -192,28 +194,76 @@ public class Spacecraft {
 	return true;
   }
 
-  public boolean shoot(World world){
-	//check cool down and max num rockets
-	if(this.onCD){
+  public boolean shootLaser(World world){
+	if(this.onCD) return false;
+	if(GameModel.getGamePanel().getCustomizedRenderer() != null) return false;
+	
+	Vec2 leftSpawnPt = null;
+	Vec2 rightSpawnPt = null;
+
+	int rocketNum = this.getRocketNumPerShot();
+	if(rocketNum == 2){
+	  leftSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(-.8f,-.4f));
+	  rightSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(.8f,-.4f));
+	}
+	else if(rocketNum == 4){
+	  //Double laser
+	}
+	else{
+	  Log.print("Unexpected Error: Invalid number of rockets per shot.");
 	  return false;
 	}
 
-	if(this.getRockets().size() >= (this.getMaxRockets() * this.getRocketNumPerShot())){
-	  return false;
+	LaserCastClosestCallback closestCallback = new LaserCastClosestCallback();
+	if(rocketNum == 2 && leftSpawnPt != null && rightSpawnPt != null){
+	  if(this.rocketType == RocketType.Laser){
+		closestCallback.init();
+		Vec2 direction = spacecraftBody.getWorldPoint(new Vec2(0f,-1f));
+		direction.subLocal(spacecraftBody.getWorldCenter().clone());
+		direction.normalize();
+		direction.mulLocal(70f);
+		//left beam
+		Vec2 leftEndPt = leftSpawnPt.add(direction);
+		world.raycast(closestCallback, leftSpawnPt, leftEndPt);
+		if(closestCallback.hit){
+		  GameModel.getGamePanelRenderer().drawPoint(closestCallback.point, 5.0f, new Color3f(0.4f, 0.9f, 0.4f));
+		  GameModel.getGamePanelRenderer().drawSegment(leftSpawnPt, closestCallback.point, new Color3f(0.8f, 0.8f, 0.8f));
+		}
+
+		//right beam
+		closestCallback.init();
+		Vec2 rightEndPt = rightSpawnPt.add(direction);
+		world.raycast(closestCallback, rightSpawnPt, rightEndPt);
+		if(closestCallback.hit){
+		  GameModel.getGamePanelRenderer().drawPoint(closestCallback.point, 5.0f, new Color3f(0.4f, 0.9f, 0.4f));
+		  GameModel.getGamePanelRenderer().drawSegment(rightSpawnPt, closestCallback.point, new Color3f(0.8f, 0.8f, 0.8f));
+		}
+
+	  }
 	}
-	
+	return true;
+  }
+
+  public boolean shoot(World world){
+	//check cool down and max num rockets
+	if(this.onCD) return false;
+
+	if(this.getRockets().size() >= (this.getMaxRockets() * this.getRocketNumPerShot())) return false;
+
+	if(this.rocketType == RocketType.Laser || this.rocketType == RocketType.DoubleLaser) return false;
+
 	ImageIcon icon = null;
 
 	//Spawn points
 	Vec2 leftSpawnPt = null;
-	Vec2 leftSpawnPt2 = null;
+	//Vec2 leftSpawnPt2 = null;
 	Vec2 rightSpawnPt = null;
-	Vec2 rightSpawnPt2 = null;
-	Vec2 centerSpawnPt = null;
+	//Vec2 rightSpawnPt2 = null;
+	//Vec2 centerSpawnPt = null;
 	int rocketNum = this.getRocketNumPerShot();
 	if(rocketNum == 2){
-	  leftSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(-.55f,-.4f));
-	  rightSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(.55f,-.4f));
+	  leftSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(-.8f,-.4f));
+	  rightSpawnPt = this.getSpacecraftBody().getWorldPoint(new Vec2(.8f,-.4f));
 	}
 	else if (rocketNum == 3){
 	  //TODO
@@ -262,7 +312,7 @@ public class Spacecraft {
 		rocket.getRocketBody().createFixture(fd);
 		rockets.put(rocket.getId(), rocket);
 		rocket.setImage(image);
-		
+
 		Rocket rightRocket = rocket.clone();
 		//right bullet
 		bd.position.set(rightSpawnPt);
@@ -277,6 +327,9 @@ public class Spacecraft {
 		rightRocket.setRocketBody(world.createBody(bd));
 		rightRocket.getRocketBody().createFixture(fd);
 		rockets.put(rightRocket.getId(), rightRocket);
+	  }
+	  else if(rocket.getType() == RocketType.Laser){
+		//laser is done in shootLaser() in CrazySpacecraft.java
 	  }
 	}
 	return true;

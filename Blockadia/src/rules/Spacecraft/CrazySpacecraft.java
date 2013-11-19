@@ -1,5 +1,6 @@
 package rules.Spacecraft;
 
+import java.awt.Color;
 import java.awt.Image;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,7 +57,7 @@ public class CrazySpacecraft extends RuleModel{
   private CustomizedRenderer renderer = null;
 
   private int level = 1;
-  
+
   private int cooldownCountDown = 0;
 
   private Spacecraft spacecraft;
@@ -71,12 +72,14 @@ public class CrazySpacecraft extends RuleModel{
   private int numOfResourcePacks;
   private Map<ResourcePack, PrismaticJoint> pjForResourcePack;
 
+  private Laser[] lasers;
+
   //customized rendering:
   private ImageIcon icon = null;
   private Image spacecraftImg = null;
   private Image[] resourcePackImg = null;
   private Image background = null;
-  private Image rocketMonsterExp = null;
+  private Image rocketMonsterExplosion = null;
 
   private ConcurrentHashMap<String, Explosion> explosions;
   private LinkedList<SimpleDelay> delays;
@@ -93,9 +96,9 @@ public class CrazySpacecraft extends RuleModel{
 	model = gameModel;
 	editable = false;
 	numOfResourcePacks = 10;
-	level = 1;
+	level = 2;//TODO
 	spacecraft = new Spacecraft();
-	
+
 	resourcePacks = new HashMap<String,ResourcePack>();
 	pjForResourcePack = new HashMap<ResourcePack, PrismaticJoint>();
 
@@ -103,6 +106,7 @@ public class CrazySpacecraft extends RuleModel{
 
 	monsters = new HashMap<String, Monster>();
 	pjForMonster = new HashMap<String,PrismaticJoint>();
+	lasers = new Laser[4]; lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
 
 	explosions = new ConcurrentHashMap<String, Explosion>();
 	delays = new LinkedList<SimpleDelay>();
@@ -110,7 +114,7 @@ public class CrazySpacecraft extends RuleModel{
 
 	init();
   }
-  
+
   private void initLevel(int level){
 	if(level <= 1){
 	  numOfMonsters = 6;
@@ -120,12 +124,13 @@ public class CrazySpacecraft extends RuleModel{
 	  numOfMonsters = 7;
 	  spacecraft.setRocketType(RocketType.Laser);
 	}
-	else if(level == 3){
+	else if(level >= 3){
 	  numOfMonsters = 8;
 	  //TODO: spread rocket?
+	  spacecraft.setRocketType(RocketType.NormalBullet);
 	}
   }
-  
+
   private void nextLevel() {
 	level++;
 	initWorld();
@@ -147,12 +152,12 @@ public class CrazySpacecraft extends RuleModel{
 	explosions = new ConcurrentHashMap<String, Explosion>();
 	textLines = new DynamicTextLine();
 	obstacles = new HashMap<String,Obstacle>();
+	lasers = new Laser[4]; lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
   }
 
   @Override
   public void init() {
 	initLevel(level);
-	Log.print("numOfMonsters: "+numOfMonsters);
 	//init game message
 	TextLine textLine = new TextLine();
 	textLine.setTimer(500);textLine.setMaxTimer(500);
@@ -216,7 +221,7 @@ public class CrazySpacecraft extends RuleModel{
 	//1920 x 1080
 	background = icon.getImage();
 	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/explosion2.png"));
-	rocketMonsterExp = icon.getImage();
+	rocketMonsterExplosion = icon.getImage();
 
 	//init game
 	Body ground;
@@ -489,6 +494,15 @@ public class CrazySpacecraft extends RuleModel{
 	  body.applyTorque(-30.0f);
 	}
 
+	if(model.getCodedKeys()[32]){
+	  spacecraft.shootLaser(config.getWorld());
+	  this.shootLaser();
+	}
+	else if(!model.getCodedKeys()[32]){
+	  //TODO: set cooldown
+	  lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
+	}
+
 	//Deal with cooldown
 	if(cooldownCountDown <= 0){
 	  cooldownCountDown = 0;
@@ -630,7 +644,7 @@ public class CrazySpacecraft extends RuleModel{
 	  delayId = delayId.replace("0000", ""+rand);
 	  delay.setId(delayId);
 	  delays.add(delay);
-	  
+
 	  delay = new SimpleDelay(60,"Next level starts at: 3...");
 	  delayId = delay.getId();
 	  rand = (int)( Math.random() * 10000);
@@ -711,7 +725,7 @@ public class CrazySpacecraft extends RuleModel{
 			explosion.setPoint(wm.points[0]);
 		  }
 
-		  explosion.setImage(rocketMonsterExp);
+		  explosion.setImage(rocketMonsterExplosion);
 		  explosion.setTimer(15);
 		  explosion.setMaxTimer(explosion.getTimer());
 		  if(rocket.getType() == RocketType.NormalBullet){
@@ -760,7 +774,7 @@ public class CrazySpacecraft extends RuleModel{
 			explosion.setPoint(wm.points[0]);
 		  }
 
-		  explosion.setImage(rocketMonsterExp);
+		  explosion.setImage(rocketMonsterExplosion);
 		  explosion.setTimer(15);
 		  explosion.setMaxTimer(explosion.getTimer());
 		  if(rocket.getType() == RocketType.NormalBullet){
@@ -796,11 +810,14 @@ public class CrazySpacecraft extends RuleModel{
 	//Log.print("Key Pressed: "+ c+ "  "+ code);
 	if(model.getCodedKeys()[32]){
 	  if(spacecraft.shoot(config.getWorld())){
-		float cooldown = spacecraft.getCooldown();
-		float timestep = 1000f/GameController.DEFAULT_FPS;
-		cooldownCountDown = (int)(cooldown/timestep);
-		spacecraft.setOnCD(true);
+		if(spacecraft.getRocketType() == RocketType.NormalBullet){
+		  float cooldown = spacecraft.getCooldown();
+		  float timestep = 1000f/GameController.DEFAULT_FPS;
+		  cooldownCountDown = (int)(cooldown/timestep);
+		  spacecraft.setOnCD(true);
+		}
 	  }
+
 	}
   }
 
@@ -1117,15 +1134,70 @@ public class CrazySpacecraft extends RuleModel{
 	  }
 	}
 
+	drawLasers();
 	//Handle explosions
 	drawExplosions();
+  }
+
+  private void drawLasers() {
+
+	if(lasers[0] != null){
+	  //renderer.drawPoint(lasers[0].getEnd(), 5.0f, lasers[0].getColor());
+	  renderer.drawSegment(lasers[0].getStart(), lasers[0].getEnd(), lasers[0].getColor());
+
+	  Explosion explosion = new Explosion();
+	  String id = explosion.getId();
+	  while(explosions.containsKey(id)){
+		id = Explosion.OriginalID;
+		int rand = (int)( Math.random() * 10000);
+		id = id.replace("0000", ""+rand);
+	  }
+	  explosion.setId(id);
+
+	  explosion.setPoint(lasers[0].getEnd());
+
+
+	  explosion.setImage(rocketMonsterExplosion);
+	  explosion.setTimer(10);
+	  explosion.setMaxTimer(explosion.getTimer());
+	  //if(rocket.getType() == RocketType.NormalBullet){
+		explosion.setType(ExplosionType.BulletMonster);
+	  //}
+
+//	  Vec2 direction = wm.normal.clone();
+//	  Vec2 up = new Vec2(0,1);
+//	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+//	  if(direction.x > 0){
+//		angle = -angle;
+//	  }
+//	  //angle += Math.PI;
+//	  explosion.setImageAngle(angle);
+
+	  explosions.put(explosion.getId(), explosion);
+
+	}
+
+	if(lasers[1] != null){
+	  renderer.drawPoint(lasers[1].getEnd(), 5.0f, lasers[1].getColor());
+	  renderer.drawSegment(lasers[1].getStart(), lasers[1].getEnd(), lasers[1].getColor());
+	}
+
+	if(lasers[2] != null){
+	  renderer.drawPoint(lasers[2].getEnd(), 5.0f, lasers[2].getColor());
+	  renderer.drawSegment(lasers[2].getStart(), lasers[2].getEnd(), lasers[2].getColor());
+	}
+
+	if(lasers[3] != null){
+	  renderer.drawPoint(lasers[3].getEnd(), 5.0f, lasers[3].getColor());
+	  renderer.drawSegment(lasers[3].getStart(), lasers[3].getEnd(), lasers[3].getColor());
+	}
   }
 
   private void drawTextLines() {
 	LinkedListItem<TextLine> curr = new LinkedListItem<TextLine>();
 	for(curr = textLines.getHead(); curr != null; curr = curr.getNext()){
 	  TextLine textline = curr.getElement();
-	  
+
 	  if(textline.getTimer() > 0 && textline.getTextline() <= 140){
 		textline.setTimer(textline.getTimer()-1);
 		renderer.drawStringWithTransparency(5f, textline.getTextline(), 
@@ -1222,5 +1294,59 @@ public class CrazySpacecraft extends RuleModel{
 
 	renderer.drawImage(body.getWorldCenter(), 3f, 3f, 
 		spacecraftImg, angle);
+  }
+
+  private void shootLaser() {
+	if(spacecraft.isOnCD()) return;
+	if(config.getConfigSettings().getSetting(ConfigSettings.DrawShapes).enabled) return;
+
+	Vec2 leftSpawnPt = null;
+	Vec2 rightSpawnPt = null;
+
+	int rocketNum = spacecraft.getRocketNumPerShot();
+	if(rocketNum == 2){
+	  leftSpawnPt = spacecraft.getSpacecraftBody().getWorldPoint(new Vec2(-.8f,-.4f));
+	  rightSpawnPt = spacecraft.getSpacecraftBody().getWorldPoint(new Vec2(.8f,-.4f));
+	}
+	else if(rocketNum == 4){
+	  //Double laser
+	}
+	else{
+	  Log.print("Unexpected Error: Invalid number of rockets per shot.");
+	  return;
+	}
+
+	LaserCastClosestCallback closestCallback = new LaserCastClosestCallback();
+	if(rocketNum == 2 && leftSpawnPt != null && rightSpawnPt != null){
+	  if(spacecraft.getRocketType() == RocketType.Laser){
+		closestCallback.init();
+		Vec2 direction = spacecraft.getSpacecraftBody().getWorldPoint(new Vec2(0f,-1f));
+		direction.subLocal(spacecraft.getSpacecraftBody().getWorldCenter().clone());
+		direction.normalize();
+		direction.mulLocal(70f);
+		//left beam
+		Vec2 leftEndPt = leftSpawnPt.add(direction);
+		config.getWorld().raycast(closestCallback, leftSpawnPt, leftEndPt);
+		if(closestCallback.hit){//TODO create a laser object
+		  Laser laser = new Laser();
+		  laser.setStart(leftSpawnPt);
+		  laser.setEnd(closestCallback.point);
+		  laser.setColor(new Color(0.8f, 0.8f, 0.8f));
+		  lasers[0] = laser;
+		}
+
+		//right beam
+		closestCallback.init();
+		Vec2 rightEndPt = rightSpawnPt.add(direction);
+		config.getWorld().raycast(closestCallback, rightSpawnPt, rightEndPt);
+		if(closestCallback.hit){//TODO create a laser object
+		  Laser laser = new Laser();
+		  laser.setStart(rightSpawnPt);
+		  laser.setEnd(closestCallback.point);
+		  laser.setColor(new Color(0.8f, 0.8f, 0.8f));
+		  lasers[1] = laser;
+		}
+	  }
+	}
   }
 }
