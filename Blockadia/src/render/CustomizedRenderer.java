@@ -207,6 +207,70 @@ public class CustomizedRenderer {
 		sx1, sy1, sx2, sy2, null);
   }
   
+  public void drawRectWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, Color color,
+	  float alpha){
+	old.getWorldToScreenToOut(worldCenter, c);
+	
+	//get width & height on screen
+	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
+	Vec2 move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float w = move.length();
+	dest = new Vec2(worldCenter.x, worldCenter.y + worldHeight);
+	move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float h = move.length();
+
+	Graphics2D g = getGraphics();
+	g.setColor(color);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
+	g.drawRect((int)(c.x - w/2), (int)(c.y - h/2),(int) w, (int)h);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
+  }
+  
+  public void fillRectWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, Color color,
+	  float alpha){
+	old.getWorldToScreenToOut(worldCenter, c);
+	
+	//get width & height on screen
+	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
+	Vec2 move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float w = move.length();
+	dest = new Vec2(worldCenter.x, worldCenter.y + worldHeight);
+	move = dest.sub(worldCenter.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float h = move.length();
+
+	Graphics2D g = getGraphics();
+	g.setColor(color);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
+	g.fillRect((int)(c.x - w/2), (int)(c.y - h/2),(int) w, (int)h);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
+  }
+  
+  Vec2 topleft = new Vec2();
+  public void fillRectFromTopLeftWithTransparency(Vec2 topLeft, float worldWidth, float worldHeight, Color color,
+	  float alpha){
+	old.getWorldToScreenToOut(topLeft, topleft);
+	
+	//get width & height on screen
+	Vec2 dest = new Vec2(topLeft.x + worldWidth, topLeft.y);
+	Vec2 move = dest.sub(topLeft.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float w = move.length();
+	dest = new Vec2(topLeft.x, topLeft.y + worldHeight);
+	move = dest.sub(topLeft.clone());
+	old.getViewportTranform().getWorldVectorToScreen(move, move);
+	float h = move.length();
+
+	Graphics2D g = getGraphics();
+	g.setColor(color);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
+	g.fillRect((int)topleft.x, (int)topleft.y, (int)w, (int)h);
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
+  }
+  
   public IViewportTransform getViewportTranform(){
 	return old.getViewportTranform();
   }

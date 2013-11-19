@@ -5,13 +5,9 @@ import java.awt.Image;
 import org.jbox2d.common.Vec2;
 
 public class Explosion {
-  public static enum ExplosionType{
-	BulletMonster,LaserMonster;
-  }
   public static final String OriginalID = "Explosion-0000";
 
   private String id;
-  private ExplosionType type;
   private Vec2 point;
   private Image image;
   private int timer;
@@ -21,7 +17,6 @@ public class Explosion {
   
   public Explosion(){
 	id = OriginalID;
-	type = ExplosionType.BulletMonster;
 	point = new Vec2();
 	image = null;
 	timer = 0;
@@ -83,14 +78,6 @@ public class Explosion {
 
   public void setMaxTimer(int maxTimer) {
 	this.maxTimer = maxTimer;
-  }
-
-  public ExplosionType getType() {
-	return type;
-  }
-
-  public void setType(ExplosionType type) {
-	this.type = type;
   }
 
   public void decreaseTransparency(){

@@ -36,7 +36,6 @@ import prereference.ConfigSettings;
 import prereference.Setting;
 import render.CustomizedRenderer;
 import rules.RuleModel;
-import rules.Spacecraft.Explosion.ExplosionType;
 import rules.Spacecraft.Rocket.RocketType;
 import rules.Spacecraft.SimpleDelay.ActionType;
 import utility.ContactPoint;
@@ -59,6 +58,7 @@ public class CrazySpacecraft extends RuleModel{
   private int level = 1;
 
   private int cooldownCountDown = 0;
+  private int energyCountDown = 0; //for laser
 
   private Spacecraft spacecraft;
 
@@ -80,6 +80,7 @@ public class CrazySpacecraft extends RuleModel{
   private Image[] resourcePackImg = null;
   private Image background = null;
   private Image rocketMonsterExplosion = null;
+  private Image laserMonsterExplosion = null;
 
   private ConcurrentHashMap<String, Explosion> explosions;
   private LinkedList<SimpleDelay> delays;
@@ -96,7 +97,7 @@ public class CrazySpacecraft extends RuleModel{
 	model = gameModel;
 	editable = false;
 	numOfResourcePacks = 10;
-	level = 2;//TODO
+	level = 1;
 	spacecraft = new Spacecraft();
 
 	resourcePacks = new HashMap<String,ResourcePack>();
@@ -123,6 +124,7 @@ public class CrazySpacecraft extends RuleModel{
 	else if(level  == 2){
 	  numOfMonsters = 7;
 	  spacecraft.setRocketType(RocketType.Laser);
+	  energyCountDown = Rocket.LaserDuration;
 	}
 	else if(level >= 3){
 	  numOfMonsters = 8;
@@ -222,6 +224,7 @@ public class CrazySpacecraft extends RuleModel{
 	background = icon.getImage();
 	icon = new ImageIcon(getClass().getResource("/rules/Spacecraft/SpacecraftImage/explosion2.png"));
 	rocketMonsterExplosion = icon.getImage();
+	laserMonsterExplosion = icon.getImage();
 
 	//init game
 	Body ground;
@@ -440,7 +443,7 @@ public class CrazySpacecraft extends RuleModel{
 		  }
 
 		  if(delay.getStartAction() != ActionType.NoAction){
-			//TODO
+
 		  }
 		}
 		delay.setTimer(delay.getTimer()-1);
@@ -470,10 +473,13 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 	  else{
-		//TODO: what happens if timer is negative?
+
 	  }
 	  return;
 	}
+
+	HashSet<Body> nuke = new HashSet<Body>();
+	HashSet<Fixture> dead = new HashSet<Fixture>();
 
 	//Deal with input
 	Body body = spacecraft.getSpacecraftBody();
@@ -494,21 +500,62 @@ public class CrazySpacecraft extends RuleModel{
 	  body.applyTorque(-30.0f);
 	}
 
-	if(model.getCodedKeys()[32]){
-	  spacecraft.shootLaser(config.getWorld());
-	  this.shootLaser();
-	}
-	else if(!model.getCodedKeys()[32]){
-	  //TODO: set cooldown
-	  lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
+	if(spacecraft.getRocketType() == RocketType.Laser){
+	  if(model.getCodedKeys()[32]){
+		if(lasers[0] != null){
+		  energyCountDown--;
+		}
+		else{
+		  energyCountDown++;
+		  if(energyCountDown >= (Rocket.LaserDuration/2)){
+			spacecraft.setOnCD(false);
+		  }
+		}
+
+		if(energyCountDown <= 0){
+		  energyCountDown = 0;
+		  spacecraft.setOnCD(true);
+		  lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
+		}
+		spacecraft.shootLaser(config.getWorld());
+		this.shootLaser();
+		if(lasers[0] != null && lasers[0].getKilledMonster() != null){
+		  nuke.add(lasers[0].getKilledMonster().getMonsterBody());
+		  lasers[0].setKilledMonster(null);
+		}
+		if(lasers[1] != null && lasers[1].getKilledMonster() != null){
+		  nuke.add(lasers[1].getKilledMonster().getMonsterBody());
+		  lasers[1].setKilledMonster(null);
+		}
+		if(lasers[2] != null && lasers[2].getKilledMonster() != null){
+		  nuke.add(lasers[2].getKilledMonster().getMonsterBody());
+		  lasers[2].setKilledMonster(null);
+		}
+		if(lasers[3] != null && lasers[3].getKilledMonster() != null){
+		  nuke.add(lasers[3].getKilledMonster().getMonsterBody());
+		  lasers[3].setKilledMonster(null);
+		}
+	  }
+	  else if(!model.getCodedKeys()[32]){
+		energyCountDown++;
+		if(energyCountDown >= (Rocket.LaserDuration/2)){
+		  spacecraft.setOnCD(false);
+		}
+		else if(energyCountDown >= (Rocket.LaserDuration)){
+		  energyCountDown = (Rocket.LaserDuration);
+		}
+		lasers[0] = lasers[1] = lasers[2] = lasers[3] = null;
+	  }
 	}
 
-	//Deal with cooldown
-	if(cooldownCountDown <= 0){
-	  cooldownCountDown = 0;
-	  spacecraft.setOnCD(false);
-	}else{
-	  cooldownCountDown--;
+	if(spacecraft.getRocketType() != RocketType.Laser){
+	  //Deal with cooldown
+	  if(cooldownCountDown <= 0){
+		cooldownCountDown = 0;
+		spacecraft.setOnCD(false);
+	  }else{
+		cooldownCountDown--;
+	  }
 	}
 
 	//Deal with prismatic joints: change direction
@@ -525,8 +572,6 @@ public class CrazySpacecraft extends RuleModel{
 	}
 
 	//Deal with collisions
-	HashSet<Body> nuke = new HashSet<Body>();
-	HashSet<Fixture> dead = new HashSet<Fixture>();
 	for (int i = 0; i < config.getPointCount(); i++) {
 	  ContactPoint point = config.points[i];
 
@@ -709,6 +754,8 @@ public class CrazySpacecraft extends RuleModel{
 
 		  Rocket rocket = (Rocket)body1.getUserData();
 		  rocket.applyDamage(body2.getUserData());
+		  ((Monster)body2.getUserData()).setAlpha(1f);
+		  ((Monster)body2.getUserData()).setTimer(180);
 
 		  Explosion explosion = new Explosion();
 		  String id = explosion.getId();
@@ -728,9 +775,6 @@ public class CrazySpacecraft extends RuleModel{
 		  explosion.setImage(rocketMonsterExplosion);
 		  explosion.setTimer(15);
 		  explosion.setMaxTimer(explosion.getTimer());
-		  if(rocket.getType() == RocketType.NormalBullet){
-			explosion.setType(ExplosionType.BulletMonster);
-		  }
 
 		  Vec2 direction = wm.normal.clone();
 		  Vec2 up = new Vec2(0,1);
@@ -758,6 +802,8 @@ public class CrazySpacecraft extends RuleModel{
 
 		  Rocket rocket = (Rocket)body2.getUserData();
 		  rocket.applyDamage(body1.getUserData());
+		  ((Monster)body1.getUserData()).setAlpha(1f);
+		  ((Monster)body1.getUserData()).setTimer(180);
 
 		  Explosion explosion = new Explosion();
 		  String id = explosion.getId();
@@ -777,9 +823,6 @@ public class CrazySpacecraft extends RuleModel{
 		  explosion.setImage(rocketMonsterExplosion);
 		  explosion.setTimer(15);
 		  explosion.setMaxTimer(explosion.getTimer());
-		  if(rocket.getType() == RocketType.NormalBullet){
-			explosion.setType(ExplosionType.BulletMonster);
-		  }
 
 		  Vec2 direction = wm.normal.clone();
 		  Vec2 up = new Vec2(0,1);
@@ -1142,7 +1185,6 @@ public class CrazySpacecraft extends RuleModel{
   private void drawLasers() {
 
 	if(lasers[0] != null){
-	  //renderer.drawPoint(lasers[0].getEnd(), 5.0f, lasers[0].getColor());
 	  renderer.drawSegment(lasers[0].getStart(), lasers[0].getEnd(), lasers[0].getColor());
 
 	  Explosion explosion = new Explosion();
@@ -1157,39 +1199,107 @@ public class CrazySpacecraft extends RuleModel{
 	  explosion.setPoint(lasers[0].getEnd());
 
 
-	  explosion.setImage(rocketMonsterExplosion);
+	  explosion.setImage(laserMonsterExplosion);
 	  explosion.setTimer(10);
 	  explosion.setMaxTimer(explosion.getTimer());
-	  //if(rocket.getType() == RocketType.NormalBullet){
-		explosion.setType(ExplosionType.BulletMonster);
-	  //}
 
-//	  Vec2 direction = wm.normal.clone();
-//	  Vec2 up = new Vec2(0,1);
-//	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
-//	  if(direction.x > 0){
-//		angle = -angle;
-//	  }
-//	  //angle += Math.PI;
-//	  explosion.setImageAngle(angle);
+	  Vec2 direction = lasers[0].getNormal().clone();
+	  Vec2 up = new Vec2(0,1);
+	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	  if(direction.x > 0){
+		angle = -angle;
+	  }
+	  explosion.setImageAngle(angle);
 
 	  explosions.put(explosion.getId(), explosion);
-
 	}
 
 	if(lasers[1] != null){
-	  renderer.drawPoint(lasers[1].getEnd(), 5.0f, lasers[1].getColor());
 	  renderer.drawSegment(lasers[1].getStart(), lasers[1].getEnd(), lasers[1].getColor());
+
+	  Explosion explosion = new Explosion();
+	  String id = explosion.getId();
+	  while(explosions.containsKey(id)){
+		id = Explosion.OriginalID;
+		int rand = (int)( Math.random() * 10000);
+		id = id.replace("0000", ""+rand);
+	  }
+	  explosion.setId(id);
+
+	  explosion.setPoint(lasers[1].getEnd());
+
+	  explosion.setImage(laserMonsterExplosion);
+	  explosion.setTimer(10);
+	  explosion.setMaxTimer(explosion.getTimer());
+
+	  Vec2 direction = lasers[1].getNormal().clone();
+	  Vec2 up = new Vec2(0,1);
+	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	  if(direction.x > 0){
+		angle = -angle;
+	  }
+	  explosion.setImageAngle(angle);
+
+	  explosions.put(explosion.getId(), explosion);
 	}
 
 	if(lasers[2] != null){
-	  renderer.drawPoint(lasers[2].getEnd(), 5.0f, lasers[2].getColor());
 	  renderer.drawSegment(lasers[2].getStart(), lasers[2].getEnd(), lasers[2].getColor());
+
+	  Explosion explosion = new Explosion();
+	  String id = explosion.getId();
+	  while(explosions.containsKey(id)){
+		id = Explosion.OriginalID;
+		int rand = (int)( Math.random() * 10000);
+		id = id.replace("0000", ""+rand);
+	  }
+	  explosion.setId(id);
+
+	  explosion.setPoint(lasers[2].getEnd());
+
+	  explosion.setImage(laserMonsterExplosion);
+	  explosion.setTimer(10);
+	  explosion.setMaxTimer(explosion.getTimer());
+
+	  Vec2 direction = lasers[2].getNormal().clone();
+	  Vec2 up = new Vec2(0,1);
+	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	  if(direction.x > 0){
+		angle = -angle;
+	  }
+	  explosion.setImageAngle(angle);
+
+	  explosions.put(explosion.getId(), explosion);
 	}
 
 	if(lasers[3] != null){
-	  renderer.drawPoint(lasers[3].getEnd(), 5.0f, lasers[3].getColor());
 	  renderer.drawSegment(lasers[3].getStart(), lasers[3].getEnd(), lasers[3].getColor());
+
+	  Explosion explosion = new Explosion();
+	  String id = explosion.getId();
+	  while(explosions.containsKey(id)){
+		id = Explosion.OriginalID;
+		int rand = (int)( Math.random() * 10000);
+		id = id.replace("0000", ""+rand);
+	  }
+	  explosion.setId(id);
+
+	  explosion.setPoint(lasers[3].getEnd());
+
+
+	  explosion.setImage(laserMonsterExplosion);
+	  explosion.setTimer(10);
+	  explosion.setMaxTimer(explosion.getTimer());
+
+	  Vec2 direction = lasers[3].getNormal().clone();
+	  Vec2 up = new Vec2(0,1);
+	  float angle = (float)Math.acos((Vec2.dot(direction, up))/(direction.length() * up.length()));
+	  if(direction.x > 0){
+		angle = -angle;
+	  }
+	  explosion.setImageAngle(angle);
+
+	  explosions.put(explosion.getId(), explosion);
 	}
   }
 
@@ -1214,8 +1324,6 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 	}
-
-
   }
 
   private void drawExplosions() {
@@ -1224,12 +1332,9 @@ public class CrazySpacecraft extends RuleModel{
 	  if(explosion.getTimer() > 0){
 		explosion.setTimer(explosion.getTimer()-1);
 
-		if(explosion.getType() == ExplosionType.BulletMonster){
-		  float rand = (float)(Math.random()+ 1.9999999f);
-		  renderer.drawImageWithTransparency(explosion.getPoint(),rand, rand,
-			  explosion.getImage(), explosion.getImageAngle(),explosion.getAlpha());
-		}
-
+		float rand = (float)(3*Math.random());
+		renderer.drawImageWithTransparency(explosion.getPoint(),rand, rand,
+			explosion.getImage(), explosion.getImageAngle(),explosion.getAlpha());
 		explosion.decreaseTransparency();
 	  }
 	  else{
@@ -1259,9 +1364,24 @@ public class CrazySpacecraft extends RuleModel{
 
   private void drawMonster(Body body) {
 	Monster monster = (Monster) body.getUserData();
+	float maxHp = monster.getMaxHp();
+	float hp = monster.getHp();
+	float percentage = hp/maxHp;
+	renderer.drawRectWithTransparency(body.getWorldCenter().add(new Vec2(0,2f)), 3f, .5f, Color.white,monster.getAlpha());
+	renderer.fillRectFromTopLeftWithTransparency(body.getWorldCenter().add(new Vec2(0,2f)).add(new Vec2(-3f/2f, .5f/2f)),
+		3f * percentage, .5f, Color.red,monster.getAlpha());
 	if(monster.getMonsterImg() == null) return;
-	renderer.drawImage(body.getWorldCenter(), 3f, 3f, 
-		monster.getMonsterImg(), 0f);	
+	renderer.drawImage(body.getWorldCenter(), 3f, 3f, monster.getMonsterImg(), 0f);	
+
+	if(monster.getTimer() > 0){
+	  monster.setTimer(monster.getTimer()-1);
+	  if(monster.getTimer() <= monster.getTimeStartFading()){
+		monster.decreaseTransparency();
+		if(monster.getAlpha() < 0){
+		  monster.setAlpha(0f);
+		}
+	  }
+	}
   }
 
   private void drawResourcePack(Body body) {
@@ -1276,8 +1396,7 @@ public class CrazySpacecraft extends RuleModel{
 	}
 
 	if(pack.getImage() == null) return;
-	renderer.drawImage(body.getWorldCenter(), 1.5f, 1.5f, 
-		pack.getImage(), angle);
+	renderer.drawImage(body.getWorldCenter(), 1.5f, 1.5f, pack.getImage(), angle);
   }
 
   private void drawSpacecraft() {
@@ -1292,8 +1411,7 @@ public class CrazySpacecraft extends RuleModel{
 	}
 	angle += Math.PI;
 
-	renderer.drawImage(body.getWorldCenter(), 3f, 3f, 
-		spacecraftImg, angle);
+	renderer.drawImage(body.getWorldCenter(), 3f, 3f, spacecraftImg, angle);
   }
 
   private void shootLaser() {
@@ -1327,23 +1445,49 @@ public class CrazySpacecraft extends RuleModel{
 		//left beam
 		Vec2 leftEndPt = leftSpawnPt.add(direction);
 		config.getWorld().raycast(closestCallback, leftSpawnPt, leftEndPt);
-		if(closestCallback.hit){//TODO create a laser object
+		if(closestCallback.hit){
 		  Laser laser = new Laser();
 		  laser.setStart(leftSpawnPt);
 		  laser.setEnd(closestCallback.point);
-		  laser.setColor(new Color(0.8f, 0.8f, 0.8f));
+		  laser.setColor(new Color(51,255,255,255));
+		  laser.setNormal(closestCallback.normal);
 		  lasers[0] = laser;
+		  if(closestCallback.fixture.getBody().getUserData() != null 
+			  && closestCallback.fixture.getBody().getUserData() instanceof Monster){
+			Rocket temp = new Rocket();
+			temp.setBaseDamage(1);
+			temp.applyDamage(closestCallback.fixture.getBody().getUserData());
+			((Monster)closestCallback.fixture.getBody().getUserData()).setAlpha(1f);
+			((Monster)closestCallback.fixture.getBody().getUserData()).setTimer(180);
+			if(((Monster)closestCallback.fixture.getBody().getUserData()).getHp() <= 0){
+			  ((Monster)closestCallback.fixture.getBody().getUserData()).setHp(0);
+			  lasers[0].setKilledMonster((Monster)closestCallback.fixture.getBody().getUserData());
+			}
+		  }
 		}
 
 		//right beam
 		closestCallback.init();
 		Vec2 rightEndPt = rightSpawnPt.add(direction);
 		config.getWorld().raycast(closestCallback, rightSpawnPt, rightEndPt);
-		if(closestCallback.hit){//TODO create a laser object
+		if(closestCallback.hit){
 		  Laser laser = new Laser();
 		  laser.setStart(rightSpawnPt);
 		  laser.setEnd(closestCallback.point);
-		  laser.setColor(new Color(0.8f, 0.8f, 0.8f));
+		  laser.setColor(new Color(51,255,255,255));
+		  laser.setNormal(closestCallback.normal);
+		  if(closestCallback.fixture.getBody().getUserData() != null 
+			  && closestCallback.fixture.getBody().getUserData() instanceof Monster){
+			Rocket temp = new Rocket();
+			temp.setBaseDamage(1);
+			temp.applyDamage(closestCallback.fixture.getBody().getUserData());
+			((Monster)closestCallback.fixture.getBody().getUserData()).setAlpha(1f);
+			((Monster)closestCallback.fixture.getBody().getUserData()).setTimer(180);
+			if(((Monster)closestCallback.fixture.getBody().getUserData()).getHp() <= 0){
+			  ((Monster)closestCallback.fixture.getBody().getUserData()).setHp(0);
+			  lasers[1].setKilledMonster((Monster)closestCallback.fixture.getBody().getUserData());
+			}
+		  }
 		  lasers[1] = laser;
 		}
 	  }

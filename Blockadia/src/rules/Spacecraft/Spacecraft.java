@@ -111,10 +111,10 @@ public class Spacecraft {
 	  cd = Rocket.NormalBulletCD;
 	  break;
 	case Laser:
-	  cd = Rocket.LaserCD;
+	  cd = Rocket.LaserDuration;
 	  break;
 	case DoubleLaser:
-	  cd = Rocket.DoubleLaserCD;
+	  cd = Rocket.DoubleLaserDuration;
 	  break;
 	case Rocket:
 	  cd = Rocket.RocketCD;

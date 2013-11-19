@@ -17,8 +17,11 @@ public class Monster {
   private int level;
   private int hp;
   private int maxHp;  
-
-  //TODO: monster shooting dangerous bombs at you.... WHATUP
+  
+  //health bar:
+  private int timer;
+  private int timeStartFading;
+  private float alpha;
   
   public Monster(){
 	monsterBody = null;
@@ -28,6 +31,11 @@ public class Monster {
 	level = 0;
 	maxHp = 100;
 	hp = maxHp;
+	
+	//health bar:
+	timer = 180;
+	timeStartFading = 60;
+	alpha = 0f;
   }
   
   public Body getMonsterBody() {
@@ -87,6 +95,35 @@ public class Monster {
 	this.monsterImg = monsterImg;
   }
 
+  public int getTimer() {
+	return timer;
+  }
+
+  public void setTimer(int timer) {
+	this.timer = timer;
+  }
+
+  public int getTimeStartFading() {
+	return timeStartFading;
+  }
+
+  public void setTimeStartFading(int timeStartFading) {
+	this.timeStartFading = timeStartFading;
+  }
+
+  public float getAlpha() {
+	return alpha;
+  }
+
+  public void setAlpha(float alpha) {
+	this.alpha = alpha;
+  }
+  
+  public void decreaseTransparency(){
+	float decrement = 1f/timeStartFading;
+	alpha -= decrement;
+  }
+  
   @Override
   public boolean equals(Object otherObj){
 	if (!(otherObj instanceof Monster))return false;

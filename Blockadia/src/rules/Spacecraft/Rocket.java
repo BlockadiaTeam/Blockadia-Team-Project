@@ -17,14 +17,16 @@ public class Rocket {
 
   //cooldown or re-charging
   public static final int NormalBulletCD = 200;
-  public static final int LaserCD = 1000;
-  public static final int DoubleLaserCD = 2000;
   public static final int RocketCD = 1000;
   public static final int FlameCD = 2000;
   public static final int SpreadBulletCD = 1000;
   public static final int ChaseBulletCD = 1000;
   public static final RocketType DefaultRocketType = RocketType.NormalBullet;
 
+  //duration
+  public static final int LaserDuration = 120;
+  public static final int DoubleLaserDuration = 90;
+  
   //num of bullets per shot
   public static final int NormalBulletNum = 2;
   public static final int LaserNum = 2;
@@ -33,9 +35,6 @@ public class Rocket {
   public static final int FlameNum = 2;
   public static final int SpreadBulletBum = 3;
   public static final int ChaseBulletNum = 2;
-  
-  //TODO: base damage
-  //TODO: how long it last(for laser, double laser, flame)
   
   private Body rocketBody;
   private Image image;
@@ -78,9 +77,7 @@ public class Rocket {
 
   private void applyDamage(Bound bound){}
 
-  private void applyDamage(Obstacle obstacle){
-
-  }
+  private void applyDamage(Obstacle obstacle){}
 
   private void applyDamage(Monster monster){
 	//For now, just use currHp - dmg as dmg equation
