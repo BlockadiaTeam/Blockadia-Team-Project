@@ -520,18 +520,22 @@ public class CrazySpacecraft extends RuleModel{
 		spacecraft.shootLaser(config.getWorld());
 		this.shootLaser();
 		if(lasers[0] != null && lasers[0].getKilledMonster() != null){
+		  lasers[0].getKilledMonster().setAlpha(0f);
 		  nuke.add(lasers[0].getKilledMonster().getMonsterBody());
 		  lasers[0].setKilledMonster(null);
 		}
 		if(lasers[1] != null && lasers[1].getKilledMonster() != null){
+		  lasers[1].getKilledMonster().setAlpha(0f);
 		  nuke.add(lasers[1].getKilledMonster().getMonsterBody());
 		  lasers[1].setKilledMonster(null);
 		}
 		if(lasers[2] != null && lasers[2].getKilledMonster() != null){
+		  lasers[2].getKilledMonster().setAlpha(0f);
 		  nuke.add(lasers[2].getKilledMonster().getMonsterBody());
 		  lasers[2].setKilledMonster(null);
 		}
 		if(lasers[3] != null && lasers[3].getKilledMonster() != null){
+		  lasers[3].getKilledMonster().setAlpha(0f);
 		  nuke.add(lasers[3].getKilledMonster().getMonsterBody());
 		  lasers[3].setKilledMonster(null);
 		}
@@ -627,6 +631,7 @@ public class CrazySpacecraft extends RuleModel{
 		  if(((Monster)body2.getUserData()).getHp() <= 0){
 			monsters.remove(((Monster)body2.getUserData()).getId());
 			((Monster)body2.getUserData()).setMonsterImg(null);
+			((Monster)body2.getUserData()).setAlpha(0f);
 			nuke.add(body2);
 		  }
 		}
@@ -640,6 +645,7 @@ public class CrazySpacecraft extends RuleModel{
 		  if(((Monster)body1.getUserData()).getHp() <= 0){
 			monsters.remove(((Monster)body1.getUserData()).getId());
 			((Monster)body1.getUserData()).setMonsterImg(null);
+			((Monster)body1.getUserData()).setAlpha(0f);
 			nuke.add(body1);
 		  }
 		}
@@ -1476,6 +1482,7 @@ public class CrazySpacecraft extends RuleModel{
 		  laser.setEnd(closestCallback.point);
 		  laser.setColor(new Color(51,255,255,255));
 		  laser.setNormal(closestCallback.normal);
+		  lasers[1] = laser;
 		  if(closestCallback.fixture.getBody().getUserData() != null 
 			  && closestCallback.fixture.getBody().getUserData() instanceof Monster){
 			Rocket temp = new Rocket();
@@ -1488,7 +1495,6 @@ public class CrazySpacecraft extends RuleModel{
 			  lasers[1].setKilledMonster((Monster)closestCallback.fixture.getBody().getUserData());
 			}
 		  }
-		  lasers[1] = laser;
 		}
 	  }
 	}
