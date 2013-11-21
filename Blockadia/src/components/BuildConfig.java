@@ -15,6 +15,7 @@ import org.jbox2d.dynamics.World;
 
 import prereference.ConfigSettings;
 import rules.RuleModel;
+import rules.BeatIt.BeatItCustomGame;
 import rules.Spacecraft.CrazySpacecraft;
 import utility.ContactPoint;
 import utility.TestAABBCallback;
@@ -32,7 +33,7 @@ import framework.GameModel;
  * */
 
 public abstract class BuildConfig {
-  
+
   public static final int MAX_CONTACT_POINTS = 4048;
   public final static String INITIAL_BLOCK_NAME = "--Select a Shape--";
 
@@ -127,10 +128,13 @@ public abstract class BuildConfig {
 	  break;
 	case AngryBird:
 	  break;
+	case BeatIt:
+	  rule = new BeatItCustomGame(this, model);
+	  break;
 	default:
 	  return;
 	}
-	
+
 	settings.setConfigName(this);
 	settings.setDisplayOptions(this);
 	init(world);
@@ -248,7 +252,7 @@ public abstract class BuildConfig {
   public int getPointCount(){
 	return this.pointCount;
   }
-  
+
   public World getWorld() {
 	return world;
   }
@@ -367,18 +371,18 @@ public abstract class BuildConfig {
 		throw new InvalidPositionException("The position has been occupied");
 	  }
 
-//	  while(blocksMap.containsKey(block.getBlockName())){
-//		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
-//		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);
-//		  newName += "-("+(int)(Math.random()*10000)+")";
-//		  block.setBlockName(newName);
-//		}else{
-//		  String newName = block.getBlockName();
-//		  newName += "-("+(int)(Math.random()*10000)+")";
-//		  block.setBlockName(newName);
-//		}
-//	  }
-	  
+	  //	  while(blocksMap.containsKey(block.getBlockName())){
+	  //		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
+	  //		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);
+	  //		  newName += "-("+(int)(Math.random()*10000)+")";
+	  //		  block.setBlockName(newName);
+	  //		}else{
+	  //		  String newName = block.getBlockName();
+	  //		  newName += "-("+(int)(Math.random()*10000)+")";
+	  //		  block.setBlockName(newName);
+	  //		}
+	  //	  }
+
 	  if(blocksMap.containsKey(block.getBlockName())){
 		if(block.getBlockName().endsWith(")") && block.getBlockName().length() > 7){
 		  String newName = block.getBlockName().substring(0, block.getBlockName().length()-7);

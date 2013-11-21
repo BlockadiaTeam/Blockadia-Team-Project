@@ -13,7 +13,7 @@ import components.BuildConfig;
  */
 public class ConfigSettings extends Settings {
   public static enum ConfigType{
-	AngryBird, Tetris, GunBound, CrazySpacecraft, Customized;
+	AngryBird, Tetris, GunBound, CrazySpacecraft, MetalSlug, BeatIt, Customized;
   }
   
   public static final String ConfigName = "Config Name";
@@ -44,7 +44,7 @@ public class ConfigSettings extends Settings {
   @Override
   protected void populateDefaultSettings(){
 	addSetting(new Setting(ConfigName, "HelloWorld"));
-	addSetting(new Setting(ConfigRule, ConfigType.CrazySpacecraft));//TODO: Change back to customized later
+	addSetting(new Setting(ConfigRule, ConfigType.BeatIt));//TODO: Change back to customized later
 	
 	//Display options:
 	addSetting(new Setting(EnableZoom, true));
