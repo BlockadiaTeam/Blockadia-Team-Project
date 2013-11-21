@@ -15,7 +15,7 @@ import org.jbox2d.dynamics.World;
 
 import prereference.ConfigSettings;
 import rules.RuleModel;
-import rules.BeatIt.BeatItGame;
+import rules.BeatIt.BeatItCustomGame;
 import utility.TestAABBCallback;
 import exceptions.ElementExistsException;
 import exceptions.ElementNotExistException;
@@ -114,7 +114,7 @@ public abstract class BuildConfig {
 	switch (settings.getConfigRule()){//TODO
 	case CrazySpacecraft:
 	  //rule = new CrazySpacecraft(this,model);
-	  rule = new BeatItGame(this, model);
+	  rule = new BeatItCustomGame(this, model);
 	  System.out.println("YEAH BEAT IT");
 	  break;
 	case Customized:

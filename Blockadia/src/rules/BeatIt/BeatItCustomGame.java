@@ -1,7 +1,10 @@
 package rules.BeatIt;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -27,47 +30,48 @@ import components.BuildConfig;
 import framework.GameModel;
 
 
-public class BeatItGame extends RuleModel{
-  
-  private String mode;
+public class BeatItCustomGame extends RuleModel{
+
+  Queue<Beats> beatsQueue = new LinkedList<Beats>();
+  Queue<Object> used = new LinkedList<Object>();
+  Set<Beats> hitSet = new HashSet<Beats>();
+
+  private static int mode = 1; // 1 = build, -1 = play
+  private static int time;
 
   private static float ShapeScale = 2.2f;
-  private BuildConfig config;
+  private static BuildConfig config;
   private GameModel model;
-  private int lifeMeter;
-  private int startTime;
+  private int passed;
+  private int endTime;
 
-  private Beats[] beats;
-  private int numOfBeats;
-  private int beatCount;
-  private int oddCount;
-  private int evenCount;
+  private static FixtureDef fd = new FixtureDef();
+  private static PolygonShape squareShape = new PolygonShape();
+  private static PolygonShape triangleShape = new PolygonShape();
+  private static PolygonShape diamondShape = new PolygonShape();
+  private static CircleShape circleShape = new CircleShape();
+  private static PolygonShape pentagonShape = new PolygonShape();
+
   private int points;
-  private float velocity;
+  private static float velocity;
 
   private Body squarePad;
   private Body trianglePad;
   private Body diamondPad;
   private Body circlePad;
   private Body pentagonPad;
-  
-  private final Map<Object, Integer> beatSet = new HashMap<Object, Integer>();
 
   public static enum Difficulty{
 	Easy, Medium, Hard
   }
 
-
-  public BeatItGame(BuildConfig buildConfig, GameModel model){
+  public BeatItCustomGame(BuildConfig buildConfig, GameModel model){
 	this.config = buildConfig;
 	this.model = model;
 	this.editable = true;
-	lifeMeter = 50;
-	numOfBeats = 5;
-	velocity = -25f;
-	beatCount = 0;
+	velocity = -30f;
 	points = 0;
-	beats = new Beats[numOfBeats];
+	time = 0;
 
 	init();
 
@@ -77,13 +81,9 @@ public class BeatItGame extends RuleModel{
   @Override
   public void init() {
 	{
+
 	  //init world
 	  config.getWorld().setGravity(new Vec2(0f,0f));
-
-	  for(int i = 0 ; i < numOfBeats; i++){
-		beats[i] = new Beats();
-		beats[i].setRandomPosition();
-	  }
 
 	  //init game specific settings
 	  Setting cameraScale = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale);
@@ -97,13 +97,6 @@ public class BeatItGame extends RuleModel{
 	}
 
 	{ // Beats
-	  PolygonShape squareShape = new PolygonShape();
-	  PolygonShape triangleShape = new PolygonShape();
-	  PolygonShape diamondShape = new PolygonShape();
-	  CircleShape circleShape = new CircleShape();
-	  PolygonShape pentagonShape = new PolygonShape();
-
-	  FixtureDef fd = new FixtureDef();
 
 	  { // Shape definitions
 
@@ -141,41 +134,6 @@ public class BeatItGame extends RuleModel{
 		pentagon[3] = new Vec2(-ShapeScale/1.5f, -ShapeScale);
 		pentagon[4] = new Vec2(-ShapeScale, 0);
 		pentagonShape.set(pentagon, 5);
-	  }
-
-	  // Generate beats
-	  for (int i = 0; i < numOfBeats; i++) {
-
-		BodyDef bd = new BodyDef();
-		bd.type = BodyType.DYNAMIC;
-		bd.linearVelocity.set(0f, velocity);
-
-		if (beats[i].getPosition().equals(Position.A)) {
-		  bd.position.set(-20f, 20.0f + 7*i);
-		  fd.shape = squareShape;
-		}
-		else if (beats[i].getPosition().equals(Position.S)) {
-		  bd.position.set(-10f, 20.0f + 7*i);
-		  fd.shape = triangleShape;
-		}
-		else if (beats[i].getPosition().equals(Position.SPACE)) {
-		  bd.position.set(0f, 20.0f + 7*i);
-		  fd.shape = diamondShape;
-		}
-		else if (beats[i].getPosition().equals(Position.K)) {
-		  bd.position.set(10f, 20.0f + 7*i);
-		  fd.shape = circleShape;
-		}
-		else if (beats[i].getPosition().equals(Position.L)) {
-		  bd.position.set(20f, 20.0f + 7*i);
-		  fd.shape = pentagonShape;
-		}
-
-		fd.filter.groupIndex = Beats.BeatsIndex;
-
-		beats[i].setBeatsBody(config.getWorld().createBody(bd));
-		beats[i].getBeatsBody().createFixture(fd);
-
 	  }
 
 	  { // Pads
@@ -243,43 +201,41 @@ public class BeatItGame extends RuleModel{
   @Override
   public void step() {
 
-	if (beatCount < numOfBeats) {
-	  if (beats[beatCount].getBeatsBody().getPosition().y <= -6) {
-		config.getWorld().destroyBody(beats[beatCount].getBeatsBody());
-		System.out.println("oh..missed that one");
-		if (points > 0) {
-		  points = points - 50;
-		}
-		lifeMeter = lifeMeter - 10;
-		if (beatCount < numOfBeats) {
-		  beatCount++;
-		}
-	  }
-	}
-	if (lifeMeter == 0 || beatCount == numOfBeats) {
-	  System.out.println(points);
-	  model.pause = true;
-	  JFrame frame = null;
-	  int input = JOptionPane.showConfirmDialog(frame, "Game Over!\nYour score is: " + points + ".\nWould you like to play again?",
-		  "Game Over", JOptionPane.OK_OPTION);
-	  if (input == JOptionPane.OK_OPTION) {
-		if (beatCount < numOfBeats) {
-		  for (int i = beatCount; i < numOfBeats; i++){
-			config.getWorld().destroyBody(beats[i].getBeatsBody());
+	time++;
+
+	if (mode == -2) {
+	  // This handles missed beats
+	  int missed = 0;
+	  for (Beats beat : beatsQueue){
+		Iterator<Beats> iterator = beatsQueue.iterator();
+		if (iterator.hasNext()) {
+		  if (beat.getBeatsBody().getPosition().y < -5.2) {
+			config.getWorld().destroyBody(beat.getBeatsBody());
+			missed++;
 		  }
 		}
-		model.pause = false;
-		beatSet.clear();
-		points = 0;
-		beatCount = 0;
-		lifeMeter = 50;
-		init();
 	  }
-	  else {
-		System.exit(0);
-	  }
+	  passed = hitSet.size() + missed;
+	  System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
+	  // If you miss too many times, you lose or if game is over
+	  if (missed == 15 || passed == beatsQueue.size()) {
+		endTime = time;
+		System.out.println(points);
+		JFrame frame = null;
+		//if (time == (endTime + 20)) {
+		  int input = JOptionPane.showConfirmDialog(frame, "Game Over!\nYour score is: " + points + ".\nWould you like to play again?",
+			  "Game Over", JOptionPane.OK_OPTION);
+		  if (input == JOptionPane.OK_OPTION) {
+			points = 0;
+			time = 0;
+			init();
+		  }
+		  else {
+			System.exit(0);
+		  }
+		}
+	  //}
 	}
-	//System.out.println(beatCount);
 
   }
 
@@ -289,105 +245,159 @@ public class BeatItGame extends RuleModel{
 
   }
 
-
   @Override
   public void endContact(Contact contact) {
 
   }
-
 
   @Override
   public void preSolve(Contact contact, Manifold oldManifold) {
 
   }
 
-
   @Override
   public void postSolve(Contact contact, ContactImpulse impulse) {
 
   }
 
-
   @Override
   public void keyTyped(char c, int code) {
-  }
 
+  }
 
   @Override
-  public void keyReleased(char c, int code) {
-
+  public void keyReleased(char ca, int code) {
   }
-
 
   @Override
   public void keyPressed(char c, int code) {
+	if (model.getKeys()['t'])
+	  System.out.println("test");
 
-	final AABB hittableBounds = new AABB();
-	final TestPointCallback contacted = new TestPointCallback();
-	hittableBounds.lowerBound.set(-30f, -6f);
-	hittableBounds.upperBound.set(30f, -4f);
-	contacted.point.set(beats[beatCount].getBeatsBody().getPosition());
-	contacted.fixture = null;
-	model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
+	if (mode == 1) {
+	  if (model.getKeys()['a']) {
+		System.out.println("A " + time);
+		Beats beat = new Beats(time, Position.A);
+		beatsQueue.add(beat);
+	  }
+	  else if (model.getKeys()['s']) {
+		System.out.println("S " + time);
+		Beats beat = new Beats(time, Position.S);
+		beatsQueue.add(beat);
+	  }
+	  else if (model.getCodedKeys()[32]) {
+		System.out.println("SPACE " + time);
+		Beats beat = new Beats(time, Position.SPACE);
+		beatsQueue.add(beat);
+	  }
+	  else if (model.getKeys()['k']) {
+		System.out.println("K " + time);
+		Beats beat = new Beats(time, Position.K);
+		beatsQueue.add(beat);
+	  }
+	  else if (model.getKeys()['l']) {
+		System.out.println("L " + time);
+		Beats beat = new Beats(time, Position.L);
+		beatsQueue.add(beat);
+	  }
+	  else if (model.getKeys()['h']) {
+		mode = -2;
+		time = 0;
+		System.out.println(beatsQueue.size());
+		for(Beats beat : beatsQueue){
+		  BodyDef bd = new BodyDef();
+		  bd.type = BodyType.DYNAMIC;
+		  bd.linearVelocity.set(0f, velocity);
 
-	if (contacted.fixture != null) {
+		  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), 100 + .49f*beat.getTiming());
+		  beat.print();
 
-	  if (beatCount < numOfBeats) {
-		if (beats[beatCount].getPosition().equals(Position.A)) {
-		  if (model.getKeys()['a']) {
-			processHit();
+		  if (beat.getPosition().equals(Position.A)){
+			fd.shape = squareShape;
 		  }
-		}
-		else if (beats[beatCount].getPosition().equals(Position.S)) {
-		  if (model.getKeys()['s']) {
-			processHit();
+		  else if (beat.getPosition().equals(Position.S)){
+			fd.shape = triangleShape;
 		  }
-		}
-		else if (beats[beatCount].getPosition().equals(Position.SPACE)) {
-		  if (model.getCodedKeys()[32]) {
-			processHit();
+		  else if (beat.getPosition().equals(Position.SPACE)){
+			fd.shape = diamondShape;
 		  }
-		}
-		else if (beats[beatCount].getPosition().equals(Position.K)) {
-		  if (model.getKeys()['k']) {
-			processHit();
+		  else if (beat.getPosition().equals(Position.K)){
+			fd.shape = circleShape;
 		  }
-		}
-		else if (beats[beatCount].getPosition().equals(Position.L)) {
-		  if (model.getKeys()['l']) {
-			processHit();
+		  else if (beat.getPosition().equals(Position.L)){
+			fd.shape = pentagonShape;
 		  }
+		  fd.filter.groupIndex = Beats.BeatsIndex;
+
+		  beat.setBeatsBody(config.getWorld().createBody(bd));
+		  beat.getBeatsBody().createFixture(fd);
 		}
 	  }
 	}
+
+	else {
+	  final AABB hittableBounds = new AABB();
+	  final TestPointCallback contacted = new TestPointCallback();
+	  hittableBounds.upperBound.set(30f, -3.5f);
+	  hittableBounds.lowerBound.set(-30f, -5.5f);
+	  for (Beats beat : beatsQueue) {
+		contacted.point.set(beat.getBeatsBody().getPosition());
+		contacted.fixture = null;
+		model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
+
+		if (contacted.fixture != null) {
+
+		  if (beat.getPosition().equals(Position.A)) {
+			if (model.getKeys()['a']) {
+			  processHit(beat);
+			  System.out.println("You hit A");
+			}
+		  }
+		  else if (beat.getPosition().equals(Position.S)) {
+			if (model.getKeys()['s']) {
+			  processHit(beat);
+			  System.out.println("You hit S");
+			}
+		  }
+		  else if (beat.getPosition().equals(Position.SPACE)) {
+			if (model.getCodedKeys()[32]) {
+			  processHit(beat);
+			  System.out.println("You hit SPACE");
+			}
+		  }
+		  else if (beat.getPosition().equals(Position.K)) {
+			if (model.getKeys()['k']) {
+			  processHit(beat);
+			  System.out.println("You hit K");
+			}
+		  }
+		  else if (beat.getPosition().equals(Position.L)) {
+			if (model.getKeys()['l']) {
+			  processHit(beat);
+			  System.out.println("You hit L");
+			}
+		  }
+
+		} // end contact fixture null check
+	  } // end queue traversal
+	} // end else
+  } // end keypressed
+
+  private void processHit(Beats beat) {
+	config.getWorld().destroyBody(beat.getBeatsBody());
+	hitSet.add(beat);
+	points = hitSet.size()*50;
   }
 
-  private void processHit() {
-	config.getWorld().destroyBody(beats[beatCount].getBeatsBody());
-	points = points + 50;
-	System.out.println("Hit!");
-	beatCount++;
-	if (lifeMeter < 100) {
-	  lifeMeter = lifeMeter + 10;
-	}
-  }
-
-
+  // unused
   @Override
   public void mouseUp(Vec2 pos) {
-
   }
-
-
   @Override
   public void mouseDown(Vec2 pos) {
-
   }
-
-
   @Override
   public void mouseMove(Vec2 pos) {
-
   }
 
 }
