@@ -16,6 +16,7 @@ import org.jbox2d.dynamics.World;
 import prereference.ConfigSettings;
 import rules.RuleModel;
 import rules.BeatIt.BeatItCustomGame;
+import rules.MetalSlug.MetalSlug;
 import rules.Spacecraft.CrazySpacecraft;
 import utility.ContactPoint;
 import utility.TestAABBCallback;
@@ -130,6 +131,9 @@ public abstract class BuildConfig {
 	  break;
 	case BeatIt:
 	  rule = new BeatItCustomGame(this, model);
+	  break;
+	case MetalSlug:
+	  rule = new MetalSlug(this, model);
 	  break;
 	default:
 	  return;
