@@ -26,17 +26,34 @@ public class MSMapOne extends MSMap{
 	zombieManagers = new HashMap<String, ZombieSpawnManager>();
 	
 	PolygonShape gd = new PolygonShape();
-	gd.setAsBox(300f,10f);
-	Ground ground = new Ground(gd,new Vec2(0f,-300f),0f);
+	gd.setAsBox(320f,10f);
+	Ground ground = new Ground(gd,new Vec2(300f, -610f),0f);
 	ground.setId("Bottom");
 	grounds.put(ground.getId(), ground);
+	
+	gd = new PolygonShape();
+	gd.setAsBox(10f, 320f);
+	ground = new Ground(gd,new Vec2(-10f, -300f),0f);
+	ground.setId("left");
+	grounds.put(ground.getId(), ground);
+
+	gd = new PolygonShape();
+	gd.setAsBox(320f,10f);
+	ground = new Ground(gd,new Vec2(300f, 10f),0f);
+	ground.setId("top");
+	grounds.put(ground.getId(), ground);
+	
+	gd = new PolygonShape();
+	gd.setAsBox(10f, 320f);
+	ground = new Ground(gd,new Vec2(610f, -300f),0f);
+	ground.setId("right");
+	grounds.put(ground.getId(), ground);
+	
+	//TODO:
   }
 
   @Override
   public void destroyGrounds(World world) {
-	if(world.getBodyList() == null) return;
-	Log.print("destroyGrounds");
-	
 	Body body;
 	for(body = world.getBodyList(); body != null; body = body.getNext()){
 	  if(body.getUserData() != null && body.getUserData() instanceof Ground){

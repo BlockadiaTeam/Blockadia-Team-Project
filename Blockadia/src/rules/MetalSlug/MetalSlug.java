@@ -14,6 +14,7 @@ import prereference.Setting;
 import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.MetalSlug.maps.MapManager;
+import utility.Log;
 
 import components.BuildConfig;
 
@@ -27,11 +28,12 @@ public class MetalSlug extends RuleModel{
   private IGamePanel panel;
   private CustomizedRenderer renderer = null;
   private IViewportTransform view;
-  
+
   //Map
   private int mapNumber;					//Which map to draw
   private MapManager mapManager;	
-  
+
+  //TODO: Create an event queue and process it in every time step
   public MetalSlug(BuildConfig buildConfig, GameModel gameModel){
 	this.config = buildConfig;
 	this.model = gameModel;
@@ -39,19 +41,19 @@ public class MetalSlug extends RuleModel{
 	this.panel = GameModel.getGamePanel();
 	this.renderer = panel.getCustomizedRenderer();
 	this.view = panel.getGamePanelRenderer().getViewportTranform();
-	
+
 	this.mapNumber = 1;
-	this.mapManager = new MapManager(mapNumber, world);
+	//this.mapManager = new MapManager(mapNumber, world);
 	init();
   }
-  
+
   @Override
   public void init() {
 	initMap();
 	initSettings();
 	world.setGravity(new Vec2(0, -10f));
-
 	
+
   }
 
   private void initSettings() {
@@ -62,47 +64,47 @@ public class MetalSlug extends RuleModel{
   }
 
   private void initMap() {//TODO
-	//Destroy ground fixtures if they exist -> handled by MapManager
-	mapManager.destroyMap();
-	
-	//Initialized MapManager
-	mapManager = new MapManager(mapNumber, world);
+	if(mapManager == null){
+	  mapManager = new MapManager(mapNumber, world);
+	}
+	else{
+	  mapManager.initMap();
+	}
   }
 
   @Override
   public void step() {
 	
-	
   }
 
   @Override
   public void beginContact(Contact contact) {
-	
-	
+
+
   }
 
   @Override
   public void endContact(Contact contact) {
-	
-	
+
+
   }
 
   @Override
   public void preSolve(Contact contact, Manifold oldManifold) {
-	
-	
+
+
   }
 
   @Override
   public void postSolve(Contact contact, ContactImpulse impulse) {
-	
-	
+
+
   }
 
   @Override
   public void keyTyped(char c, int code) {
-	
-	
+
+
   }
 
   @Override
@@ -115,26 +117,25 @@ public class MetalSlug extends RuleModel{
 
   @Override
   public void mouseUp(Vec2 pos) {
-	
-	
+
+
   }
 
   @Override
   public void mouseDown(Vec2 pos) {
-	
-	
+	Log.print("Mouse Down at:"+ pos.toString());
   }
 
   @Override
   public void mouseMove(Vec2 pos) {
-	
-	
+
+
   }
 
   @Override
   public void customizedPainting() {
-	
-	
+
+
   }
 
 }
