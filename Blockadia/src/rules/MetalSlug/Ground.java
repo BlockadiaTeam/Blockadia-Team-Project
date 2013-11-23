@@ -9,14 +9,20 @@ public class Ground {
 
   public static final String OriginalID = "Ground-0000";
   
+  public static enum GroundType{
+	Ground, Side;
+  }
+  
   private String id;
   private BodyDef bodyDef;
   private FixtureDef fixtureDef;
+  private GroundType type;
   
   public Ground(){
 	id = OriginalID;
-	setBodyDef(new BodyDef());
-	setFixtureDef(new FixtureDef());
+	bodyDef = new BodyDef();
+	fixtureDef = new FixtureDef();
+	type = GroundType.Side;
   }
   
   public Ground(Shape shape, Vec2 position, float angle){
@@ -56,6 +62,14 @@ public class Ground {
 	this.fixtureDef = fixtureDef;
   }
   
+  public GroundType getType() {
+	return type;
+  }
+
+  public void setType(GroundType type) {
+	this.type = type;
+  }
+
   @Override
   public boolean equals(Object obj){
 	if(obj == null) return false;

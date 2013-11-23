@@ -215,8 +215,8 @@ public class ShapesDemo2D extends JApplet {
         // fill RoundRectangle2D.Double
         GradientPaint redtowhite = new GradientPaint(x,y,red,x+rectWidth, y,white);
         g2.setPaint(redtowhite);
-        g2.fill(new RoundRectangle2D.Double(x, y, rectWidth, 
-                                            rectHeight, 10, 10));
+        //g2.draw(new Line2D.Double(x, y+rectHeight-1, x + rectWidth, y)); Gradient line
+        g2.fill(new RoundRectangle2D.Double(x, y, rectWidth, rectHeight, 10, 10));
         g2.setPaint(fg);
         g2.drawString("Filled RoundRectangle2D", x, stringY);
         x += gridWidth;

@@ -1,5 +1,7 @@
 package components;
 
+import java.awt.event.MouseEvent;
+
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
 import org.jbox2d.callbacks.DebugDraw;
@@ -90,10 +92,10 @@ public class GameConfig extends BuildConfig implements ContactListener{
 			mouseMove(item.pos);
 			break;
 		  case MouseDown:
-			mouseDown(item.pos);
+			mouseDown(item.pos, item.mouseData);
 			break;
 		  case MouseUp:
-			mouseUp(item.pos);
+			mouseUp(item.pos, item.mouseData);
 			break;
 		  case KeyPressed:
 			keyPressed(item.c , item.code);
@@ -124,12 +126,12 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	rule.keyPressed(c, code);
   }
 
-  private void mouseUp(Vec2 pos) {
-	rule.mouseUp(pos);
+  private void mouseUp(Vec2 pos, MouseEvent e) {
+	rule.mouseUp(pos, e);
   }
 
-  private void mouseDown(Vec2 pos) {
-	rule.mouseDown(pos);
+  private void mouseDown(Vec2 pos, MouseEvent e) {
+	rule.mouseDown(pos, e);
   }
 
   private void mouseMove(Vec2 pos) {

@@ -59,7 +59,7 @@ public class GameController {
 		if (model.getCurrConfig() != null) {
 		  Vec2 pos = new Vec2(e.getX(), e.getY());
 		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
-		  model.getCurrConfig().queueMouseUp(pos);
+		  model.getCurrConfig().queueMouseUp(pos, e);
 		}
 	  }
 
@@ -68,10 +68,8 @@ public class GameController {
 		panel.grabFocus();
 		if (model.getCurrConfig() != null) {
 		  Vec2 pos = new Vec2(e.getX(), e.getY());
-		  if (e.getButton() == MouseEvent.BUTTON1) {
-			GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
-			model.getCurrConfig().queueMouseDown(pos);
-		  }
+		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+		  model.getCurrConfig().queueMouseDown(pos, e);
 		}
 	  }
 	});
@@ -85,10 +83,10 @@ public class GameController {
 	  public void keyReleased(KeyEvent e) {
 		char key = e.getKeyChar();
 		int code = e.getKeyCode();
-        if (key != KeyEvent.CHAR_UNDEFINED) {
-          model.getKeys()[key] = false;
-        }
-        model.getCodedKeys()[code] = false;
+		if (key != KeyEvent.CHAR_UNDEFINED) {
+		  model.getKeys()[key] = false;
+		}
+		model.getCodedKeys()[code] = false;
 		if (model.getCurrConfig() != null) {
 		  model.getCurrConfig().queueKeyReleased(key, code);
 		}
@@ -98,11 +96,11 @@ public class GameController {
 	  public void keyPressed(KeyEvent e) {
 		char key = e.getKeyChar();
 		int code = e.getKeyCode();
-        if (key != KeyEvent.CHAR_UNDEFINED) {
-          model.getKeys()[key] = true;
-        }
-        model.getCodedKeys()[code] = true;
-        
+		if (key != KeyEvent.CHAR_UNDEFINED) {
+		  model.getKeys()[key] = true;
+		}
+		model.getCodedKeys()[code] = true;
+
 		if (model.getCurrConfig() != null) {
 		  model.getCurrConfig().queueKeyPressed(key, code);
 		}
@@ -210,7 +208,7 @@ public class GameController {
 	if(!model.pause){
 	  panel.grabFocus();
 	}
-	
+
 	if(panel.render()) { 
 	  update(); 
 	  //panel.paintScreen(); 

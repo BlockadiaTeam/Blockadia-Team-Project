@@ -1,5 +1,7 @@
 package rules;
 
+import java.awt.event.MouseEvent;
+
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.common.Vec2;
@@ -35,9 +37,9 @@ public abstract class RuleModel {
   
   public abstract void keyPressed(char c, int code);
 
-  public abstract void mouseUp(Vec2 pos);
+  public abstract void mouseUp(Vec2 pos, MouseEvent mouseData);
 
-  public abstract void mouseDown(Vec2 pos);
+  public abstract void mouseDown(Vec2 pos, MouseEvent mouseData);
 
   public abstract void mouseMove(Vec2 pos);
   

@@ -1,5 +1,6 @@
 package rules.BeatIt;
 
+import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -393,10 +394,10 @@ public class BeatItCustomGame extends RuleModel{
 
   // unused
   @Override
-  public void mouseUp(Vec2 pos) {
+  public void mouseUp(Vec2 pos, MouseEvent mouseData) {
   }
   @Override
-  public void mouseDown(Vec2 pos) {
+  public void mouseDown(Vec2 pos, MouseEvent mouseData) {
   }
   @Override
   public void mouseMove(Vec2 pos) {

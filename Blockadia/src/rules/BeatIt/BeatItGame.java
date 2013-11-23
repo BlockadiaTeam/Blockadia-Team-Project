@@ -1,5 +1,6 @@
 package rules.BeatIt;
 
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -376,13 +377,13 @@ public class BeatItGame extends RuleModel{
 
 
   @Override
-  public void mouseUp(Vec2 pos) {
+  public void mouseUp(Vec2 pos, MouseEvent mouseData) {
 
   }
 
 
   @Override
-  public void mouseDown(Vec2 pos) {
+  public void mouseDown(Vec2 pos, MouseEvent mouseData) {
 
   }
 

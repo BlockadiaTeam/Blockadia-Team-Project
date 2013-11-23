@@ -1,6 +1,7 @@
 package components;
 
 
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -281,15 +282,15 @@ public abstract class BuildConfig {
 	}
   }
 
-  public void queueMouseDown(Vec2 pos){
+  public void queueMouseDown(Vec2 pos, MouseEvent e){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseDown, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseDown, pos, e));
 	}
   }
 
-  public void queueMouseUp(Vec2 pos){
+  public void queueMouseUp(Vec2 pos, MouseEvent e){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseUp, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseUp, pos, e));
 	}
   }
 
@@ -454,6 +455,7 @@ enum QueueItemType{
 
 class EventQueueItem{
   public QueueItemType type;
+  public MouseEvent mouseData;
   public Vec2 pos;
   public char c;
   public int code;
@@ -461,6 +463,12 @@ class EventQueueItem{
   public EventQueueItem(QueueItemType type, Vec2 pos){
 	this.type = type;
 	this.pos = pos.clone();
+  }
+  
+  public EventQueueItem(QueueItemType type, Vec2 pos, MouseEvent mouseData){
+	this.type = type;
+	this.pos = pos.clone();
+	this.mouseData = mouseData;
   }
 
   public EventQueueItem(QueueItemType type, char c, int code){
