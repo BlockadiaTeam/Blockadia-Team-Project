@@ -3,9 +3,8 @@ package rules.MetalSlug;
 import interfaces.IGamePanel;
 
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.jbox2d.callbacks.ContactImpulse;
@@ -28,6 +27,8 @@ import rules.MetalSlug.Ground.GroundType;
 import rules.MetalSlug.events.PlayerEvent;
 import rules.MetalSlug.events.PlayerEvent.EventType;
 import rules.MetalSlug.maps.MapManager;
+import rules.MetalSlug.weapon.Bullet;
+import utility.ContactPoint;
 import utility.Log;
 
 import components.BuildConfig;
@@ -58,9 +59,8 @@ public class MetalSlug extends RuleModel{
 
   //Timer
   private int timeStep;
-  
+
   //rendering
-  private List<LinkedList<Vec2>> paths;
 
   public MetalSlug(BuildConfig buildConfig, GameModel gameModel){
 	this.config = buildConfig;
@@ -87,7 +87,6 @@ public class MetalSlug extends RuleModel{
   }
 
   private void initRendering() {
-	paths = new ArrayList<LinkedList<Vec2>>();
 	//TODO: Load images and animations	
   }
 
@@ -118,12 +117,12 @@ public class MetalSlug extends RuleModel{
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
   }
-  
+
   private void initSettings() {
 	Setting cameraScale = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale);
 	Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
-//	Setting posIter = config.getConfigSettings().getSetting(ConfigSettings.PositionIterations);
-//	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
+	//	Setting posIter = config.getConfigSettings().getSetting(ConfigSettings.PositionIterations);
+	//	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
 
 	cameraScale.value = 15f;
 	cameraPos.value = new Vec2(30f,-30f);
@@ -148,9 +147,49 @@ public class MetalSlug extends RuleModel{
 	if(player.getCurrWeapon().getFireTimer() > 0){
 	  player.getCurrWeapon().setFireTimer(player.getCurrWeapon().getFireTimer()-1);
 	}
-	
+
 	handleInputs();
 	handlePlayerEvents();
+
+//	Vec2 previous = previousBulletPosition.peek();
+//	for(Vec2 point : previousBulletPosition){
+//	  if(point.equals(previous)){
+//
+//	  }
+//	  else{
+//		renderer.drawSegment(previous, point, Color.yellow);
+//		previous = point;
+//	  }
+//	}
+//	
+//	for(Body body= world.getBodyList(); body!= null ; body = body.getNext()){
+//	  if(body.getUserData() != null && body.getUserData() instanceof Bullet){
+//		previousBulletPosition.addLast(body.getWorldCenter());
+//		if(previousBulletPosition.size()>10){
+//		  previousBulletPosition.pop();
+//		}
+//	  }
+//	}
+
+	HashSet<Body> nuke = new HashSet<Body>();
+	for (int i = 0; i < config.getPointCount(); i++) {
+	  ContactPoint point = config.points[i];
+
+	  Body body1 = point.fixtureA.getBody();
+	  Body body2 = point.fixtureB.getBody();
+
+
+	  if(body1.getUserData() != null && body1.getUserData() instanceof Bullet){
+		nuke.add(body1);
+	  }
+	  if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
+		nuke.add(body2);
+	  }
+	}
+
+	for (Body b : nuke) {
+	  config.getWorld().destroyBody(b);
+	}
 	timeStep++;
   }
 
@@ -171,7 +210,7 @@ public class MetalSlug extends RuleModel{
 	  playerEvent.setWho(player.getId());
 	  playerEvents.addLast(playerEvent);
 	}
-	
+
 	if(model.getKeys()['a']){
 	  PlayerEvent playerEvent = new PlayerEvent();
 	  playerEvent.setWhat(EventType.MoveLeft);
@@ -206,7 +245,7 @@ public class MetalSlug extends RuleModel{
 	  playerEvent.setWho(player.getId());
 	  playerEvents.addLast(playerEvent);
 	}
-	
+
 	if(model.getCodedKeys()[32]){
 	  PlayerEvent playerEvent = new PlayerEvent();
 	  playerEvent.setWhat(EventType.Jump);
@@ -249,14 +288,6 @@ public class MetalSlug extends RuleModel{
 		break;
 	  }
 	}
-  }
-
-  public List<LinkedList<Vec2>> getPaths() {
-	return paths;
-  }
-
-  public void setPaths(List<LinkedList<Vec2>> paths) {
-	this.paths = paths;
   }
 
   @Override
@@ -329,8 +360,8 @@ public class MetalSlug extends RuleModel{
 	else if(mouseData.getButton() == MouseEvent.BUTTON3){
 	  throwingGrenade = false;
 	}
-	
-	
+
+
   }
 
   @Override
@@ -341,7 +372,7 @@ public class MetalSlug extends RuleModel{
 	else if(mouseData.getButton() == MouseEvent.BUTTON3){
 	  throwingGrenade = true;
 	}
-	
+
   }
 
   @Override

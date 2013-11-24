@@ -63,7 +63,6 @@ public class HandGunWeapon extends Weapon{
 		//this.setNumOfAmmo(this.getNumOfAmmo() -1);
 		this.setAmmoInClip(this.getAmmoInClip() -1);
 		
-		
 	  }
 	}
 	else{
