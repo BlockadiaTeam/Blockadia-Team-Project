@@ -8,7 +8,7 @@ import rules.MetalSlug.MetalSlug;
 public abstract class Weapon {
 
   public static enum WeaponType{
-	Knife, Handgun, MachineGun, Firegun, LaserGun, RocketGun;
+	Knife, Handgun, MachineGun, Firegun, LaserGun, RocketGun, Grenade;
   }
   
   private String id;
@@ -27,7 +27,7 @@ public abstract class Weapon {
   /**This represents the fire rate*/
   private int fireInterval;
   
-  private Bullet bullet;
+  private Bullet bulletDefinition;
   
   public String getId() {
 	return id;
@@ -39,7 +39,23 @@ public abstract class Weapon {
 
   public abstract void use(Body playerBody, Vec2 worldMouse, MetalSlug game);
 
-  public abstract void reload();
+  public void reload(){
+	if(!this.isReloading()) return;
+
+	if(this.getReloadTimer() > 0){
+	  this.setReloadTimer(this.getReloadTimer()-1);	  
+	}
+
+	if(this.getReloadTimer() <= 0){
+	  if(this.getNumOfAmmo() >= this.getMaxAmmoPerClip()){
+		this.setAmmoInClip(this.getMaxAmmoPerClip());
+	  }
+	  else{
+		this.setAmmoInClip(this.getNumOfAmmo());
+	  }
+	  this.setReloading(false);
+	}
+  }
   
   @Override
   public boolean equals(Object obj){
@@ -101,12 +117,12 @@ public abstract class Weapon {
 	this.fireInterval = fireInterval;
   }
 
-  public Bullet getBullet() {
-	return bullet;
+  public Bullet getBulletDefinition() {
+	return bulletDefinition;
   }
 
-  public void setBullet(Bullet bullet) {
-	this.bullet = bullet;
+  public void setBulletDefinition(Bullet bullet) {
+	this.bulletDefinition = bullet;
   }
 
   public boolean isReloading() {

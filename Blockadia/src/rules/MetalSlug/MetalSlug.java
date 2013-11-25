@@ -3,8 +3,10 @@ package rules.MetalSlug;
 import interfaces.IGamePanel;
 
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.jbox2d.callbacks.ContactImpulse;
@@ -28,6 +30,8 @@ import rules.MetalSlug.events.PlayerEvent;
 import rules.MetalSlug.events.PlayerEvent.EventType;
 import rules.MetalSlug.maps.MapManager;
 import rules.MetalSlug.weapon.Bullet;
+import rules.MetalSlug.weapon.HandGunWeapon;
+import rules.MetalSlug.weapon.MachineGunWeapon;
 import utility.ContactPoint;
 import utility.Log;
 
@@ -61,6 +65,7 @@ public class MetalSlug extends RuleModel{
   private int timeStep;
 
   //rendering
+  private Map<String, Bullet> bullets;
 
   public MetalSlug(BuildConfig buildConfig, GameModel gameModel){
 	this.config = buildConfig;
@@ -87,6 +92,7 @@ public class MetalSlug extends RuleModel{
   }
 
   private void initRendering() {
+	setBullets(new HashMap<String, Bullet>());
 	//TODO: Load images and animations	
   }
 
@@ -125,6 +131,7 @@ public class MetalSlug extends RuleModel{
 	//	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
 
 	cameraScale.value = 15f;
+	cameraScale.maxValue = 25f;
 	cameraPos.value = new Vec2(30f,-30f);
   }
 
@@ -139,9 +146,10 @@ public class MetalSlug extends RuleModel{
 
   @Override
   public void step() {
+	if(model.pause) return;
 
 	//if there is a reloading on currWeapon, handle it
-	if(player.getCurrWeapon().isReloading()){
+	if(player.getCurrWeapon().isReloading() && !throwingGrenade){
 	  player.getCurrWeapon().reload();
 	}
 	if(player.getCurrWeapon().getFireTimer() > 0){
@@ -151,25 +159,18 @@ public class MetalSlug extends RuleModel{
 	handleInputs();
 	handlePlayerEvents();
 
-//	Vec2 previous = previousBulletPosition.peek();
-//	for(Vec2 point : previousBulletPosition){
-//	  if(point.equals(previous)){
-//
-//	  }
-//	  else{
-//		renderer.drawSegment(previous, point, Color.yellow);
-//		previous = point;
-//	  }
-//	}
-//	
-//	for(Body body= world.getBodyList(); body!= null ; body = body.getNext()){
-//	  if(body.getUserData() != null && body.getUserData() instanceof Bullet){
-//		previousBulletPosition.addLast(body.getWorldCenter());
-//		if(previousBulletPosition.size()>10){
-//		  previousBulletPosition.pop();
-//		}
-//	  }
-//	}
+	for(Map.Entry<String, Bullet> bulletEntry : bullets.entrySet()){
+	  Bullet bullet = bulletEntry.getValue();
+	  if(bullet.getBulletBody() != null && bullet.getPath() != null){
+		if(!bullet.getPath().peekFirst().equals(bullet.getBulletBody().getWorldCenter())){
+		  bullet.getPath().addLast(bullet.getBulletBody().getWorldCenter().clone());
+		  if(bullet.getPath().size() > 10){
+			bullet.getPath().pop();
+		  }
+		  bullet.drawPath(renderer);
+		}
+	  }
+	}
 
 	HashSet<Body> nuke = new HashSet<Body>();
 	for (int i = 0; i < config.getPointCount(); i++) {
@@ -188,9 +189,26 @@ public class MetalSlug extends RuleModel{
 	}
 
 	for (Body b : nuke) {
+	  if(b.getUserData() != null && b.getUserData() instanceof Bullet){
+		bullets.remove(((Bullet)b.getUserData()).getId());
+		b.setUserData(null);
+	  }
+
 	  config.getWorld().destroyBody(b);
 	}
 	timeStep++;
+  }
+
+  public Map<String, Bullet> getBullets() {
+	return bullets;
+  }
+
+  public void setBullets(Map<String, Bullet> bullets) {
+	this.bullets = bullets;
+  }
+
+  public boolean isShooting(){
+	return this.shooting;
   }
 
   private void handleInputs() {
@@ -343,25 +361,40 @@ public class MetalSlug extends RuleModel{
   @Override
   public void keyPressed(char c, int code) {
 	if(c == 'w'){
-	  //pick path when there is an alternative
-	  //climb up when on a stair
-	  Log.print("W pressed");
+
 	}
 	if(c == 's'){
 
 	}
+
+	if(c == '1'){
+	  if(player != null && player.getCurrWeapon() != null && !(player.getCurrWeapon() instanceof MachineGunWeapon)){
+		player.switchWeapon(0);
+	  }
+	}
+	if(c == '2'){	 
+	  if(player != null && player.getCurrWeapon() != null && !(player.getCurrWeapon() instanceof HandGunWeapon)){
+		player.switchWeapon(1);
+		((HandGunWeapon)player.getCurrWeapon()).setShooting(false);
+	  }
+	}
+	if(c == '3'){
+	  Log.print("switch weapon to timer bomb");
+	}
+
   }
 
   @Override
   public void mouseUp(Vec2 pos, MouseEvent mouseData) {
 	if(mouseData.getButton() == MouseEvent.BUTTON1){
 	  shooting = false;
+	  if(player != null && player.getCurrWeapon() != null && player.getCurrWeapon() instanceof HandGunWeapon){
+		((HandGunWeapon)player.getCurrWeapon()).setShooting(false);
+	  }
 	}
 	else if(mouseData.getButton() == MouseEvent.BUTTON3){
 	  throwingGrenade = false;
 	}
-
-
   }
 
   @Override

@@ -4,6 +4,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 
 import rules.MetalSlug.weapon.HandGunWeapon;
+import rules.MetalSlug.weapon.MachineGunWeapon;
 import rules.MetalSlug.weapon.Weapon;
 
 public class Player {
@@ -31,7 +32,9 @@ public class Player {
 
 	//TODO:
 	weapons = new Weapon[4];//1. main, 2. sec, 3. timer, 4. knife
-	weapons[0] = new HandGunWeapon();
+	weapons[0] = new MachineGunWeapon();
+	weapons[1] = new HandGunWeapon();
+	
 	currWeapon = weapons[0];
   }
 
@@ -56,6 +59,10 @@ public class Player {
 	//TODO
   }
 
+  public void chargingGrenade(){
+	
+  }
+  
   public String getId() {
 	return id;
   }

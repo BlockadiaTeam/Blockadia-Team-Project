@@ -2,9 +2,11 @@ package render;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 
 import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Color3f;
@@ -83,6 +85,19 @@ public class CustomizedRenderer {
 	old.drawSegment(p1, p2, getColor3f(color));
   }
 
+  private final Vec2 sp1 = new Vec2();
+  private final Vec2 sp2 = new Vec2();
+
+  public void drawSegmentWithGradient(Vec2 p1, Color p1Color, Vec2 p2, Color p2Color){
+	old.getWorldToScreenToOut(p1, sp1);
+	old.getWorldToScreenToOut(p2, sp2);
+	Graphics2D g = getGraphics();
+
+	GradientPaint gradient = new GradientPaint(sp1.x, sp1.y, p1Color, sp2.x, sp2.y, p2Color);
+	g.setPaint(gradient);
+	g.draw(new Line2D.Double(sp1.x, sp1.y, sp2.x, sp2.y)); //Gradient line
+  }
+
   public void drawTransform(Transform xf){
 	old.drawTransform(xf);
   }
@@ -90,13 +105,13 @@ public class CustomizedRenderer {
   public void drawString(float x, float y, String s, Color color){
 	old.drawString(x, y, s, getColor3f(color));
   }
-  
+
   public void drawStringWithTransparency(float x, float y, String s, Color color, float alpha){
 	Graphics2D g = getGraphics();
 	if (g== null)  {
 	  return;
 	}
-	
+
 	g.setColor(color);
 	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
 	g.drawString(s, x, y);
@@ -139,7 +154,7 @@ public class CustomizedRenderer {
 
   public void drawImageWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, 
 	  Image image, float angleRadians,float alpha){
-	
+
 	//get image center on screen
 	old.getWorldToScreenToOut(worldCenter, c);
 
@@ -166,7 +181,7 @@ public class CustomizedRenderer {
 	g.drawImage(image, xfm, null);
 	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
   }
-  
+
   /**Detail about this method ask Alex ;D
    * Example use: CrazySpacecraft.java*/
   public void drawBackgroundImage(Image image, Vec2 imageCenter, Vec2 offsetToWorldCenter,float movementScale){
@@ -175,12 +190,12 @@ public class CustomizedRenderer {
 	float imgH = image.getHeight(null);
 	float screenW = GameModel.getGamePanel().getWidth();
 	float screenH = GameModel.getGamePanel().getHeight();
-	
+
 	float x1 = offsetToWorldCenter.x;
 	float y1 = offsetToWorldCenter.y;
 	float x2 = 0.0f;
 	float y2 = 0.0f;
-	
+
 	x2 = x1/(screenW/imgW);
 	y2 = y1/(screenH/imgH);
 	Vec2 offsetOnBG = new Vec2(x2,y2).mul(movementScale);
@@ -206,11 +221,11 @@ public class CustomizedRenderer {
 	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
 		sx1, sy1, sx2, sy2, null);
   }
-  
+
   public void drawRectWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, Color color,
 	  float alpha){
 	old.getWorldToScreenToOut(worldCenter, c);
-	
+
 	//get width & height on screen
 	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
 	Vec2 move = dest.sub(worldCenter.clone());
@@ -227,11 +242,11 @@ public class CustomizedRenderer {
 	g.drawRect((int)(c.x - w/2), (int)(c.y - h/2),(int) w, (int)h);
 	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
   }
-  
+
   public void fillRectWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, Color color,
 	  float alpha){
 	old.getWorldToScreenToOut(worldCenter, c);
-	
+
 	//get width & height on screen
 	Vec2 dest = new Vec2(worldCenter.x + worldWidth, worldCenter.y);
 	Vec2 move = dest.sub(worldCenter.clone());
@@ -248,12 +263,12 @@ public class CustomizedRenderer {
 	g.fillRect((int)(c.x - w/2), (int)(c.y - h/2),(int) w, (int)h);
 	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
   }
-  
+
   Vec2 topleft = new Vec2();
   public void fillRectFromTopLeftWithTransparency(Vec2 topLeft, float worldWidth, float worldHeight, Color color,
 	  float alpha){
 	old.getWorldToScreenToOut(topLeft, topleft);
-	
+
 	//get width & height on screen
 	Vec2 dest = new Vec2(topLeft.x + worldWidth, topLeft.y);
 	Vec2 move = dest.sub(topLeft.clone());
@@ -270,7 +285,7 @@ public class CustomizedRenderer {
 	g.fillRect((int)topleft.x, (int)topleft.y, (int)w, (int)h);
 	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1f));
   }
-  
+
   public IViewportTransform getViewportTranform(){
 	return old.getViewportTranform();
   }

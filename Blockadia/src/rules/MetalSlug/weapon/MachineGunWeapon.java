@@ -1,5 +1,7 @@
 package rules.MetalSlug.weapon;
 
+import java.awt.Color;
+
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -10,36 +12,32 @@ import org.jbox2d.dynamics.World;
 
 import rules.MetalSlug.MetalSlug;
 
-public class HandGunWeapon extends Weapon{
-
-  public static final String OriginalId = "HandGun-0000";
-
-  private boolean shooting;
+public class MachineGunWeapon extends Weapon{
   
-  public HandGunWeapon(){
+  public static final String OriginalId = "MachineGun-0000";
+  
+  public MachineGunWeapon(){
 	this.setId(OriginalId);
 
-	this.setNumOfAmmo(255);
+	this.setNumOfAmmo(270);
 	this.setMaxNumOfAmmo(this.getNumOfAmmo());
-	this.setAmmoInClip(30);
+	this.setAmmoInClip(45);
 	this.setMaxAmmoPerClip(this.getAmmoInClip());
 
 	this.setReloadTimer(0);	
-	this.setMaxReloadTime(90);
+	this.setMaxReloadTime(120);
 	this.setReloading(false);
 
 	this.setFireTimer(0);
-	this.setFireInterval(15);
+	this.setFireInterval(10);
 
 	this.setBulletDefinition(new Bullet());
-	
-	this.shooting = false; 
   }
-
+  
+  
   @Override
   public void use(Body playerBody, Vec2 worldMouse, MetalSlug game) {
 	if(this.isReloading()) return;
-	if(shooting) return;
 	
 	if(this.getNumOfAmmo() > 0 && this.getAmmoInClip() > 0){
 	  if(this.getFireTimer() <= 0){
@@ -64,6 +62,8 @@ public class HandGunWeapon extends Weapon{
 		Body bulletBody = world.createBody(bd);
 		bulletBody.createFixture(fd);	
 		Bullet bullet = new Bullet();
+		bullet.setPathColor(Color.yellow);
+		bullet.setTravelSpeed(50);
 		String id = Bullet.OriginalID;
 		while(game.getBullets().containsKey(id)){
 		  id = Bullet.OriginalID;
@@ -76,18 +76,13 @@ public class HandGunWeapon extends Weapon{
 		game.getBullets().put(bullet.getId(), bullet);
 
 		this.setFireTimer(this.getFireInterval());
-		//this.setNumOfAmmo(this.getNumOfAmmo() -1);
+		this.setNumOfAmmo(this.getNumOfAmmo() -1);
 		this.setAmmoInClip(this.getAmmoInClip() -1);
-		this.shooting = true;
 	  }
 	}
 	else{
 	  this.setReloading(true);
 	  this.setReloadTimer(60);
 	}
-  }
-  
-  public void setShooting(boolean shooting){
-	this.shooting = shooting;
   }
 }
