@@ -3,7 +3,9 @@ package rules.MetalSlug;
 import interfaces.IGamePanel;
 
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.jbox2d.callbacks.ContactImpulse;
@@ -50,16 +52,16 @@ public class MetalSlug extends RuleModel{
 
   //Player
   private Player player;
-  private float playerRunSpeed;
-  private float playerJumpPower;
   private boolean onTheAir;
   private boolean shooting;
   private boolean throwingGrenade;
 
   //Timer
   private int timeStep;
+  
+  //rendering
+  private List<LinkedList<Vec2>> paths;
 
-  //TODO: Create an event queue and process it in every time step
   public MetalSlug(BuildConfig buildConfig, GameModel gameModel){
 	this.config = buildConfig;
 	this.model = gameModel;
@@ -78,9 +80,15 @@ public class MetalSlug extends RuleModel{
 	initMap();
 	initSettings();
 	initPlayer();
+	initRendering();
 	world.setGravity(new Vec2(0, -10f));
 
 	timeStep = 0;
+  }
+
+  private void initRendering() {
+	paths = new ArrayList<LinkedList<Vec2>>();
+	//TODO: Load images and animations	
   }
 
   private void initEvents() {
@@ -89,8 +97,6 @@ public class MetalSlug extends RuleModel{
 
   private void initPlayer() {
 	player = new Player();
-	playerRunSpeed = 10f;
-	playerJumpPower = 20f;
 	onTheAir = false;
 	shooting = false;
 	throwingGrenade = false;
@@ -108,15 +114,16 @@ public class MetalSlug extends RuleModel{
 	fd.friction = 0f;
 	fd.restitution = .05f;
 	fd.density = 1f;
+	fd.filter.groupIndex = Player.PlayerGroupIndex;
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
   }
-
+  
   private void initSettings() {
 	Setting cameraScale = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale);
 	Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
-	Setting posIter = config.getConfigSettings().getSetting(ConfigSettings.PositionIterations);
-	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
+//	Setting posIter = config.getConfigSettings().getSetting(ConfigSettings.PositionIterations);
+//	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
 
 	cameraScale.value = 15f;
 	cameraPos.value = new Vec2(30f,-30f);
@@ -134,6 +141,20 @@ public class MetalSlug extends RuleModel{
   @Override
   public void step() {
 
+	//if there is a reloading on currWeapon, handle it
+	if(player.getCurrWeapon().isReloading()){
+	  player.getCurrWeapon().reload();
+	}
+	if(player.getCurrWeapon().getFireTimer() > 0){
+	  player.getCurrWeapon().setFireTimer(player.getCurrWeapon().getFireTimer()-1);
+	}
+	
+	handleInputs();
+	handlePlayerEvents();
+	timeStep++;
+  }
+
+  private void handleInputs() {
 	if(shooting){
 	  PlayerEvent playerEvent = new PlayerEvent();
 	  playerEvent.setWhat(EventType.Shooting);
@@ -195,8 +216,6 @@ public class MetalSlug extends RuleModel{
 	  playerEvents.addLast(playerEvent);
 	}
 
-	handlePlayerEvents();
-	timeStep++;
   }
 
   private void handlePlayerEvents() {
@@ -209,21 +228,20 @@ public class MetalSlug extends RuleModel{
 
 	  switch(event.getWhat()){
 	  case Shooting:
-		//TODO:
-		Log.print("SHOOTING AHHHHH!!");
+		player.useWeapon(config.getWorldMouse(), this);
 		break;
 	  case ThrowingGrenade:
 		Log.print("ThrowingGrenade AHHHHH!!");
 		break;
 	  case MoveLeft:
-		player.getPlayerBody().setLinearVelocity(new Vec2(-playerRunSpeed, player.getPlayerBody().getLinearVelocity().y));
+		player.getPlayerBody().setLinearVelocity(new Vec2(-player.getRunSpeed(), player.getPlayerBody().getLinearVelocity().y));
 		break;
 	  case MoveRight:
-		player.getPlayerBody().setLinearVelocity(new Vec2(playerRunSpeed, player.getPlayerBody().getLinearVelocity().y));
+		player.getPlayerBody().setLinearVelocity(new Vec2(player.getRunSpeed(), player.getPlayerBody().getLinearVelocity().y));
 		break;
 	  case Jump:
 		if(onTheAir) return;
-		player.getPlayerBody().setLinearVelocity(new Vec2(player.getPlayerBody().getLinearVelocity().x, playerJumpPower));
+		player.getPlayerBody().setLinearVelocity(new Vec2(player.getPlayerBody().getLinearVelocity().x, player.getJumpPower()));
 		onTheAir = true;
 		break;
 	  default:
@@ -233,9 +251,16 @@ public class MetalSlug extends RuleModel{
 	}
   }
 
+  public List<LinkedList<Vec2>> getPaths() {
+	return paths;
+  }
+
+  public void setPaths(List<LinkedList<Vec2>> paths) {
+	this.paths = paths;
+  }
+
   @Override
   public void beginContact(Contact contact) {
-
 
   }
 
