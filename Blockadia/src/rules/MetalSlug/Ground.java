@@ -34,7 +34,7 @@ public class Ground {
 	fixtureDef = new FixtureDef();
 	fixtureDef.shape = shape;
 	fixtureDef.friction = 0f;
-	fixtureDef.restitution = 0f;
+	fixtureDef.restitution = 0.2f;
 	fixtureDef.density = 0f;
   }
 

@@ -83,7 +83,7 @@ public class HandGunWeapon extends Weapon{
 	}
 	else{
 	  this.setReloading(true);
-	  this.setReloadTimer(60);
+	  this.setReloadTimer(this.getMaxReloadTime());
 	}
   }
   

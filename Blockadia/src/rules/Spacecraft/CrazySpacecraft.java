@@ -3,6 +3,7 @@ package rules.Spacecraft;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -1499,5 +1500,9 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 	}
+  }
+
+  @Override
+  public void mouseWheelMove(Vec2 pos, MouseWheelEvent mouseWheelData) {
   }
 }

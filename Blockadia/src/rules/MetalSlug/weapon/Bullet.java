@@ -14,7 +14,7 @@ public class Bullet {
   public static final int BulletGroupIndex = Player.PlayerGroupIndex;
 
   public static enum BulletType{
-	HandGunBullet, MachineGunBullet, FireGunBullet, Laser, Rocket;
+	HandGunBullet, MachineGunBullet, FireGunBullet, Laser, Rocket, Grenade;
   }
 
   private String id;
@@ -112,9 +112,31 @@ public class Bullet {
 	  renderer.drawSegmentWithGradient(first, startColor, last, endColor);
 	}
   }
+
+  public void drawGrenadePath(CustomizedRenderer renderer){
+	if(path == null || path.size() == 0) return;
+
+	int size = path.size();
+	float startAlpha = 1.0f;
+	float endAlpha = 0.0f;
+	float alphaIncrement = 1f / (size -1);
+
+	Vec2 previous = path.peek();
+	for(Vec2 point : path){
+	  if(!point.equals(previous)){
+		startAlpha = endAlpha + alphaIncrement;
+		Color startColor = new Color(pathColor.getRed(),pathColor.getGreen(),pathColor.getBlue(),(int)(startAlpha*255));
+		Color endColor = new Color(pathColor.getRed(),pathColor.getGreen(),pathColor.getBlue(),(int)(endAlpha*255));
+		renderer.drawSegmentWithGradient(point, startColor, previous, endColor);
+		previous = point;
+		endAlpha = startAlpha;
+	  }
+	}
+  }
   public Color getPathColor() {
 	return pathColor;
   }
+
   public void setPathColor(Color pathColor) {
 	this.pathColor = pathColor;
   }

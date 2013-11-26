@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelListener;
 
 import org.jbox2d.callbacks.DebugDraw;
 
@@ -20,6 +21,8 @@ public interface IGamePanel {
 
   public void addMouseMotionListener(MouseMotionListener listener);
 
+  public void addMouseWheelListener(MouseWheelListener listener);
+  
   public void grabFocus();
   
   public Graphics2D getGamePanelGraphics();

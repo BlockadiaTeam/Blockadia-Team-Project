@@ -43,6 +43,17 @@ public class MachineGunWeapon extends Weapon{
 	  if(this.getFireTimer() <= 0){
 		World world = playerBody.getWorld();
 		Vec2 spawnPt = playerBody.getWorldPoint(new Vec2(0f, .5f));
+		Bullet bullet = new Bullet();
+		bullet.setPathColor(Color.yellow);
+		bullet.setTravelSpeed(50);
+		String id = Bullet.OriginalID;
+		while(game.getBullets().containsKey(id)){
+		  id = Bullet.OriginalID;
+		  int rand = (int)( Math.random() * 10000);
+		  id = id.replace("0000", ""+rand);  
+		}
+		bullet.setId(id);
+		bullet.getPath().addLast(spawnPt.clone());
 		CircleShape bulletShape = new CircleShape();
 		bulletShape.setRadius(.1f);
 		Vec2 velocity = worldMouse.clone();
@@ -61,17 +72,7 @@ public class MachineGunWeapon extends Weapon{
 		fd.filter.groupIndex = Bullet.BulletGroupIndex;
 		Body bulletBody = world.createBody(bd);
 		bulletBody.createFixture(fd);	
-		Bullet bullet = new Bullet();
-		bullet.setPathColor(Color.yellow);
-		bullet.setTravelSpeed(50);
-		String id = Bullet.OriginalID;
-		while(game.getBullets().containsKey(id)){
-		  id = Bullet.OriginalID;
-		  int rand = (int)( Math.random() * 10000);
-		  id = id.replace("0000", ""+rand);  
-		}
-		bullet.setId(id);
-		bullet.getPath().addLast(spawnPt.clone());
+
 		bullet.setBulletBody(bulletBody);
 		game.getBullets().put(bullet.getId(), bullet);
 
@@ -82,7 +83,7 @@ public class MachineGunWeapon extends Weapon{
 	}
 	else{
 	  this.setReloading(true);
-	  this.setReloadTimer(60);
+	  this.setReloadTimer(this.getMaxReloadTime());
 	}
   }
 }

@@ -9,6 +9,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 import javax.swing.Timer;
 
@@ -53,6 +55,18 @@ public class GameController {
 
   private void addListeners(){
 
+	panel.addMouseWheelListener(new MouseWheelListener(){
+
+	  @Override
+	  public void mouseWheelMoved(MouseWheelEvent e) {
+		if (model.getCurrConfig() != null) {
+		  Vec2 pos = new Vec2(e.getX(), e.getY());
+		  GameModel.getGamePanelRenderer().getScreenToWorldToOut(pos, pos);
+		  model.getCurrConfig().queueMouseWheelMove(pos, e);
+		}
+	  }
+	});
+		
 	panel.addMouseListener(new MouseAdapter() {
 	  @Override
 	  public void mouseReleased(MouseEvent e) {

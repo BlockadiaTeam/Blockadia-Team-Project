@@ -3,21 +3,24 @@ package rules.MetalSlug;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 
+import rules.MetalSlug.weapon.GrenadeWeapon;
 import rules.MetalSlug.weapon.HandGunWeapon;
 import rules.MetalSlug.weapon.MachineGunWeapon;
 import rules.MetalSlug.weapon.Weapon;
+import utility.Log;
 
 public class Player {
   public static final String OriginalID = "Player-0000";
   public static final int PlayerGroupIndex = -1;
   
   private String id;
-  private Body PlayerBody = null;
+  private Body playerBody = null;
   private float runSpeed;
   private float jumpPower;
 
   private Weapon[] weapons;
   private Weapon currWeapon;
+  private Weapon prevWeapon;
   //Stats
 
   public Player(){
@@ -26,7 +29,7 @@ public class Player {
 
   public Player(String newId){
 	id = newId;
-	PlayerBody = null;
+	playerBody = null;
 	runSpeed = 10f;
 	jumpPower = 25f;
 
@@ -35,22 +38,55 @@ public class Player {
 	weapons[0] = new MachineGunWeapon();
 	weapons[1] = new HandGunWeapon();
 	
+	weapons[3] = new GrenadeWeapon();
 	currWeapon = weapons[0];
+	prevWeapon = weapons[0];
   }
 
   public void useWeapon(Vec2 mouseWorld, MetalSlug game){
 	if(!currWeapon.isReloading()){
-	  if(PlayerBody == null) return;
-	  currWeapon.use(PlayerBody,mouseWorld,game);
+	  if(playerBody == null) return;
+	  if(currWeapon instanceof GrenadeWeapon) return;
+	  currWeapon.use(playerBody,mouseWorld,game);
 	}
   }
 
   public void switchWeapon(int index){
-	if(index == 0 || index == 1 || index == 2){
-	  currWeapon = weapons[index];
+	if(index == 0){
+	  if(!(currWeapon instanceof MachineGunWeapon)){
+		prevWeapon = currWeapon;
+		currWeapon = weapons[index];
+	  }
+	}
+	if(index == 1){
+	  if(!(currWeapon instanceof HandGunWeapon)){
+		prevWeapon = currWeapon;
+		currWeapon = weapons[index];
+	  }
+	}
+	if(index ==2){/*//TODO: timerBomb
+	  if(!(currWeapon instanceof MachineGunWeapon)){
+		prevWeapon = currWeapon;
+		currWeapon = weapons[index];
+	  }
+	*/}
+	
+	if(prevWeapon instanceof MachineGunWeapon){
+	  Log.print("previous weapon is machine gun");
+	}else if(prevWeapon instanceof HandGunWeapon){
+	  Log.print("previous weapon is handgun");
 	}
   }
 
+  public void fastSwitch(){
+	if(currWeapon == null || prevWeapon == null){
+	  throw new NullPointerException("currWeapon or prevWeapon is null");
+	}
+	Weapon temp = currWeapon;
+	currWeapon = prevWeapon;
+	prevWeapon = temp;
+  }
+  
   public void useKnifeWeapon(){
 	//TODO
   }
@@ -59,8 +95,18 @@ public class Player {
 	//TODO
   }
 
-  public void chargingGrenade(){
-	
+  /**
+   * Note: float power = charged/ maxCharged
+   * Eg: the grenade can take 3 sec to charge but the player
+   * only charges it for 1.5 sec. power = 1.5/3 = .5f
+   * */
+  public void throwGrenade(Vec2 mouseWorld, MetalSlug game, float power){
+	if(!currWeapon.isReloading()){
+	  if(playerBody == null) return;
+	  if(!(currWeapon instanceof GrenadeWeapon)) return;
+	  GrenadeWeapon grenade = (GrenadeWeapon)currWeapon;
+	  grenade.use(playerBody, mouseWorld, game, power);
+	}
   }
   
   public String getId() {
@@ -72,12 +118,12 @@ public class Player {
   }
 
   public Body getPlayerBody() {
-	return PlayerBody;
+	return playerBody;
   }
 
   public void setPlayerBody(Body playerBody) {
-	this.PlayerBody = playerBody;
-	this.PlayerBody.setUserData(this);
+	this.playerBody = playerBody;
+	this.playerBody.setUserData(this);
   }
 
   public float getRunSpeed() {
@@ -110,6 +156,14 @@ public class Player {
 
   public void setCurrWeapon(Weapon currWeapon){
 	this.currWeapon = currWeapon;
+  }
+
+  public Weapon getPrevWeapon() {
+	return prevWeapon;
+  }
+
+  public void setPrevWeapon(Weapon prevWeapon) {
+	this.prevWeapon = prevWeapon;
   }
 
   @Override

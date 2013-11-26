@@ -3,6 +3,7 @@ package rules.MetalSlug;
 import interfaces.IGamePanel;
 
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,9 +11,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.jbox2d.callbacks.ContactImpulse;
+import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.IViewportTransform;
+import org.jbox2d.common.Mat22;
+import org.jbox2d.common.OBBViewportTransform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -30,6 +33,8 @@ import rules.MetalSlug.events.PlayerEvent;
 import rules.MetalSlug.events.PlayerEvent.EventType;
 import rules.MetalSlug.maps.MapManager;
 import rules.MetalSlug.weapon.Bullet;
+import rules.MetalSlug.weapon.Bullet.BulletType;
+import rules.MetalSlug.weapon.GrenadeWeapon;
 import rules.MetalSlug.weapon.HandGunWeapon;
 import rules.MetalSlug.weapon.MachineGunWeapon;
 import utility.ContactPoint;
@@ -37,7 +42,9 @@ import utility.Log;
 
 import components.BuildConfig;
 
+import framework.GameController;
 import framework.GameModel;
+import framework.GamePanel;
 
 public class MetalSlug extends RuleModel{
 
@@ -46,7 +53,7 @@ public class MetalSlug extends RuleModel{
   private GameModel model;
   private IGamePanel panel;
   private CustomizedRenderer renderer = null;
-  private IViewportTransform view;
+  private OBBViewportTransform view;
 
   //Event
   private LinkedList<PlayerEvent> playerEvents;
@@ -60,6 +67,8 @@ public class MetalSlug extends RuleModel{
   private boolean onTheAir;
   private boolean shooting;
   private boolean throwingGrenade;
+  private int grenadeCharger;
+  private Vec2 oldPlayerPos;
 
   //Timer
   private int timeStep;
@@ -73,7 +82,7 @@ public class MetalSlug extends RuleModel{
 	this.world = config.getWorld();
 	this.panel = GameModel.getGamePanel();
 	this.renderer = panel.getCustomizedRenderer();
-	this.view = panel.getGamePanelRenderer().getViewportTranform();
+	this.view = (OBBViewportTransform)panel.getGamePanelRenderer().getViewportTranform();
 
 	this.mapNumber = 1;
 	init();
@@ -83,8 +92,8 @@ public class MetalSlug extends RuleModel{
   public void init() {
 	initEvents();
 	initMap();
-	initSettings();
 	initPlayer();
+	initSettings();
 	initRendering();
 	world.setGravity(new Vec2(0, -10f));
 
@@ -93,6 +102,7 @@ public class MetalSlug extends RuleModel{
 
   private void initRendering() {
 	setBullets(new HashMap<String, Bullet>());
+
 	//TODO: Load images and animations	
   }
 
@@ -122,17 +132,25 @@ public class MetalSlug extends RuleModel{
 	fd.filter.groupIndex = Player.PlayerGroupIndex;
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
+	oldPlayerPos = player.getPlayerBody().getWorldCenter().clone();
   }
 
   private void initSettings() {
 	Setting cameraScale = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale);
 	Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
-	//	Setting posIter = config.getConfigSettings().getSetting(ConfigSettings.PositionIterations);
-	//	Setting velIter = config.getConfigSettings().getSetting(ConfigSettings.VelocityIterations);
+	Setting enableDrag = config.getConfigSettings().getSetting(ConfigSettings.EnableDragScreen);
+	Setting enableZoom = config.getConfigSettings().getSetting(ConfigSettings.EnableZoom);
+	Setting drawJoints = config.getConfigSettings().getSetting(ConfigSettings.DrawJoints);
 
 	cameraScale.value = 15f;
 	cameraScale.maxValue = 25f;
-	cameraPos.value = new Vec2(30f,-30f);
+	cameraScale.minValue = 5f;
+
+	Vec2 offset = new Vec2((panel.getWidth()/2)/(float)cameraScale.value, -(float)(3* panel.getHeight()/4)/(float)cameraScale.value);	
+	cameraPos.value = mapManager.getMap().getStartPoint().sub(offset);
+	enableDrag.enabled = false;
+	enableZoom.enabled = false;	
+	drawJoints.enabled = false;
   }
 
   private void initMap() {
@@ -159,6 +177,14 @@ public class MetalSlug extends RuleModel{
 	handleInputs();
 	handlePlayerEvents();
 
+	if(! oldPlayerPos.equals(player.getPlayerBody().getWorldCenter())){
+	  Vec2 movement = player.getPlayerBody().getWorldCenter().clone().sub(oldPlayerPos);
+	  view.setCenter(view.getCenter().add(movement));
+	  config.setCachedCameraPos(view.getCenter().clone());
+	  oldPlayerPos = player.getPlayerBody().getWorldCenter().clone();
+	}
+
+
 	for(Map.Entry<String, Bullet> bulletEntry : bullets.entrySet()){
 	  Bullet bullet = bulletEntry.getValue();
 	  if(bullet.getBulletBody() != null && bullet.getPath() != null){
@@ -167,7 +193,12 @@ public class MetalSlug extends RuleModel{
 		  if(bullet.getPath().size() > 10){
 			bullet.getPath().pop();
 		  }
-		  bullet.drawPath(renderer);
+		  if(bullet.getType() != BulletType.Grenade){
+			bullet.drawPath(renderer);
+		  }
+		  else{
+			bullet.drawGrenadePath(renderer);
+		  }
 		}
 	  }
 	}
@@ -181,10 +212,14 @@ public class MetalSlug extends RuleModel{
 
 
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Bullet){
-		nuke.add(body1);
+		if(((Bullet)body1.getUserData()).getType() != BulletType.Grenade){
+		  nuke.add(body1);
+		}
 	  }
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
-		nuke.add(body2);
+		if(((Bullet)body2.getUserData()).getType() != BulletType.Grenade){
+		  nuke.add(body2);
+		}
 	  }
 	}
 
@@ -196,6 +231,7 @@ public class MetalSlug extends RuleModel{
 
 	  config.getWorld().destroyBody(b);
 	}
+
 	timeStep++;
   }
 
@@ -211,7 +247,7 @@ public class MetalSlug extends RuleModel{
 	return this.shooting;
   }
 
-  private void handleInputs() {
+  private void handleInputs() {	
 	if(shooting){
 	  PlayerEvent playerEvent = new PlayerEvent();
 	  playerEvent.setWhat(EventType.Shooting);
@@ -276,6 +312,7 @@ public class MetalSlug extends RuleModel{
   }
 
   private void handlePlayerEvents() {
+
 	PlayerEvent event = new PlayerEvent();
 	while(!playerEvents.isEmpty()){
 	  try {
@@ -288,7 +325,27 @@ public class MetalSlug extends RuleModel{
 		player.useWeapon(config.getWorldMouse(), this);
 		break;
 	  case ThrowingGrenade:
-		Log.print("ThrowingGrenade AHHHHH!!");
+		if(grenadeCharger < GameController.DEFAULT_FPS*2 && throwingGrenade){
+		  grenadeCharger++;
+		}
+
+		if(grenadeCharger > 15 && !throwingGrenade){ 
+		  float power = (float)(grenadeCharger)/ (float)(GameController.DEFAULT_FPS*2);
+		  player.throwGrenade(config.getWorldMouse(), this, power);
+
+		  if(player.getCurrWeapon().getNumOfAmmo() > 0){
+			player.getCurrWeapon().setAmmoInClip(1);
+		  }else{
+			Log.print("ima out!");
+		  }
+
+		  grenadeCharger = 0;
+		  player.setCurrWeapon(player.getPrevWeapon());
+		}
+		else if(grenadeCharger <= 15 && !throwingGrenade){
+		  grenadeCharger = 0;
+		  player.setCurrWeapon(player.getPrevWeapon());
+		}
 		break;
 	  case MoveLeft:
 		player.getPlayerBody().setLinearVelocity(new Vec2(-player.getRunSpeed(), player.getPlayerBody().getLinearVelocity().y));
@@ -378,10 +435,41 @@ public class MetalSlug extends RuleModel{
 		((HandGunWeapon)player.getCurrWeapon()).setShooting(false);
 	  }
 	}
-	if(c == '3'){
+	if(c == '3'){//TODO
 	  Log.print("switch weapon to timer bomb");
 	}
 
+  }
+
+  @Override
+  public void mouseWheelMove(Vec2 pos, MouseWheelEvent e) {
+	//Customized Zoom-in Zoom-out
+	DebugDraw d = GameModel.getGamePanelRenderer();
+	Mat22 upScale = Mat22.createScaleTransform(GamePanel.ZOOM_IN_SCALE);
+	Mat22 downScale = Mat22.createScaleTransform(GamePanel.ZOOM_OUT_SCALE);
+
+	int notches = e.getWheelRotation();
+
+	if(config.getConfigSettings().getSetting(ConfigSettings.EnableZoom).enabled) return;
+	float minScale = (float)config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale).minValue;
+	float maxScale = (float)config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraScale).maxValue;
+	if(notches < 0){
+	  if(config.getCachedCameraScale() * GamePanel.ZOOM_IN_SCALE < maxScale){
+		view.mulByTransform(upScale);
+		config.setCachedCameraScale(config.getCachedCameraScale() *  GamePanel.ZOOM_IN_SCALE);
+	  }
+	}else if(notches > 0){
+	  if(config.getCachedCameraScale() * GamePanel.ZOOM_OUT_SCALE > minScale){
+		view.mulByTransform(downScale);
+		config.setCachedCameraScale(config.getCachedCameraScale() * GamePanel.ZOOM_OUT_SCALE);
+	  }
+	}
+
+	Vec2 offset = new Vec2((panel.getWidth()/2)/config.getCachedCameraScale(), -(float)(3* panel.getHeight()/4)/config.getCachedCameraScale());	
+	Vec2 newCenter = player.getPlayerBody().getWorldCenter().clone().sub(offset);
+	d.getViewportTranform().setCenter(newCenter);
+
+	config.setCachedCameraPos(d.getViewportTranform().getCenter());
   }
 
   @Override
@@ -394,6 +482,12 @@ public class MetalSlug extends RuleModel{
 	}
 	else if(mouseData.getButton() == MouseEvent.BUTTON3){
 	  throwingGrenade = false;
+	  PlayerEvent playerEvent = new PlayerEvent();
+	  playerEvent.setWhat(EventType.ThrowingGrenade);
+	  playerEvent.setWhen(timeStep);
+	  playerEvent.setWhere(player.getPlayerBody().getWorldCenter().clone());
+	  playerEvent.setWho(player.getId());
+	  playerEvents.addLast(playerEvent);
 	}
   }
 
@@ -404,6 +498,10 @@ public class MetalSlug extends RuleModel{
 	}
 	else if(mouseData.getButton() == MouseEvent.BUTTON3){
 	  throwingGrenade = true;
+	  if(!(player.getCurrWeapon() instanceof GrenadeWeapon)){
+		player.setPrevWeapon(player.getCurrWeapon());
+		player.setCurrWeapon(player.getWeapons()[3]);
+	  }
 	}
 
   }
@@ -416,7 +514,5 @@ public class MetalSlug extends RuleModel{
   @Override
   public void customizedPainting() {
 
-
   }
-
 }

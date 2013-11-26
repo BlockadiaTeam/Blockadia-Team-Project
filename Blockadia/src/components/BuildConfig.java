@@ -2,6 +2,7 @@ package components;
 
 
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -275,6 +276,11 @@ public abstract class BuildConfig {
 	return mouseWorld;
   }
 
+  public void queueMouseWheelMove(Vec2 pos, MouseWheelEvent e){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseWheelMove, pos, e));
+	}
+  }
 
   public void queueMouseMove(Vec2 pos){
 	synchronized (inputQueue) {
@@ -450,12 +456,13 @@ public abstract class BuildConfig {
 }
 
 enum QueueItemType{
-  MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
+  MouseWheelMove,MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
 }
 
 class EventQueueItem{
   public QueueItemType type;
   public MouseEvent mouseData;
+  public MouseWheelEvent mouseWheelData;
   public Vec2 pos;
   public char c;
   public int code;
@@ -464,11 +471,17 @@ class EventQueueItem{
 	this.type = type;
 	this.pos = pos.clone();
   }
-  
+
   public EventQueueItem(QueueItemType type, Vec2 pos, MouseEvent mouseData){
 	this.type = type;
 	this.pos = pos.clone();
 	this.mouseData = mouseData;
+  }
+
+  public EventQueueItem(QueueItemType type, Vec2 pos, MouseWheelEvent mouseWheelData){
+	this.type = type;
+	this.pos = pos.clone();
+	this.mouseWheelData = mouseWheelData;
   }
 
   public EventQueueItem(QueueItemType type, char c, int code){
