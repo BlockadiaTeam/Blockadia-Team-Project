@@ -15,7 +15,7 @@ import org.jbox2d.dynamics.World;
 
 import prereference.ConfigSettings;
 import rules.RuleModel;
-import rules.BeatIt.BeatItCustomGame;
+import rules.BeatIt.BeatItGame;
 import rules.Spacecraft.CrazySpacecraft;
 import utility.ContactPoint;
 import utility.TestAABBCallback;
@@ -129,7 +129,7 @@ public abstract class BuildConfig {
 	case AngryBird:
 	  break;
 	case BeatIt:
-	  rule = new BeatItCustomGame(this, model);
+	  rule = new BeatItGame(this, model);
 	  break;
 	default:
 	  return;

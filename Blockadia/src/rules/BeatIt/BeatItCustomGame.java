@@ -1,12 +1,13 @@
 package rules.BeatIt;
 
+import java.awt.Image;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -20,10 +21,12 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
+import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
 
 import prereference.ConfigSettings;
 import prereference.Setting;
+import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.BeatIt.Beats.Position;
 import utility.TestPointCallback;
@@ -36,10 +39,11 @@ public class BeatItCustomGame extends RuleModel{
   Queue<Object> used = new LinkedList<Object>();
   Set<Beats> hitSet = new HashSet<Beats>();
 
-  private static int mode = 1;
+  private static boolean play = false;
   private static int time;
   private int countDown;
-  int missed;
+  private int missed;
+  private int missedLimit;
 
   private static float ShapeScale = 2.2f;
   private static BuildConfig config;
@@ -60,12 +64,28 @@ public class BeatItCustomGame extends RuleModel{
 
   private int points;
   private static float velocity;
+  private float startOffset;
+  private float gapCoef;
+
+  private BeatPads square;
+  private BeatPads triangle;
+  private BeatPads diamond;
+  private BeatPads circle;
+  private BeatPads pentagon;
 
   private Body squarePad;
   private Body trianglePad;
   private Body diamondPad;
   private Body circlePad;
   private Body pentagonPad;
+
+  private ImageIcon padStar = null;
+  private ImageIcon blueStar = null;
+  private ImageIcon background = null;
+  private Image backgroundImage = null;
+  private Image beatImages = null;
+  private Image padImages = null;
+  private CustomizedRenderer renderer = null;
 
   public static enum Difficulty{
 	Easy, Medium, Hard
@@ -76,7 +96,6 @@ public class BeatItCustomGame extends RuleModel{
 	this.config = buildConfig;
 	this.model = model;
 	this.editable = true;
-	velocity = -30f;
 	points = 0;
 	countDown = 120;
 	time = 0;
@@ -96,10 +115,23 @@ public class BeatItCustomGame extends RuleModel{
 	  Setting cameraPos = config.getConfigSettings().getSetting(ConfigSettings.DefaultCameraPos);
 	  Setting enableZoom = config.getConfigSettings().getSetting(ConfigSettings.EnableZoom);
 	  Setting drawJoints = config.getConfigSettings().getSetting(ConfigSettings.DrawJoints);
+	  Setting drawShapes = config.getConfigSettings().getSetting(ConfigSettings.DrawShapes);
 	  cameraScale.value = 10f;
 	  cameraPos.value = new Vec2(-30f,50f);
 	  enableZoom.enabled = false;
 	  drawJoints.enabled = false;
+	  drawShapes.enabled = false;										//Turn off the default rendering
+	  if(!drawShapes.enabled){
+		renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
+	  }
+	  padStar = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
+	  blueStar = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
+	  background = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
+	  padImages = padStar.getImage();
+	  beatImages = blueStar.getImage();
+	  backgroundImage = background.getImage();
+	  
+	  setSpeed("medium");
 	}
 
 	{ // Beats
@@ -145,7 +177,7 @@ public class BeatItCustomGame extends RuleModel{
 	  { // Pads
 
 		// Square Pad
-		squarePad = null;
+		square = new BeatPads(BeatPads.Position.A);
 		BodyDef squarePadBody = new BodyDef();
 		squarePadBody.type = BodyType.STATIC;
 		squarePadBody.position.set(-20f, -3f);
@@ -153,10 +185,11 @@ public class BeatItCustomGame extends RuleModel{
 		squarePadFixture.filter.groupIndex = Beats.BeatsIndex;
 		squarePadFixture.shape = squareShape;
 		squarePad = config.getWorld().createBody(squarePadBody);
-		squarePad.createFixture(squarePadFixture);
+		square.setBeatsBody(squarePad);
+		square.getBeatsPadBody().createFixture(squarePadFixture);
 
 		// Triangle Pad
-		trianglePad = null;
+		triangle = new BeatPads(BeatPads.Position.S);
 		BodyDef trianglePadBody = new BodyDef();
 		trianglePadBody.type = BodyType.STATIC;
 		trianglePadBody.position.set(-10f, -3f);
@@ -164,10 +197,11 @@ public class BeatItCustomGame extends RuleModel{
 		trianglePadFixture.filter.groupIndex = Beats.BeatsIndex;
 		trianglePadFixture.shape = triangleShape;
 		trianglePad = config.getWorld().createBody(trianglePadBody);
-		trianglePad.createFixture(trianglePadFixture);
+		triangle.setBeatsBody(trianglePad);
+		triangle.getBeatsPadBody().createFixture(trianglePadFixture);
 
 		// Diamond Pad
-		diamondPad = null;
+		diamond = new BeatPads(BeatPads.Position.SPACE);
 		BodyDef diamondPadBody = new BodyDef();
 		diamondPadBody.type = BodyType.STATIC;
 		diamondPadBody.position.set(0f, -3f);
@@ -175,10 +209,11 @@ public class BeatItCustomGame extends RuleModel{
 		diamondPadFixture.filter.groupIndex = Beats.BeatsIndex;
 		diamondPadFixture.shape = diamondShape;
 		diamondPad = config.getWorld().createBody(diamondPadBody);
-		diamondPad.createFixture(diamondPadFixture);
+		diamond.setBeatsBody(diamondPad);
+		diamond.getBeatsPadBody().createFixture(diamondPadFixture);
 
 		// Circle Pad
-		circlePad = null;
+		circle = new BeatPads(BeatPads.Position.K);
 		BodyDef circlePadBody = new BodyDef();
 		circlePadBody.type = BodyType.STATIC;
 		circlePadBody.position.set(10f, -3f);
@@ -186,10 +221,11 @@ public class BeatItCustomGame extends RuleModel{
 		circlePadFixture.filter.groupIndex = Beats.BeatsIndex;
 		circlePadFixture.shape = circleShape;
 		circlePad = config.getWorld().createBody(circlePadBody);
-		circlePad.createFixture(circlePadFixture);
+		circle.setBeatsBody(circlePad);
+		circle.getBeatsPadBody().createFixture(circlePadFixture);
 
 		// Pentagon Pad
-		pentagonPad = null;
+		pentagon = new BeatPads(BeatPads.Position.L);
 		BodyDef pentagonPadBody = new BodyDef();
 		pentagonPadBody.type = BodyType.STATIC;
 		pentagonPadBody.position.set(20f, -3f);
@@ -197,9 +233,11 @@ public class BeatItCustomGame extends RuleModel{
 		pentagonPadFixture.filter.groupIndex = Beats.BeatsIndex;
 		pentagonPadFixture.shape = pentagonShape;
 		pentagonPad = config.getWorld().createBody(pentagonPadBody);
-		pentagonPad.createFixture(pentagonPadFixture);
+		pentagon.setBeatsBody(pentagonPad);
+		pentagon.getBeatsPadBody().createFixture(pentagonPadFixture);
 
 	  }
+
 	}
   }
 
@@ -218,18 +256,8 @@ public class BeatItCustomGame extends RuleModel{
 	  startMusic();
 	}
 
-	if (mode == -2) {
-	  // This handles missed beats
-	  for (Beats beat : beatsQueue){
-		Iterator<Beats> iterator = beatsQueue.iterator();
-		if (iterator.hasNext()) {
-		  if (beat.getBeatsBody().getPosition().y < -5.2) {
-			config.getWorld().destroyBody(beat.getBeatsBody());
-			missed++; //TODO: Fix play again function
-		  }
-		}
-	  }
-	  gameOver();
+	if (play) {
+	  //gameOver();
 	}
 
   }
@@ -269,7 +297,7 @@ public class BeatItCustomGame extends RuleModel{
   public void keyPressed(char c, int code) {
 	if (!keyFlag) {
 	  keyFlag = true;
-	  if (mode == 1) {
+	  if (!play) {
 		if (model.getKeys()['a']) {
 		  System.out.println("A " + time);
 		  Beats beat = new Beats(time, Position.A);
@@ -350,7 +378,8 @@ public class BeatItCustomGame extends RuleModel{
 
   private void startGame() {
 	music.stop();
-	mode = -2;
+	play = true;
+	missedLimit = beatsQueue.size()/2;
 	time = 0;
 	points = 0;
 	countDown = 120;
@@ -360,7 +389,7 @@ public class BeatItCustomGame extends RuleModel{
 	  bd.type = BodyType.DYNAMIC;
 	  bd.linearVelocity.set(0f, velocity);
 
-	  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), .47f*beat.getTiming());
+	  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), gapCoef*beat.getTiming() - startOffset); // Smaller = faster
 	  beat.print();
 
 	  if (beat.getPosition().equals(Position.A)){
@@ -389,11 +418,11 @@ public class BeatItCustomGame extends RuleModel{
 	passed = hitSet.size() + missed;
 	System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
 	// If you miss too many times, you lose or if game is over
-	if (missed == 15 || passed >= beatsQueue.size()) {
+	if (missed == missedLimit || passed >= beatsQueue.size()) {
 	  System.out.println(points);
 	  JFrame frame = null;
 	  String gameOverMessage;
-	  if (missed == 15) {
+	  if (missed == missedLimit) {
 		gameOverMessage = "You've missed too many beat, Bro. Better luck next game.";
 	  }
 	  else {
@@ -412,9 +441,9 @@ public class BeatItCustomGame extends RuleModel{
 		int input = JOptionPane.showConfirmDialog(frame, gameOverMessage + "\nYour score is: " + points + 
 			"\nBeat Accuracy: " + hitAcc + "%\nWould you like to play again?",
 			"Game Over", JOptionPane.OK_OPTION);
-		  passed = 0;
-		  hitSet.clear();
-		  missed = 0;
+		passed = 0;
+		hitSet.clear();
+		missed = 0;
 		if (input == JOptionPane.OK_OPTION) {
 		  startGame();
 		}
@@ -433,12 +462,30 @@ public class BeatItCustomGame extends RuleModel{
 	if (!hitSet.contains(beat)) {
 	  hitSet.add(beat);
 	}
-	points = hitSet.size()*50;
+	points = hitSet.size()*25;
   }
 
   private void startMusic() {
 	music = new AudioPlayer(songName);
 	music.start();
+  }
+  
+  private void setSpeed(String speed){
+	if (speed.equalsIgnoreCase("slow")){
+	  velocity = -10f;
+	  startOffset = 10f;
+	  gapCoef = 0.2f;
+	} else if (speed.equalsIgnoreCase("medium")){
+	  velocity = -30f;
+	  startOffset = 10f;
+	  gapCoef = 0.5f;
+	} else if (speed.equalsIgnoreCase("fast")){
+	  velocity = -60f;
+	  startOffset = 60f;
+	  gapCoef = 1f;
+	} else {
+	  throw new IllegalArgumentException ("Only arguments Slow, Medium, or Fast is accepted.");
+	}
   }
 
   // unused
@@ -454,6 +501,33 @@ public class BeatItCustomGame extends RuleModel{
 
   @Override
   public void customizedPainting() {
+	drawBackground();
+
+	World world = config.getWorld();
+	for(Body b = world.getBodyList(); b!= null; b = b.getNext()) {
+	  if(b.getUserData() != null && b.getUserData() instanceof BeatPads){
+		drawPads(b);
+	  }
+	  else if(b.getUserData() != null && b.getUserData() instanceof Beats){
+		drawBeats(b);
+	  }
+	}
+  }
+
+  private void drawBackground() {
+	renderer.drawStaticBackgroundImage(backgroundImage);
+  }
+
+  private void drawPads(Body body) {
+	renderer.drawImage(body.getWorldCenter(), 5, 5, padImages, 0);
+  }
+  
+  private void drawBeats(Body body) {
+	renderer.drawImage(body.getWorldCenter(), 5, 5, beatImages, 0);
+	  if (body.getPosition().y < -5.2) {
+		config.getWorld().destroyBody(body);
+		missed++; //TODO: Fix play again function
+	  }
   }
 
 }

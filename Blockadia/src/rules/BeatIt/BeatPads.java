@@ -1,36 +1,32 @@
 package rules.BeatIt;
 
-import java.awt.Color;
-
 import org.jbox2d.dynamics.Body;
 
-public class Beats {
+public class BeatPads {
 
   public static final int BeatsIndex = -3;
 
-  public Color beatColor;
-  private Body beatsBody;
+  private Body beatsPadBody;
   private int timing;
   public static enum Position {
 	A, S, SPACE, K, L
   }
   private Position position;
 
-  public Beats(){
-	this.beatsBody = null;
+  public BeatPads(){
+	this.beatsPadBody = null;
 	timing = 0;
 	position = Position.A;
   }
-
-  public Beats(int timing, Position position) {
-	this.timing = timing;
+  
+  public BeatPads(Position position) {
 	this.position = position;
   }
 
-  public Body getBeatsBody() {
-	return beatsBody;
+  public Body getBeatsPadBody() {
+	return beatsPadBody;
   }
-
+  
   public int getPositionCoordinates (String position) {
 	int coord = 10;
 	if (position.equalsIgnoreCase("A")) {
@@ -63,11 +59,8 @@ public class Beats {
   }
 
   public void setBeatsBody(Body beatsBody) {
-	this.beatsBody = beatsBody;
-	this.beatsBody.setUserData(this);
-  }
-
-  public static void main(String[] args) {
+	this.beatsPadBody = beatsBody;
+	this.beatsPadBody.setUserData(this);
   }
 
   public void setPosition(String position) {
@@ -94,39 +87,6 @@ public class Beats {
 
   public Position getPosition() {
 	return position;
-  }
-
-  public int getTiming() {
-	return timing;
-  }
-
-  public void setRandomPosition() {
-	int rand = ((int)(Math.random()*1000))%5;
-	switch (rand) {
-	case 0:  
-	  this.position = Position.A;
-	  break;
-	case 1:  
-	  this.position = Position.S;
-	  break;
-	case 2:  
-	  this.position = Position.SPACE;
-	  break;
-	case 3:  
-	  this.position = Position.K;
-	  break;
-	case 4:  
-	  this.position = Position.L;
-	  break;
-	default: 
-	  break;
-	}
-  }
-
-  public void print() {
-	//System.out.println("Timing: " + timing + "\tPosition" + position);
-	System.out.println( "beat = new Beats(" + timing + ", Position." + position + ");" + 
-						"\nbeatsQueue.add(beat);");
   }
 
 }
