@@ -41,21 +41,21 @@ import framework.GameModel;
 public class GameConfig extends BuildConfig implements ContactListener{
 
   // keep these static so we don't have to recreate them every time
- 
+
   @Override
   public void init(World world){
-	
+
 	pointCount = 0;
 
 	world.setContactListener(this);
-	//TODO: let's use the default debugdraw renderer first. Write our own renderer later
+
 	world.setDebugDraw(GameModel.getGamePanelRenderer());
 
-	if(hasCachedCamera){
-	  setCamera(cachedCameraPos, cachedCameraScale);
-	}else{
-	  setCamera(getDefaultCameraPos(), getDefaultCameraScale());
-	}
+	//	if(hasCachedCamera){
+	//	  setCamera(cachedCameraPos, cachedCameraScale);
+	//	}else{
+	setCamera(getDefaultCameraPos(), getDefaultCameraScale());
+	//	}
 
 	initConfig();
   }
@@ -71,11 +71,11 @@ public class GameConfig extends BuildConfig implements ContactListener{
 		block.createBlockInWorld(getWorld());
 	  }
 	}
-	
+
 	for (int i = 0; i < MAX_CONTACT_POINTS; i++) {
 	  points[i] = new ContactPoint();
 	}
-	
+
 	//initDomino();
 	//initBolbTest();
 	//initCompoundShape();
@@ -133,7 +133,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
   private void mouseWheelMove(Vec2 pos, MouseWheelEvent e){
 	rule.mouseWheelMove(pos,e);
   }
-  
+
   private void mouseUp(Vec2 pos, MouseEvent e) {
 	rule.mouseUp(pos, e);
   }
@@ -163,6 +163,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	debugDraw.setFlags(flags);
 
 	settings.setWorldOptions(world);
+    pointCount = 0;
 
 	world.step(timeStep, settings.getVelocityIterations(),settings.getPositionIterations());
 

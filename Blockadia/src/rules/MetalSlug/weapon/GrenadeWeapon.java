@@ -46,10 +46,11 @@ public class GrenadeWeapon extends Weapon{
 	  if(this.getFireTimer() <= 0){
 		World world = playerBody.getWorld();
 		Vec2 spawnPt = playerBody.getWorldPoint(new Vec2(0f, .5f));
+		
 		Bullet bullet = new Bullet();
 		bullet.setType(BulletType.Grenade);
 		bullet.setPathColor(Color.green);
-		bullet.setTravelSpeed(50);
+		bullet.setTravelSpeed(100);
 		String id = Bullet.OriginalID;
 		while(game.getBullets().containsKey(id)){
 		  id = Bullet.OriginalID;
@@ -64,7 +65,7 @@ public class GrenadeWeapon extends Weapon{
 		Vec2 velocity = worldMouse.clone();
 		velocity.subLocal(spawnPt.clone());
 		velocity.normalize();
-		velocity.mulLocal(this.getBulletDefinition().getTravelSpeed());
+		velocity.mulLocal(this.getBulletDefinition().getTravelSpeed() * (.5f + power/1f));
 		BodyDef bd = new BodyDef();
 		bd.type = BodyType.DYNAMIC;
 		bd.position = spawnPt;

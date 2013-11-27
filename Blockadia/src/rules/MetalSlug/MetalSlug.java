@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.Manifold;
+import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Mat22;
 import org.jbox2d.common.OBBViewportTransform;
@@ -64,7 +65,7 @@ public class MetalSlug extends RuleModel{
 
   //Player
   private Player player;
-  private boolean onTheAir;
+  private int numFootContacts;
   private boolean shooting;
   private boolean throwingGrenade;
   private int grenadeCharger;
@@ -112,12 +113,13 @@ public class MetalSlug extends RuleModel{
 
   private void initPlayer() {
 	player = new Player();
-	onTheAir = false;
+	//onTheAir = false;
+	numFootContacts = 0;
 	shooting = false;
 	throwingGrenade = false;
 
 	PolygonShape shape = new PolygonShape();
-	shape.setAsBox(1f, 1f);
+	shape.setAsBox(.5f, 1f);
 
 	BodyDef bd = new BodyDef();
 	bd.position = mapManager.getMap().getStartPoint();
@@ -127,11 +129,19 @@ public class MetalSlug extends RuleModel{
 	FixtureDef fd = new FixtureDef();
 	fd.shape = shape;
 	fd.friction = 0f;
-	fd.restitution = .05f;
+	fd.restitution = 0f;
 	fd.density = 1f;
 	fd.filter.groupIndex = Player.PlayerGroupIndex;
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
+
+	//foot sensor:
+	PolygonShape senter = new PolygonShape();
+	senter.setAsBox(.15f, .15f, new Vec2(0,-1f), 0f);
+	fd = new FixtureDef();
+	fd.shape = senter;
+	fd.isSensor = true;
+	player.setSensor(player.getPlayerBody().createFixture(fd));
 	oldPlayerPos = player.getPlayerBody().getWorldCenter().clone();
   }
 
@@ -162,47 +172,53 @@ public class MetalSlug extends RuleModel{
 	}
   }
 
+  public Map<String, Bullet> getBullets() {
+	return bullets;
+  }
+
+  public void setBullets(Map<String, Bullet> bullets) {
+	this.bullets = bullets;
+  }
+
+  public boolean isShooting(){
+	return this.shooting;
+  }
+
   @Override
   public void step() {
 	if(model.pause) return;
 
-	//if there is a reloading on currWeapon, handle it
-	if(player.getCurrWeapon().isReloading() && !throwingGrenade){
-	  player.getCurrWeapon().reload();
-	}
-	if(player.getCurrWeapon().getFireTimer() > 0){
-	  player.getCurrWeapon().setFireTimer(player.getCurrWeapon().getFireTimer()-1);
-	}
+	//check inputs
+	//game logic
+	//box2d
+	//render scence
 
-	handleInputs();
-	handlePlayerEvents();
-
-	if(! oldPlayerPos.equals(player.getPlayerBody().getWorldCenter())){
-	  Vec2 movement = player.getPlayerBody().getWorldCenter().clone().sub(oldPlayerPos);
-	  view.setCenter(view.getCenter().add(movement));
-	  config.setCachedCameraPos(view.getCenter().clone());
-	  oldPlayerPos = player.getPlayerBody().getWorldCenter().clone();
-	}
-
-
-	for(Map.Entry<String, Bullet> bulletEntry : bullets.entrySet()){
-	  Bullet bullet = bulletEntry.getValue();
-	  if(bullet.getBulletBody() != null && bullet.getPath() != null){
-		if(!bullet.getPath().peekFirst().equals(bullet.getBulletBody().getWorldCenter())){
-		  bullet.getPath().addLast(bullet.getBulletBody().getWorldCenter().clone());
-		  if(bullet.getPath().size() > 10){
-			bullet.getPath().pop();
-		  }
-		  if(bullet.getType() != BulletType.Grenade){
-			bullet.drawPath(renderer);
-		  }
-		  else{
-			bullet.drawGrenadePath(renderer);
-		  }
-		}
+	//check if the player is onStair
+	boolean onStair = false;
+	for(Ground ground : player.getGroundsUnderFoot()){
+	  if(ground.getType() == GroundType.Stair){
+		onStair = true;
+		break;
 	  }
 	}
+	if(onStair){
+	  player.getPlayerBody().m_gravityScale = 0f;
+	}
+	else{
+	  player.getPlayerBody().m_gravityScale = 10f;
+	}
 
+	reloadWeapon();
+	handleInputs();
+	handlePlayerEvents();
+	renderBulletPath();
+	handleCollisionContacts();
+	updateView();
+	
+	timeStep++;
+  }
+
+  private void handleCollisionContacts() {
 	HashSet<Body> nuke = new HashSet<Body>();
 	for (int i = 0; i < config.getPointCount(); i++) {
 	  ContactPoint point = config.points[i];
@@ -231,20 +247,47 @@ public class MetalSlug extends RuleModel{
 
 	  config.getWorld().destroyBody(b);
 	}
-
-	timeStep++;
   }
 
-  public Map<String, Bullet> getBullets() {
-	return bullets;
+  private void renderBulletPath() {
+	//draw bullet & grenade path
+	for(Map.Entry<String, Bullet> bulletEntry : bullets.entrySet()){
+	  Bullet bullet = bulletEntry.getValue();
+	  if(bullet.getBulletBody() != null && bullet.getPath() != null){
+		if(!bullet.getPath().peekFirst().equals(bullet.getBulletBody().getWorldCenter())){
+		  bullet.getPath().addLast(bullet.getBulletBody().getWorldCenter().clone());
+		  if(bullet.getPath().size() > 10){
+			bullet.getPath().pop();
+		  }
+		  if(bullet.getType() != BulletType.Grenade){
+			bullet.drawPath(renderer);
+		  }
+		  else{
+			bullet.drawGrenadePath(renderer);
+		  }
+		}
+	  }
+	}
   }
 
-  public void setBullets(Map<String, Bullet> bullets) {
-	this.bullets = bullets;
+  private void updateView() {
+	//view following player
+	if(!oldPlayerPos.equals(player.getPlayerBody().getWorldCenter())){
+	  Vec2 movement = player.getPlayerBody().getWorldCenter().clone().sub(oldPlayerPos);
+	  view.setCenter(view.getCenter().add(movement));
+	  config.setCachedCameraPos(view.getCenter().clone());
+	  oldPlayerPos = player.getPlayerBody().getWorldCenter().clone();
+	}
   }
 
-  public boolean isShooting(){
-	return this.shooting;
+  private void reloadWeapon() {	
+	//if there is a reloading on currWeapon, handle it
+	if(player.getCurrWeapon().isReloading() && !throwingGrenade){
+	  player.getCurrWeapon().reload();
+	}
+	if(player.getCurrWeapon().getFireTimer() > 0){
+	  player.getCurrWeapon().setFireTimer(player.getCurrWeapon().getFireTimer()-1);
+	}
   }
 
   private void handleInputs() {	
@@ -336,7 +379,7 @@ public class MetalSlug extends RuleModel{
 		  if(player.getCurrWeapon().getNumOfAmmo() > 0){
 			player.getCurrWeapon().setAmmoInClip(1);
 		  }else{
-			Log.print("ima out!");
+			Log.print("im out!");
 		  }
 
 		  grenadeCharger = 0;
@@ -354,9 +397,8 @@ public class MetalSlug extends RuleModel{
 		player.getPlayerBody().setLinearVelocity(new Vec2(player.getRunSpeed(), player.getPlayerBody().getLinearVelocity().y));
 		break;
 	  case Jump:
-		if(onTheAir) return;
+		if ( numFootContacts < 1 ) return;
 		player.getPlayerBody().setLinearVelocity(new Vec2(player.getPlayerBody().getLinearVelocity().x, player.getJumpPower()));
-		onTheAir = true;
 		break;
 	  default:
 		player.getPlayerBody().setLinearVelocity(new Vec2(0f, player.getPlayerBody().getLinearVelocity().y));
@@ -367,13 +409,59 @@ public class MetalSlug extends RuleModel{
 
   @Override
   public void beginContact(Contact contact) {
+	Object userData = contact.getFixtureA().getUserData();
+	Object userData2 = contact.getFixtureB().getBody().getUserData();
 
+	if(userData != null && (int)userData == Player.PlayerFootSensor){
+	  numFootContacts++;
+	  if(userData2 != null && userData2 instanceof Ground){
+		player.getGroundsUnderFoot().add((Ground)userData2);
+	  }
+	}
+
+	userData = contact.getFixtureB().getUserData();
+	userData2 = contact.getFixtureA().getBody().getUserData();
+	if(userData != null && (int)userData == Player.PlayerFootSensor){
+	  numFootContacts++;
+	  if(userData2 != null && userData2 instanceof Ground){
+		player.getGroundsUnderFoot().add((Ground)userData2);
+	  }
+	}
   }
 
   @Override
   public void endContact(Contact contact) {
+	Object userData = contact.getFixtureA().getUserData();
+	if(userData != null && (int)userData == Player.PlayerFootSensor){
+	  numFootContacts--;
+	  player.getGroundsUnderFoot().remove(contact.m_fixtureB.getBody().getUserData());
+	}
 
+	userData = contact.getFixtureB().getUserData();
+	if(userData != null && (int)userData == Player.PlayerFootSensor){
+	  numFootContacts--;
+	  player.getGroundsUnderFoot().remove(contact.m_fixtureA.getBody().getUserData());
+	}
+  }
 
+  private void updateFootSensorDuringContact(Contact contact){
+	WorldManifold wm = new WorldManifold();
+	wm.initialize(contact.m_manifold, contact.m_fixtureA.m_body.getTransform(), .1f, 
+		contact.m_fixtureB.m_body.getTransform(), .1f);
+	if(contact.getManifold().pointCount == 1){
+	  Vec2 relativePoint = player.getPlayerBody().getLocalPoint(wm.points[0]);
+	  PolygonShape newShape = new PolygonShape(); 
+	  newShape.setAsBox(.15f, .15f, relativePoint, 0f);
+	  player.getSensor().m_shape = newShape;
+	}
+	else if(contact.getManifold().pointCount == 2){
+	  Vec2 relativePoint1 = player.getPlayerBody().getLocalPoint(wm.points[0]);
+	  Vec2 relativePoint2 = player.getPlayerBody().getLocalPoint(wm.points[1]);
+	  Vec2 contactPt = new Vec2((relativePoint1.x+relativePoint2.x)/2f, (relativePoint1.y+relativePoint2.y)/2f);
+	  PolygonShape newShape = new PolygonShape(); 
+	  newShape.setAsBox(.15f, .15f, contactPt, 0f);
+	  player.getSensor().m_shape = newShape;
+	}
   }
 
   @Override
@@ -383,16 +471,24 @@ public class MetalSlug extends RuleModel{
 
 	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
+		if(((Ground)body2.getUserData()).getType() == GroundType.Stair){
+		  updateFootSensorDuringContact(contact);
+		}
+
 		if(((Ground)body2.getUserData()).getType() == GroundType.Ground){
-		  onTheAir = false;
+		  updateFootSensorDuringContact(contact);
 		}
 	  }
 	}
 
 	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
+		if(((Ground)body1.getUserData()).getType() == GroundType.Stair){
+		  updateFootSensorDuringContact(contact);
+		}
+
 		if(((Ground)body1.getUserData()).getType() == GroundType.Ground){
-		  onTheAir = false;
+		  updateFootSensorDuringContact(contact);
 		}
 	  }
 	}

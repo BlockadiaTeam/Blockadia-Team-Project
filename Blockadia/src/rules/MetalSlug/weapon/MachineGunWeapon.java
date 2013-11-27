@@ -11,6 +11,7 @@ import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
 import rules.MetalSlug.MetalSlug;
+import rules.MetalSlug.weapon.Bullet.BulletType;
 
 public class MachineGunWeapon extends Weapon{
   
@@ -44,6 +45,7 @@ public class MachineGunWeapon extends Weapon{
 		World world = playerBody.getWorld();
 		Vec2 spawnPt = playerBody.getWorldPoint(new Vec2(0f, .5f));
 		Bullet bullet = new Bullet();
+		bullet.setType(BulletType.MachineGunBullet);
 		bullet.setPathColor(Color.yellow);
 		bullet.setTravelSpeed(50);
 		String id = Bullet.OriginalID;

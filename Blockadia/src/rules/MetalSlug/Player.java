@@ -1,7 +1,11 @@
 package rules.MetalSlug;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.Fixture;
 
 import rules.MetalSlug.weapon.GrenadeWeapon;
 import rules.MetalSlug.weapon.HandGunWeapon;
@@ -12,11 +16,15 @@ import utility.Log;
 public class Player {
   public static final String OriginalID = "Player-0000";
   public static final int PlayerGroupIndex = -1;
+  public static final int PlayerFootSensor = 3;
   
   private String id;
   private Body playerBody = null;
+  private Fixture sensor = null;
   private float runSpeed;
   private float jumpPower;
+  private List<Ground> groundsUnderFoot;
+//  private Ground stepOn;
 
   private Weapon[] weapons;
   private Weapon currWeapon;
@@ -30,8 +38,11 @@ public class Player {
   public Player(String newId){
 	id = newId;
 	playerBody = null;
+	sensor = null;
 	runSpeed = 10f;
 	jumpPower = 25f;
+	groundsUnderFoot = new ArrayList<Ground>();
+	//stepOn = null;
 
 	//TODO:
 	weapons = new Weapon[4];//1. main, 2. sec, 3. timer, 4. knife
@@ -166,6 +177,31 @@ public class Player {
 	this.prevWeapon = prevWeapon;
   }
 
+//  public Ground getStepOn() {
+//	return stepOn;
+//  }
+//
+//  public void setStepOn(Ground stepOn) {
+//	this.stepOn = stepOn;
+//  }
+
+  public Fixture getSensor() {
+	return sensor;
+  }
+
+  public void setSensor(Fixture sensor) {
+	this.sensor = sensor;
+	this.sensor.setUserData(Player.PlayerFootSensor);
+  }
+
+  public List<Ground> getGroundsUnderFoot() {
+	return groundsUnderFoot;
+  }
+
+  public void setGroundsUnderFoot(List<Ground> groundsUnderFoot) {
+	this.groundsUnderFoot = groundsUnderFoot;
+  }
+
   @Override
   public boolean equals(Object obj){
 	if(obj == null) return false;
@@ -177,5 +213,4 @@ public class Player {
 
 	return true;
   }
-
 }

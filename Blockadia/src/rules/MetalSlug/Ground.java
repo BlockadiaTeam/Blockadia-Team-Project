@@ -10,7 +10,7 @@ public class Ground {
   public static final String OriginalID = "Ground-0000";
   
   public static enum GroundType{
-	Ground, Side;
+	Ground, Side, Stair, Ladder;
   }
   
   private String id;
