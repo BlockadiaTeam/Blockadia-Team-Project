@@ -1,14 +1,11 @@
 package rules.BeatIt;
 
-import java.awt.Color;
-
 import org.jbox2d.dynamics.Body;
 
 public class Beats {
 
   public static final int BeatsIndex = -3;
 
-  public Color beatColor;
   private Body beatsBody;
   private int timing;
   public static enum Position {
@@ -64,10 +61,6 @@ public class Beats {
 
   public void setBeatsBody(Body beatsBody) {
 	this.beatsBody = beatsBody;
-	this.beatsBody.setUserData(this);
-  }
-
-  public static void main(String[] args) {
   }
 
   public void setPosition(String position) {

@@ -92,7 +92,7 @@ public class BeatItCustomGame extends RuleModel{
   }
 
   public BeatItCustomGame(BuildConfig buildConfig, GameModel model){
-	songName = "Hatsune Miku - World Is Mine.wav";
+	songName = "/rules/BeatIt/Music/Hatsune Miku - World Is Mine.wav";
 	this.config = buildConfig;
 	this.model = model;
 	this.editable = true;

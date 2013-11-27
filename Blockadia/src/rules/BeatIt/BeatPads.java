@@ -7,7 +7,6 @@ public class BeatPads {
   public static final int BeatsIndex = -3;
 
   private Body beatsPadBody;
-  private int timing;
   public static enum Position {
 	A, S, SPACE, K, L
   }
@@ -15,7 +14,6 @@ public class BeatPads {
 
   public BeatPads(){
 	this.beatsPadBody = null;
-	timing = 0;
 	position = Position.A;
   }
   

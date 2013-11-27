@@ -29,17 +29,18 @@ import prereference.Setting;
 import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.BeatIt.Beats.Position;
+import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
+import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
 import components.BuildConfig;
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
 
-  Queue<Beats> beatsQueue = new LinkedList<Beats>();
+  Queue<Beats> beatsQueue;
   Queue<Object> used = new LinkedList<Object>();
   Set<Beats> hitSet = new HashSet<Beats>();
 
-  private static boolean play = false;
   private static int time;
   private int countDown;
   private int missed;
@@ -49,7 +50,6 @@ public class BeatItGame extends RuleModel{
   private static BuildConfig config;
   private GameModel model;
   private int passed;
-  private int endTime;
   private boolean keyFlag;
 
   private static FixtureDef fd = new FixtureDef();
@@ -78,25 +78,22 @@ public class BeatItGame extends RuleModel{
   private Body diamondPad;
   private Body circlePad;
   private Body pentagonPad;
-  
-  private String backgroundImageLocation;
-  private String padImageLocation;
-  private String beatImageLocation;
 
-  private ImageIcon padStar = null;
-  private ImageIcon blueStar = null;
-  private ImageIcon background = null;
+  private ImageIcon padImageIcon = null;
+  private ImageIcon beatImageIcon = null;
+  private ImageIcon backgroundImageIcon = null;
   private Image backgroundImage = null;
-  private Image beatImages = null;
-  private Image padImages = null;
+  private Image beatImage = null;
+  private Image padImage = null;
   private CustomizedRenderer renderer = null;
+
+  private Song song;
 
   public static enum Difficulty{
 	Easy, Medium, Hard
   }
 
   public BeatItGame(BuildConfig buildConfig, GameModel model){
-	songName = "Hatsune Miku - World Is Mine.wav";
 	this.config = buildConfig;
 	this.model = model;
 	this.editable = true;
@@ -104,14 +101,22 @@ public class BeatItGame extends RuleModel{
 	countDown = 120;
 	time = 0;
 
+	setSongAndTheme();
+	setSpeed("medium");
 	init();
+	startGame();
   }
-  
-  public void setSongAndTheme(String song, String background, String pads, String beats) {
-	songName = song;
-	backgroundImageLocation = background;
-	padImageLocation = pads;
-	beatImageLocation = beats;
+
+  public void setSongAndTheme() {
+	song = new Hatsune_Miku_World_Is_Mine();
+	songName = song.getSong();
+	padImageIcon = new ImageIcon(getClass().getResource(song.getPadImage()));
+	beatImageIcon = new ImageIcon(getClass().getResource(song.getBeatsImage()));
+	backgroundImageIcon = new ImageIcon(getClass().getResource(song.getBackground()));
+	padImage = padImageIcon.getImage();
+	beatImage = beatImageIcon.getImage();
+	backgroundImage = backgroundImageIcon.getImage();
+	beatsQueue = song.getSteps();
   }
 
   @Override
@@ -135,14 +140,7 @@ public class BeatItGame extends RuleModel{
 	  if(!drawShapes.enabled){
 		renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
 	  }
-	  padStar = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
-	  blueStar = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
-	  background = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
-	  padImages = padStar.getImage();
-	  beatImages = blueStar.getImage();
-	  backgroundImage = background.getImage();
 
-	  setSpeed("medium");
 	}
 
 	{ // Beats
@@ -267,9 +265,7 @@ public class BeatItGame extends RuleModel{
 	  startMusic();
 	}
 
-	if (play) {
-	  //gameOver();
-	}
+	//gameOver();
 
   }
 
@@ -306,80 +302,51 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void keyPressed(char c, int code) {
+	if (model.getKeys()['h']) {
+	  System.out.println(time);
+	}
 	if (!keyFlag) {
 	  keyFlag = true;
-	  if (!play) {
-		if (model.getKeys()['a']) {
-		  System.out.println("A " + time);
-		  Beats beat = new Beats(time, Position.A);
-		  beatsQueue.add(beat);
-		}
-		else if (model.getKeys()['s']) {
-		  System.out.println("S " + time);
-		  Beats beat = new Beats(time, Position.S);
-		  beatsQueue.add(beat);
-		}
-		else if (model.getCodedKeys()[32]) {
-		  System.out.println("SPACE " + time);
-		  Beats beat = new Beats(time, Position.SPACE);
-		  beatsQueue.add(beat);
-		}
-		else if (model.getKeys()['k']) {
-		  System.out.println("K " + time);
-		  Beats beat = new Beats(time, Position.K);
-		  beatsQueue.add(beat);
-		}
-		else if (model.getKeys()['l']) {
-		  System.out.println("L " + time);
-		  Beats beat = new Beats(time, Position.L);
-		  beatsQueue.add(beat);
-		}
-		else if (model.getKeys()['h']) {
-		  startGame();
-		}
-	  }
 
-	  else {
-		final AABB hittableBounds = new AABB();
-		final TestPointCallback contacted = new TestPointCallback();
-		hittableBounds.upperBound.set(30f, -3.5f);
-		hittableBounds.lowerBound.set(-30f, -5.5f);
-		for (Beats beat : beatsQueue) {
-		  contacted.point.set(beat.getBeatsBody().getPosition());
-		  contacted.fixture = null;
-		  model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
+	  final AABB hittableBounds = new AABB();
+	  final TestPointCallback contacted = new TestPointCallback();
+	  hittableBounds.upperBound.set(30f, -3.5f);
+	  hittableBounds.lowerBound.set(-30f, -5.5f);
+	  for (Beats beat : beatsQueue) {
+		contacted.point.set(beat.getBeatsBody().getPosition());
+		contacted.fixture = null;
+		model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
 
-		  if (contacted.fixture != null) {
+		if (contacted.fixture != null) {
 
-			if (beat.getPosition().equals(Position.A)) {
-			  if (model.getKeys()['a']) {
-				processHit(beat);
-				System.out.println("You hit A");
-			  }
+		  if (beat.getPosition().equals(Position.A)) {
+			if (model.getKeys()['a']) {
+			  processHit(beat);
+			  System.out.println("You hit A");
 			}
-			else if (beat.getPosition().equals(Position.S)) {
-			  if (model.getKeys()['s']) {
-				processHit(beat);
-				System.out.println("You hit S");
-			  }
+		  }
+		  else if (beat.getPosition().equals(Position.S)) {
+			if (model.getKeys()['s']) {
+			  processHit(beat);
+			  System.out.println("You hit S");
 			}
-			else if (beat.getPosition().equals(Position.SPACE)) {
-			  if (model.getCodedKeys()[32]) {
-				processHit(beat);
-				System.out.println("You hit SPACE");
-			  }
+		  }
+		  else if (beat.getPosition().equals(Position.SPACE)) {
+			if (model.getCodedKeys()[32]) {
+			  processHit(beat);
+			  System.out.println("You hit SPACE");
 			}
-			else if (beat.getPosition().equals(Position.K)) {
-			  if (model.getKeys()['k']) {
-				processHit(beat);
-				System.out.println("You hit K");
-			  }
+		  }
+		  else if (beat.getPosition().equals(Position.K)) {
+			if (model.getKeys()['k']) {
+			  processHit(beat);
+			  System.out.println("You hit K");
 			}
-			else if (beat.getPosition().equals(Position.L)) {
-			  if (model.getKeys()['l']) {
-				processHit(beat);
-				System.out.println("You hit L");
-			  }
+		  }
+		  else if (beat.getPosition().equals(Position.L)) {
+			if (model.getKeys()['l']) {
+			  processHit(beat);
+			  System.out.println("You hit L");
 			}
 		  }
 		}
@@ -388,9 +355,7 @@ public class BeatItGame extends RuleModel{
   }
 
   private void startGame() {
-	music.stop();
-	play = true;
-	missedLimit = beatsQueue.size()/2;
+	missedLimit = song.getSize()/2;
 	time = 0;
 	points = 0;
 	countDown = 120;
@@ -400,7 +365,7 @@ public class BeatItGame extends RuleModel{
 	  bd.type = BodyType.DYNAMIC;
 	  bd.linearVelocity.set(0f, velocity);
 
-	  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), gapCoef*beat.getTiming() - startOffset); // Smaller = faster
+	  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), gapCoef*beat.getTiming() - startOffset);
 	  beat.print();
 
 	  if (beat.getPosition().equals(Position.A)){
@@ -429,42 +394,35 @@ public class BeatItGame extends RuleModel{
 	passed = hitSet.size() + missed;
 	System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
 	// If you miss too many times, you lose or if game is over
-	if (missed == missedLimit || passed >= beatsQueue.size()) {
-	  System.out.println(points);
-	  JFrame frame = null;
-	  String gameOverMessage;
-	  if (missed == missedLimit) {
-		gameOverMessage = "You've missed too many beat, Bro. Better luck next game.";
+	System.out.println(points);
+	JFrame frame = null;
+	String gameOverMessage;
+//	if (missed == missedLimit) {
+//	  gameOverMessage = "You've missed too many beat, Bro. Better luck next game.";
+//	}
+	if (time == song.getDuration()) {
+
+	  music.stop();
+	  gameOverMessage = "Finished! Great job!";
+
+	  // Calculate hit accuracy rate
+	  float hitPercent = ((float)hitSet.size()/beatsQueue.size()*100);
+	  BigDecimal hitAcc = new BigDecimal(Float.toString(hitPercent));
+	  hitAcc = hitAcc.setScale(2, BigDecimal.ROUND_HALF_UP);
+
+	  // Game over popup
+	  int input = JOptionPane.showConfirmDialog(frame, gameOverMessage + "\nYour score is: " + points + 
+		  "\nBeat Accuracy: " + hitAcc + "%\nWould you like to play again?",
+		  "Game Over", JOptionPane.OK_OPTION);
+	  passed = 0;
+	  hitSet.clear();
+	  missed = 0;
+	  if (input == JOptionPane.OK_OPTION) {
+		startGame();
 	  }
 	  else {
-		gameOverMessage = "Game Over!";
+		System.exit(0);
 	  }
-	  if (time == (endTime + 20)) { // Delay 20ms before the game ends
-
-		music.stop();
-
-		// Calculate hit accuracy rate
-		float hitPercent = ((float)hitSet.size()/beatsQueue.size()*100);
-		BigDecimal hitAcc = new BigDecimal(Float.toString(hitPercent));
-		hitAcc = hitAcc.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-		// Game over popup
-		int input = JOptionPane.showConfirmDialog(frame, gameOverMessage + "\nYour score is: " + points + 
-			"\nBeat Accuracy: " + hitAcc + "%\nWould you like to play again?",
-			"Game Over", JOptionPane.OK_OPTION);
-		passed = 0;
-		hitSet.clear();
-		missed = 0;
-		if (input == JOptionPane.OK_OPTION) {
-		  startGame();
-		}
-		else {
-		  System.exit(0);
-		}
-	  }
-	}
-	else {
-	  endTime = time;
 	}
   }
 
@@ -481,7 +439,7 @@ public class BeatItGame extends RuleModel{
 	music.start();
   }
 
-  private void setSpeed(String speed){
+  private void setSpeed(String speed){ //TODO: Still needs calibration
 	if (speed.equalsIgnoreCase("slow")){
 	  velocity = -10f;
 	  startOffset = 10f;
@@ -530,11 +488,11 @@ public class BeatItGame extends RuleModel{
   }
 
   private void drawPads(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 5, 5, padImages, 0);
+	renderer.drawImage(body.getWorldCenter(), 5, 5, padImage, 0);
   }
 
   private void drawBeats(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 5, 5, beatImages, 0);
+	renderer.drawImage(body.getWorldCenter(), 5, 5, beatImage, 0);
 	if (body.getPosition().y < -5.2) {
 	  config.getWorld().destroyBody(body);
 	  missed++; //TODO: Fix play again function

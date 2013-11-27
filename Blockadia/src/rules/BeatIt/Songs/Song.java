@@ -1,5 +1,6 @@
 package rules.BeatIt.Songs;
 
+import java.util.LinkedList;
 import java.util.Queue;
 
 import rules.BeatIt.Beats;
@@ -9,25 +10,53 @@ import rules.BeatIt.Beats;
  * This is an abstract class that all songs will follow.
  */
 
-public abstract class Song {
+public abstract class Song{
+
+  protected Queue<Beats> steps = new LinkedList<Beats>();
   
   protected String song;
   protected String pads;
   protected String beats;
   protected String background;
-
-  public abstract void init();
+  protected int duration;
   
   protected abstract void populateSteps();
   
-  public abstract int getSize();
+  protected abstract void setVariables();
   
-  public abstract Queue<Beats> getSteps();
+  public int getSize(){
+	return steps.size();
+  }
   
-  public abstract String getSong();
+  public int getDuration(){
+	return duration;
+  }
   
-  public abstract String getPadImage();
+  public Queue<Beats> getSteps(){
+	return steps;
+  }
   
-  public abstract String getBeatsImage();
+  public String getSong(){
+	return song;
+  }
+  
+  public String getPadImage(){
+	return pads;
+  }
+  
+  public String getBeatsImage(){
+	return beats;
+  }
+  
+  public String getBackground(){
+	return background;
+  }
+  
+  public void print(){
+	for (Beats beat : steps) {
+	  System.out.println("Time: " + beat.getTiming() + "\tPosition: " + beat.getPosition());
+	}
+	System.out.println("Total beats: " + getSize());
+  }
   
 }
