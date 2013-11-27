@@ -1,5 +1,8 @@
 package components;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
 import org.jbox2d.callbacks.DebugDraw;
@@ -38,21 +41,21 @@ import framework.GameModel;
 public class GameConfig extends BuildConfig implements ContactListener{
 
   // keep these static so we don't have to recreate them every time
- 
+
   @Override
   public void init(World world){
-	
+
 	pointCount = 0;
 
 	world.setContactListener(this);
-	//TODO: let's use the default debugdraw renderer first. Write our own renderer later
+
 	world.setDebugDraw(GameModel.getGamePanelRenderer());
 
-	if(hasCachedCamera){
-	  setCamera(cachedCameraPos, cachedCameraScale);
-	}else{
-	  setCamera(getDefaultCameraPos(), getDefaultCameraScale());
-	}
+	//	if(hasCachedCamera){
+	//	  setCamera(cachedCameraPos, cachedCameraScale);
+	//	}else{
+	setCamera(getDefaultCameraPos(), getDefaultCameraScale());
+	//	}
 
 	initConfig();
   }
@@ -68,11 +71,11 @@ public class GameConfig extends BuildConfig implements ContactListener{
 		block.createBlockInWorld(getWorld());
 	  }
 	}
-	
+
 	for (int i = 0; i < MAX_CONTACT_POINTS; i++) {
 	  points[i] = new ContactPoint();
 	}
-	
+
 	//initDomino();
 	//initBolbTest();
 	//initCompoundShape();
@@ -86,14 +89,17 @@ public class GameConfig extends BuildConfig implements ContactListener{
 		while(!inputQueue.isEmpty()){
 		  EventQueueItem item = inputQueue.pop();
 		  switch(item.type){
+		  case MouseWheelMove:
+			mouseWheelMove(item.pos, item.mouseWheelData);
+			break;
 		  case MouseMove:
 			mouseMove(item.pos);
 			break;
 		  case MouseDown:
-			mouseDown(item.pos);
+			mouseDown(item.pos, item.mouseData);
 			break;
 		  case MouseUp:
-			mouseUp(item.pos);
+			mouseUp(item.pos, item.mouseData);
 			break;
 		  case KeyPressed:
 			keyPressed(item.c , item.code);
@@ -124,12 +130,16 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	rule.keyPressed(c, code);
   }
 
-  private void mouseUp(Vec2 pos) {
-	rule.mouseUp(pos);
+  private void mouseWheelMove(Vec2 pos, MouseWheelEvent e){
+	rule.mouseWheelMove(pos,e);
   }
 
-  private void mouseDown(Vec2 pos) {
-	rule.mouseDown(pos);
+  private void mouseUp(Vec2 pos, MouseEvent e) {
+	rule.mouseUp(pos, e);
+  }
+
+  private void mouseDown(Vec2 pos, MouseEvent e) {
+	rule.mouseDown(pos, e);
   }
 
   private void mouseMove(Vec2 pos) {
@@ -153,6 +163,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 	debugDraw.setFlags(flags);
 
 	settings.setWorldOptions(world);
+    pointCount = 0;
 
 	world.step(timeStep, settings.getVelocityIterations(),settings.getPositionIterations());
 
@@ -164,6 +175,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   @Override
   public void beginContact(Contact contact) {
+	contact.setEnabled(true);
 	rule.beginContact(contact);
   }
 

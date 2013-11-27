@@ -58,8 +58,8 @@ public class GamePanel extends JPanel implements IGamePanel{
   public static final int DEFAULT_WIDTH = 600;
   public static final int DEFAULT_HEIGHT = 600;
 
-  private static final float ZOOM_OUT_SCALE = 0.95f;
-  private static final float ZOOM_IN_SCALE = 1.05f;
+  public static final float ZOOM_OUT_SCALE = 0.95f;
+  public static final float ZOOM_IN_SCALE = 1.05f;
 
   private Graphics2D g = null;
   private Image gImage = null;
@@ -862,6 +862,16 @@ public class GamePanel extends JPanel implements IGamePanel{
 	this.requestFocus();
   }
 
+  @Override
+  public int getWidth(){
+	return GamePanel.DEFAULT_WIDTH;
+  }
+  
+  @Override
+  public int getHeight(){
+	return GamePanel.DEFAULT_HEIGHT;
+  }
+  
   @Override
   public boolean render() {
 

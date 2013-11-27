@@ -2,6 +2,8 @@ package rules.Spacecraft;
 
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -871,10 +873,10 @@ public class CrazySpacecraft extends RuleModel{
   }
 
   @Override
-  public void mouseUp(Vec2 pos) {}
+  public void mouseUp(Vec2 pos, MouseEvent mouseData) {}
 
   @Override
-  public void mouseDown(Vec2 pos) {
+  public void mouseDown(Vec2 pos, MouseEvent mouseData) {
 	//GameModel.getGamePanel().getCustomizedRenderer().drawSolidCircle(pos, 1f, null, Color.white);
   }
 
@@ -1498,5 +1500,9 @@ public class CrazySpacecraft extends RuleModel{
 		}
 	  }
 	}
+  }
+
+  @Override
+  public void mouseWheelMove(Vec2 pos, MouseWheelEvent mouseWheelData) {
   }
 }

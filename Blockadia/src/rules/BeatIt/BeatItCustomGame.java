@@ -1,6 +1,8 @@
 package rules.BeatIt;
 
 import java.awt.Image;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -30,7 +32,9 @@ import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.BeatIt.Beats.Position;
 import utility.TestPointCallback;
+
 import components.BuildConfig;
+
 import framework.GameModel;
 
 public class BeatItCustomGame extends RuleModel{
@@ -490,10 +494,13 @@ public class BeatItCustomGame extends RuleModel{
 
   // unused
   @Override
-  public void mouseUp(Vec2 pos) {
+  public void mouseWheelMove(Vec2 pos, MouseWheelEvent mouseWheelData) {
   }
   @Override
-  public void mouseDown(Vec2 pos) {
+  public void mouseUp(Vec2 pos, MouseEvent mouseData) {
+  }
+  @Override
+  public void mouseDown(Vec2 pos, MouseEvent mouseData) {
   }
   @Override
   public void mouseMove(Vec2 pos) {
@@ -529,5 +536,4 @@ public class BeatItCustomGame extends RuleModel{
 		missed++; //TODO: Fix play again function
 	  }
   }
-
 }

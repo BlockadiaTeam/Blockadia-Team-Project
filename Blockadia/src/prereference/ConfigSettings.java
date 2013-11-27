@@ -44,13 +44,13 @@ public class ConfigSettings extends Settings {
   @Override
   protected void populateDefaultSettings(){
 	addSetting(new Setting(ConfigName, "HelloWorld"));
-	addSetting(new Setting(ConfigRule, ConfigType.BeatIt));//TODO: Change back to customized later
+	addSetting(new Setting(ConfigRule, ConfigType.MetalSlug));//TODO: Change back to customized later
 	
 	//Display options:
 	addSetting(new Setting(EnableZoom, true));
 	addSetting(new Setting(EnableDragScreen, true));
 	addSetting(new Setting(ScreenMoveWithObject, false));
-	addSetting(new Setting(DefaultCameraPos, new Vec2(-30,30)));//TODO: This might change later
+	addSetting(new Setting(DefaultCameraPos, new Vec2(-30,30)));
 	addSetting(new Setting(DefaultCameraScale,10f, 0.1f, 10f));
 
 	//Game World Options:
@@ -72,7 +72,6 @@ public class ConfigSettings extends Settings {
   public void setDisplayOptions(BuildConfig config){
 	config.setEnableZoom(getSetting(ConfigSettings.EnableZoom).enabled);
 	config.setEnableDragScreen(getSetting(ConfigSettings.EnableDragScreen).enabled);
-	//ScreenMoveWithObject
 	config.setDefaultCameraPos(((Vec2)getSetting(ConfigSettings.DefaultCameraPos).value).clone());
 	config.setDefaultCameraScale((float)getSetting(ConfigSettings.DefaultCameraScale).value);
   }
@@ -111,8 +110,6 @@ public class ConfigSettings extends Settings {
 	if(getSetting(ConfigSettings.DrawJoints).enabled){
 	  flag += DebugDraw.e_jointBit;
 	}
-	
-	//flag += DebugDraw.e_dynamicTreeBit;
 	
 	return flag;
   }

@@ -1,6 +1,8 @@
 package components;
 
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,6 +18,7 @@ import org.jbox2d.dynamics.World;
 import prereference.ConfigSettings;
 import rules.RuleModel;
 import rules.BeatIt.BeatItGame;
+import rules.MetalSlug.MetalSlug;
 import rules.Spacecraft.CrazySpacecraft;
 import utility.ContactPoint;
 import utility.TestAABBCallback;
@@ -130,6 +133,10 @@ public abstract class BuildConfig {
 	  break;
 	case BeatIt:
 	  rule = new BeatItGame(this, model);
+	  //	  rule = new BeatItCustomGame(this, model);
+	  break;
+	case MetalSlug:
+	  rule = new MetalSlug(this, model);
 	  break;
 	default:
 	  return;
@@ -270,6 +277,11 @@ public abstract class BuildConfig {
 	return mouseWorld;
   }
 
+  public void queueMouseWheelMove(Vec2 pos, MouseWheelEvent e){
+	synchronized (inputQueue) {
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseWheelMove, pos, e));
+	}
+  }
 
   public void queueMouseMove(Vec2 pos){
 	synchronized (inputQueue) {
@@ -277,15 +289,15 @@ public abstract class BuildConfig {
 	}
   }
 
-  public void queueMouseDown(Vec2 pos){
+  public void queueMouseDown(Vec2 pos, MouseEvent e){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseDown, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseDown, pos, e));
 	}
   }
 
-  public void queueMouseUp(Vec2 pos){
+  public void queueMouseUp(Vec2 pos, MouseEvent e){
 	synchronized (inputQueue) {
-	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseUp, pos));
+	  inputQueue.addLast(new EventQueueItem(QueueItemType.MouseUp, pos, e));
 	}
   }
 
@@ -445,11 +457,13 @@ public abstract class BuildConfig {
 }
 
 enum QueueItemType{
-  MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
+  MouseWheelMove,MouseMove,MouseDown,MouseUp,KeyPressed,KeyReleased,KeyTyped;
 }
 
 class EventQueueItem{
   public QueueItemType type;
+  public MouseEvent mouseData;
+  public MouseWheelEvent mouseWheelData;
   public Vec2 pos;
   public char c;
   public int code;
@@ -457,6 +471,18 @@ class EventQueueItem{
   public EventQueueItem(QueueItemType type, Vec2 pos){
 	this.type = type;
 	this.pos = pos.clone();
+  }
+
+  public EventQueueItem(QueueItemType type, Vec2 pos, MouseEvent mouseData){
+	this.type = type;
+	this.pos = pos.clone();
+	this.mouseData = mouseData;
+  }
+
+  public EventQueueItem(QueueItemType type, Vec2 pos, MouseWheelEvent mouseWheelData){
+	this.type = type;
+	this.pos = pos.clone();
+	this.mouseWheelData = mouseWheelData;
   }
 
   public EventQueueItem(QueueItemType type, char c, int code){
