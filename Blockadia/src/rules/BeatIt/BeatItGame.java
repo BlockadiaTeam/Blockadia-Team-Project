@@ -35,9 +35,7 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
-
 import components.BuildConfig;
-
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -107,6 +105,7 @@ public class BeatItGame extends RuleModel{
 	time = 0;
 
 	setSongAndTheme();
+	stealthMode(true);
 	setSpeed("medium");
 	init();
 	startGame();
@@ -270,7 +269,7 @@ public class BeatItGame extends RuleModel{
 	  startMusic();
 	}
 
-	//gameOver();
+	gameOver();
 
   }
 
@@ -322,7 +321,9 @@ public class BeatItGame extends RuleModel{
 		contacted.fixture = null;
 		model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
 
-		if (contacted.fixture != null) {
+		if (contacted.fixture != null 
+			&& beat.getBeatsBody().getPosition().y < hittableBounds.upperBound.y
+			&& beat.getBeatsBody().getPosition().y > hittableBounds.lowerBound.y) {
 
 		  if (beat.getPosition().equals(Position.A)) {
 			if (model.getKeys()['a']) {
@@ -371,7 +372,7 @@ public class BeatItGame extends RuleModel{
 	  bd.linearVelocity.set(0f, velocity);
 
 	  bd.position.set(beat.getPositionCoordinates(beat.getPosition().toString()), gapCoef*beat.getTiming() - startOffset);
-	  beat.print();
+	  //beat.print();
 
 	  if (beat.getPosition().equals(Position.A)){
 		fd.shape = squareShape;
@@ -461,16 +462,28 @@ public class BeatItGame extends RuleModel{
 	  throw new IllegalArgumentException ("Only arguments Slow, Medium, or Fast is accepted.");
 	}
   }
+  
+  private void stealthMode(boolean mode) { //for when you want to play at work lol
+	if (mode) {
+		song = new Hatsune_Miku_World_Is_Mine();
+		songName = song.getSong();
+		padImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
+		beatImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
+		backgroundImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
+		padImage = padImageIcon.getImage();
+		beatImage = beatImageIcon.getImage();
+		backgroundImage = backgroundImageIcon.getImage();
+		beatsQueue = song.getSteps();
+	}
+  }
 
   // unused
   @Override
   public void mouseUp(Vec2 pos, MouseEvent mouseData) {
-
   }
 
   @Override
   public void mouseWheelMove(Vec2 pos, MouseWheelEvent mouseWheelData) {
-	
   }
 
   @Override

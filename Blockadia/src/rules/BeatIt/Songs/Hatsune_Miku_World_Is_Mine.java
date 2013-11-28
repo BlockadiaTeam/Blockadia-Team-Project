@@ -12,7 +12,7 @@ public class Hatsune_Miku_World_Is_Mine extends Song{
 
   @Override
   protected void populateSteps() {
-	Beats beat = new Beats(196, Position.K);
+	Beats beat = new Beats(196, Position.A);
 	steps.add(beat);
 	beat = new Beats(215, Position.S);
 	steps.add(beat);

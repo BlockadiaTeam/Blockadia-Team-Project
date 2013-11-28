@@ -32,9 +32,7 @@ import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.BeatIt.Beats.Position;
 import utility.TestPointCallback;
-
 import components.BuildConfig;
-
 import framework.GameModel;
 
 public class BeatItCustomGame extends RuleModel{

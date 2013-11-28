@@ -61,6 +61,7 @@ public class Beats {
 
   public void setBeatsBody(Body beatsBody) {
 	this.beatsBody = beatsBody;
+	this.beatsBody.setUserData(this);
   }
 
   public void setPosition(String position) {
