@@ -35,7 +35,9 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
+
 import components.BuildConfig;
+
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -44,6 +46,7 @@ public class BeatItGame extends RuleModel{
   Queue<Object> used = new LinkedList<Object>();
   Set<Beats> hitSet = new HashSet<Beats>();
 
+  private boolean start;
   private static int time;
   private int countDown;
   private int missed;
@@ -62,6 +65,7 @@ public class BeatItGame extends RuleModel{
   private static CircleShape circleShape = new CircleShape();
   private static PolygonShape pentagonShape = new PolygonShape();
 
+  private AudioPlayer pregame;
   private AudioPlayer music; 
   private String songName;
 
@@ -85,9 +89,11 @@ public class BeatItGame extends RuleModel{
   private ImageIcon padImageIcon = null;
   private ImageIcon beatImageIcon = null;
   private ImageIcon backgroundImageIcon = null;
+  private ImageIcon pregameImageIcon = null;
   private Image backgroundImage = null;
   private Image beatImage = null;
   private Image padImage = null;
+  private Image pregameImage = null;
   private CustomizedRenderer renderer = null;
 
   private Song song;
@@ -101,11 +107,11 @@ public class BeatItGame extends RuleModel{
 	this.model = model;
 	this.editable = true;
 	points = 0;
-	countDown = 120;
+	countDown = 210;
 	time = 0;
 
 	setSongAndTheme();
-	stealthMode(true);
+	stealthMode(false);
 	setSpeed("medium");
 	init();
 	startGame();
@@ -117,9 +123,11 @@ public class BeatItGame extends RuleModel{
 	padImageIcon = new ImageIcon(getClass().getResource(song.getPadImage()));
 	beatImageIcon = new ImageIcon(getClass().getResource(song.getBeatsImage()));
 	backgroundImageIcon = new ImageIcon(getClass().getResource(song.getBackground()));
+	pregameImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Pregame-Screen.jpg"));
 	padImage = padImageIcon.getImage();
 	beatImage = beatImageIcon.getImage();
 	backgroundImage = backgroundImageIcon.getImage();
+	pregameImage = pregameImageIcon.getImage();
 	beatsQueue = song.getSteps();
   }
 
@@ -144,6 +152,9 @@ public class BeatItGame extends RuleModel{
 	  if(!drawShapes.enabled){
 		renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
 	  }
+
+	  pregame = new AudioPlayer("/rules/BeatIt/Music/pregame.wav");
+	  pregame.start();
 
 	}
 
@@ -321,9 +332,7 @@ public class BeatItGame extends RuleModel{
 		contacted.fixture = null;
 		model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
 
-		if (contacted.fixture != null 
-			&& beat.getBeatsBody().getPosition().y < hittableBounds.upperBound.y
-			&& beat.getBeatsBody().getPosition().y > hittableBounds.lowerBound.y) {
+		if (contacted.fixture != null) {
 
 		  if (beat.getPosition().equals(Position.A)) {
 			if (model.getKeys()['a']) {
@@ -364,7 +373,7 @@ public class BeatItGame extends RuleModel{
 	missedLimit = song.getSize()/2;
 	time = 0;
 	points = 0;
-	countDown = 120;
+	countDown = 210;
 	System.out.println(beatsQueue.size());
 	for(Beats beat : beatsQueue){
 	  BodyDef bd = new BodyDef();
@@ -403,9 +412,9 @@ public class BeatItGame extends RuleModel{
 	System.out.println(points);
 	JFrame frame = null;
 	String gameOverMessage;
-//	if (missed == missedLimit) {
-//	  gameOverMessage = "You've missed too many beat, Bro. Better luck next game.";
-//	}
+	//	if (missed == missedLimit) {
+	//	  gameOverMessage = "You've missed too many beat, Bro. Better luck next game.";
+	//	}
 	if (time == song.getDuration()) {
 
 	  music.stop();
@@ -441,18 +450,19 @@ public class BeatItGame extends RuleModel{
   }
 
   private void startMusic() {
+	start = true;
 	music = new AudioPlayer(songName);
 	music.start();
   }
 
-  private void setSpeed(String speed){ //TODO: Still needs calibration
+  private void setSpeed(String speed){ //TODO: Slow and Fast still needs calibration
 	if (speed.equalsIgnoreCase("slow")){
 	  velocity = -10f;
 	  startOffset = 10f;
 	  gapCoef = 0.2f;
 	} else if (speed.equalsIgnoreCase("medium")){
 	  velocity = -30f;
-	  startOffset = 10f;
+	  startOffset = -40f;
 	  gapCoef = 0.5f;
 	} else if (speed.equalsIgnoreCase("fast")){
 	  velocity = -60f;
@@ -462,18 +472,18 @@ public class BeatItGame extends RuleModel{
 	  throw new IllegalArgumentException ("Only arguments Slow, Medium, or Fast is accepted.");
 	}
   }
-  
+
   private void stealthMode(boolean mode) { //for when you want to play at work lol
 	if (mode) {
-		song = new Hatsune_Miku_World_Is_Mine();
-		songName = song.getSong();
-		padImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
-		beatImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
-		backgroundImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
-		padImage = padImageIcon.getImage();
-		beatImage = beatImageIcon.getImage();
-		backgroundImage = backgroundImageIcon.getImage();
-		beatsQueue = song.getSteps();
+	  song = new Hatsune_Miku_World_Is_Mine();
+	  songName = song.getSong();
+	  padImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
+	  beatImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
+	  backgroundImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
+	  padImage = padImageIcon.getImage();
+	  beatImage = beatImageIcon.getImage();
+	  backgroundImage = backgroundImageIcon.getImage();
+	  beatsQueue = song.getSteps();
 	}
   }
 
@@ -496,17 +506,24 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void customizedPainting() {
-	drawBackground();
+	drawPregameScreen();
 
-	World world = config.getWorld();
-	for(Body b = world.getBodyList(); b!= null; b = b.getNext()) {
-	  if(b.getUserData() != null && b.getUserData() instanceof BeatPads){
-		drawPads(b);
-	  }
-	  else if(b.getUserData() != null && b.getUserData() instanceof Beats){
-		drawBeats(b);
+	if (start){
+	  drawBackground();
+	  World world = config.getWorld();
+	  for(Body b = world.getBodyList(); b!= null; b = b.getNext()) {
+		if(b.getUserData() != null && b.getUserData() instanceof BeatPads){
+		  drawPads(b);
+		}
+		else if(b.getUserData() != null && b.getUserData() instanceof Beats){
+		  drawBeats(b);
+		}
 	  }
 	}
+  }
+
+  private void drawPregameScreen() {
+	renderer.drawStaticBackgroundImage(pregameImage);
   }
 
   private void drawBackground() {
@@ -514,11 +531,11 @@ public class BeatItGame extends RuleModel{
   }
 
   private void drawPads(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 5, 5, padImage, 0);
+	renderer.drawImage(body.getWorldCenter(), 8, 8, padImage, 0);
   }
 
   private void drawBeats(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 5, 5, beatImage, 0);
+	renderer.drawImage(body.getWorldCenter(), 8, 8, beatImage, 0);
 	if (body.getPosition().y < -5.2) {
 	  config.getWorld().destroyBody(body);
 	  missed++; //TODO: Fix play again function
