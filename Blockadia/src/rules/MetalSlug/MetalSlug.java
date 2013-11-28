@@ -30,6 +30,7 @@ import prereference.Setting;
 import render.CustomizedRenderer;
 import rules.RuleModel;
 import rules.MetalSlug.Ground.GroundType;
+import rules.MetalSlug.Ground.StairOrientation;
 import rules.MetalSlug.events.PlayerEvent;
 import rules.MetalSlug.events.PlayerEvent.EventType;
 import rules.MetalSlug.maps.MapManager;
@@ -137,7 +138,7 @@ public class MetalSlug extends RuleModel{
 
 	//foot sensor:
 	PolygonShape senter = new PolygonShape();
-	senter.setAsBox(.15f, .15f, new Vec2(0,-1f), 0f);
+	senter.setAsBox(.5f, .15f, new Vec2(0,-1f), 0f);
 	fd = new FixtureDef();
 	fd.shape = senter;
 	fd.isSensor = true;
@@ -156,7 +157,7 @@ public class MetalSlug extends RuleModel{
 	cameraScale.maxValue = 25f;
 	cameraScale.minValue = 5f;
 
-	Vec2 offset = new Vec2((panel.getWidth()/2)/(float)cameraScale.value, -(float)(3* panel.getHeight()/4)/(float)cameraScale.value);	
+	Vec2 offset = new Vec2((panel.getWidth()/2)/(float)cameraScale.value, -(float)(3* panel.getHeight()/5)/(float)cameraScale.value);	
 	cameraPos.value = mapManager.getMap().getStartPoint().sub(offset);
 	enableDrag.enabled = false;
 	enableZoom.enabled = false;	
@@ -194,19 +195,19 @@ public class MetalSlug extends RuleModel{
 	//render scence
 
 	//check if the player is onStair
-	boolean onStair = false;
-	for(Ground ground : player.getGroundsUnderFoot()){
-	  if(ground.getType() == GroundType.Stair){
-		onStair = true;
-		break;
-	  }
-	}
-	if(onStair){
-	  player.getPlayerBody().m_gravityScale = 0f;
-	}
-	else{
-	  player.getPlayerBody().m_gravityScale = 10f;
-	}
+	//	boolean onStair = false;
+	//	for(Ground ground : player.getGroundsUnderFoot()){
+	//	  if(ground.getType() == GroundType.Stair){
+	//		onStair = true;
+	//		break;
+	//	  }
+	//	}
+	//	if(onStair){
+	//	  player.getPlayerBody().m_gravityScale = 0f;
+	//	}
+	//	else{
+	//	  player.getPlayerBody().m_gravityScale = 10f;
+	//	}
 
 	reloadWeapon();
 	handleInputs();
@@ -214,7 +215,7 @@ public class MetalSlug extends RuleModel{
 	renderBulletPath();
 	handleCollisionContacts();
 	updateView();
-	
+
 	timeStep++;
   }
 
@@ -234,6 +235,43 @@ public class MetalSlug extends RuleModel{
 	  }
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
 		if(((Bullet)body2.getUserData()).getType() != BulletType.Grenade){
+
+		  if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
+			if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
+			  Ground ground = (Ground) body1.getUserData();
+			  if(ground.getType() == GroundType.Stair){
+				if(ground.getOrientation() == StairOrientation.TiltRight){
+				  Vec2[] vertices = ((PolygonShape)ground.getFixtureDef().shape).m_vertices;
+				  Vec2 point1 = vertices[0].clone();
+				  Vec2 point2 = new Vec2();
+				  for(int j = 1; j < vertices.length; j++){
+					if(vertices[j].x != point1.x && vertices[j].y != point1.y){
+					  point2 = vertices[j].clone();
+					  break;
+					}
+				  }
+				  // get the linear equation
+				  float slope = (point2.y - point1.y)/(point2.x - point1.x);
+				  float offset = point1.y - slope* point1.x;
+				  // test which side the point is
+				  Vec2 pt = body2.getWorldCenter().clone();
+				  float yOnLine = slope * pt.x + offset;
+				  if(yOnLine > pt.y){
+					//nuke.add(body2);
+				  }
+				  else if(yOnLine < pt.y){
+					nuke.add(body2);
+					return;
+				  }
+				}
+				else if(ground.getOrientation() == StairOrientation.TiltLeft){
+
+				}
+			  }
+			}
+		  }
+
+
 		  nuke.add(body2);
 		}
 	  }
@@ -472,11 +510,9 @@ public class MetalSlug extends RuleModel{
 	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
 	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
 		if(((Ground)body2.getUserData()).getType() == GroundType.Stair){
-		  updateFootSensorDuringContact(contact);
 		}
 
 		if(((Ground)body2.getUserData()).getType() == GroundType.Ground){
-		  updateFootSensorDuringContact(contact);
 		}
 	  }
 	}
@@ -484,11 +520,44 @@ public class MetalSlug extends RuleModel{
 	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
 		if(((Ground)body1.getUserData()).getType() == GroundType.Stair){
-		  updateFootSensorDuringContact(contact);
 		}
 
 		if(((Ground)body1.getUserData()).getType() == GroundType.Ground){
-		  updateFootSensorDuringContact(contact);
+		}
+	  }
+	}
+
+	if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
+	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
+		Ground ground = (Ground) body1.getUserData();
+		if(ground.getType() == GroundType.Stair){
+		  if(ground.getOrientation() == StairOrientation.TiltRight){
+			Vec2[] vertices = ((PolygonShape)ground.getFixtureDef().shape).m_vertices;
+			Vec2 point1 = vertices[0].clone();
+			Vec2 point2 = new Vec2();
+			for(int i = 1; i < vertices.length; i++){
+			  if(vertices[i].x != point1.x && vertices[i].y != point1.y){
+				Log.print("point2 is: "+ vertices[i].toString());
+				point2 = vertices[i].clone();
+				break;
+			  }
+			}
+			// get the linear equation
+			float slope = (point2.y - point1.y)/(point2.x - point1.x);
+			float offset = point1.y - slope* point1.x;
+			// test which side the point is
+			Vec2 pt = body2.getWorldCenter().clone();
+			float yOnLine = slope * pt.x + offset;
+			if(yOnLine > pt.y){
+			  contact.setEnabled(false);
+			}
+			else if(yOnLine < pt.y){
+			  contact.setEnabled(true);
+			}
+		  }
+		  else if(ground.getOrientation() == StairOrientation.TiltLeft){
+
+		  }
 		}
 	  }
 	}

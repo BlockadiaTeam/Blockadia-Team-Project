@@ -24,6 +24,7 @@ public class BlockadiaMain {
     IGamePanel panel = new GamePanel(model);
     JFrame blockadia = new GameFrame(model, panel);
     blockadia.setVisible(true);
+    blockadia.setLocationRelativeTo(null);
     blockadia.setResizable(false);
     blockadia.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //TODO: check if the build board is dirty
   }

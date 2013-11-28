@@ -13,16 +13,22 @@ public class Ground {
 	Ground, Side, Stair, Ladder;
   }
   
+  public static enum StairOrientation{
+	TiltLeft, TiltRight;
+  }
+  
   private String id;
   private BodyDef bodyDef;
   private FixtureDef fixtureDef;
   private GroundType type;
+  private StairOrientation orientation;
   
   public Ground(){
 	id = OriginalID;
 	bodyDef = new BodyDef();
 	fixtureDef = new FixtureDef();
 	type = GroundType.Side;
+	orientation = null;
   }
   
   public Ground(Shape shape, Vec2 position, float angle){
@@ -68,6 +74,19 @@ public class Ground {
 
   public void setType(GroundType type) {
 	this.type = type;
+  }
+
+  public StairOrientation getOrientation() {
+	return this.getType() == GroundType.Stair ? this.orientation : null;
+  }
+
+  public void setOrientation(StairOrientation orientation) {
+	if(orientation == null){
+	  this.orientation = orientation;
+	  return;
+	}
+	
+	this.orientation = this.getType() == GroundType.Stair ? orientation : null;
   }
 
   @Override

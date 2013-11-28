@@ -10,6 +10,7 @@ import org.jbox2d.dynamics.World;
 
 import rules.MetalSlug.Ground;
 import rules.MetalSlug.Ground.GroundType;
+import rules.MetalSlug.Ground.StairOrientation;
 import rules.MetalSlug.ZombieSpawnManager;
 import utility.Log;
 
@@ -76,6 +77,7 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(35.5f, -56.5f),0f);
 	  ground.setId("level1 stair");
 	  ground.setType(GroundType.Stair);
+	  ground.setOrientation(StairOrientation.TiltRight);
 	  grounds.put(ground.getId(), ground);
 	  
 	  //TODO: testing, delete later
@@ -89,6 +91,7 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(59f,-60f),0f);
 	  ground.setId("level1 stair2");
 	  ground.setType(GroundType.Stair);
+	  ground.setOrientation(StairOrientation.TiltLeft);
 	  grounds.put(ground.getId(), ground);
 
 	}
