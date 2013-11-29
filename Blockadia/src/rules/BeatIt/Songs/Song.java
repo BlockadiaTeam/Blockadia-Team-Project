@@ -18,6 +18,7 @@ public abstract class Song{
   protected String pads;
   protected String beats;
   protected String background;
+  protected String pregame;
   protected int duration;
   
   protected abstract void populateSteps();
@@ -50,6 +51,10 @@ public abstract class Song{
   
   public String getBackground(){
 	return background;
+  }
+  
+  public String getPregameImage(){
+	return pregame;
   }
   
   public void print(){

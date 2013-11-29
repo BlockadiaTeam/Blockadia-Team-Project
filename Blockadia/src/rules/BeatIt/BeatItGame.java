@@ -35,9 +35,7 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
-
 import components.BuildConfig;
-
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -73,6 +71,7 @@ public class BeatItGame extends RuleModel{
   private static float velocity;
   private float startOffset;
   private float gapCoef;
+  private float alpha = 0;
 
   private BeatPads square;
   private BeatPads triangle;
@@ -90,10 +89,12 @@ public class BeatItGame extends RuleModel{
   private ImageIcon beatImageIcon = null;
   private ImageIcon backgroundImageIcon = null;
   private ImageIcon pregameImageIcon = null;
+  private ImageIcon hitImageIcon = null;
   private Image backgroundImage = null;
   private Image beatImage = null;
   private Image padImage = null;
   private Image pregameImage = null;
+  private Image hitImage = null;
   private CustomizedRenderer renderer = null;
 
   private Song song;
@@ -123,7 +124,7 @@ public class BeatItGame extends RuleModel{
 	padImageIcon = new ImageIcon(getClass().getResource(song.getPadImage()));
 	beatImageIcon = new ImageIcon(getClass().getResource(song.getBeatsImage()));
 	backgroundImageIcon = new ImageIcon(getClass().getResource(song.getBackground()));
-	pregameImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Pregame-Screen.jpg"));
+	pregameImageIcon = new ImageIcon(getClass().getResource(song.getPregameImage()));
 	padImage = padImageIcon.getImage();
 	beatImage = beatImageIcon.getImage();
 	backgroundImage = backgroundImageIcon.getImage();
@@ -153,6 +154,8 @@ public class BeatItGame extends RuleModel{
 		renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
 	  }
 
+	  hitImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Hit.png"));
+	  hitImage = hitImageIcon.getImage();
 	  pregame = new AudioPlayer("/rules/BeatIt/Music/pregame.wav");
 	  pregame.start();
 
@@ -271,6 +274,13 @@ public class BeatItGame extends RuleModel{
 
 	time++;
 	countDown--;
+	if (!start) {
+	  alpha = alpha + 0.03f;
+	  if (alpha >= 1) {
+		alpha = 1;
+	  }
+	} 
+	System.out.println(alpha);
 
 	if (countDown%30 == 0 && countDown > 0) {
 	  System.out.println((countDown/30));
@@ -407,7 +417,7 @@ public class BeatItGame extends RuleModel{
 
   private void gameOver() {
 	passed = hitSet.size() + missed;
-	System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
+	//System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
 	// If you miss too many times, you lose or if game is over
 	System.out.println(points);
 	JFrame frame = null;
@@ -466,8 +476,12 @@ public class BeatItGame extends RuleModel{
 	  gapCoef = 0.5f;
 	} else if (speed.equalsIgnoreCase("fast")){
 	  velocity = -60f;
-	  startOffset = 60f;
+	  startOffset = 0f;
 	  gapCoef = 1f;
+	} else if (speed.equalsIgnoreCase("work")){ // Yes work needs its own mode cuz the computers are too slow
+	  velocity = -30f;
+	  startOffset = -55f;
+	  gapCoef = 0.4f;
 	} else {
 	  throw new IllegalArgumentException ("Only arguments Slow, Medium, or Fast is accepted.");
 	}
@@ -475,6 +489,7 @@ public class BeatItGame extends RuleModel{
 
   private void stealthMode(boolean mode) { //for when you want to play at work lol
 	if (mode) {
+	  start = true;
 	  song = new Hatsune_Miku_World_Is_Mine();
 	  songName = song.getSong();
 	  padImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
@@ -506,7 +521,8 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void customizedPainting() {
-	drawPregameScreen();
+	//drawPregameScreen(alpha);
+	drawHit();
 
 	if (start){
 	  drawBackground();
@@ -522,8 +538,8 @@ public class BeatItGame extends RuleModel{
 	}
   }
 
-  private void drawPregameScreen() {
-	renderer.drawStaticBackgroundImage(pregameImage);
+  private void drawPregameScreen(float transition) {
+	renderer.drawStaticBackgroundImageWithTransparency(pregameImage, transition);
   }
 
   private void drawBackground() {
@@ -531,16 +547,19 @@ public class BeatItGame extends RuleModel{
   }
 
   private void drawPads(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 8, 8, padImage, 0);
+	renderer.drawImage(body.getWorldCenter(), 3, 3, padImage, 0);
   }
 
   private void drawBeats(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 8, 8, beatImage, 0);
+	renderer.drawImage(body.getWorldCenter(), 3, 3, beatImage, 0);
 	if (body.getPosition().y < -5.2) {
 	  config.getWorld().destroyBody(body);
 	  missed++; //TODO: Fix play again function
 	}
   }
 
+  private void drawHit() {
+	renderer.drawImage(new Vec2(0, 0), 15, 5, hitImage, 0);
+  }
 
 }

@@ -16,7 +16,7 @@ import org.jbox2d.common.Vec2;
 
 import framework.GameModel;
 
-public class CustomizedRenderer {
+public class CustomizedRenderer{
 
   public static enum ImageType{
 	GameObject, WorldBackground;
@@ -108,7 +108,7 @@ public class CustomizedRenderer {
 
   public void drawStringWithTransparency(float x, float y, String s, Color color, float alpha){
 	Graphics2D g = getGraphics();
-	if (g== null)  {
+	if (g == null)  {
 	  return;
 	}
 
@@ -220,6 +220,16 @@ public class CustomizedRenderer {
 	float screenH = GameModel.getGamePanel().getHeight();
 	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
 		sx1, sy1, sx2, sy2, null);
+  }
+  
+  public void drawStaticBackgroundImageWithTransparency(Image image, float alpha){
+	Graphics2D g = getGraphics();
+	g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+		alpha));
+	float screenW = GameModel.getGamePanel().getWidth();
+	float screenH = GameModel.getGamePanel().getHeight();
+	g.drawImage(image, 0, 0, (int)screenW,(int)screenH, 
+		0, 0, image.getWidth(null),image.getHeight(null), null);
   }
 
   public void drawRectWithTransparency(Vec2 worldCenter, float worldWidth, float worldHeight, Color color,

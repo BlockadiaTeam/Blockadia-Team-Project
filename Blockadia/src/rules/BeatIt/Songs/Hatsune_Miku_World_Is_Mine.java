@@ -589,6 +589,7 @@ public class Hatsune_Miku_World_Is_Mine extends Song{
 	pads = "/rules/BeatIt/BeatItImages/GreyStar-Image.png";
 	beats = "/rules/BeatIt/BeatItImages/BlueStar-Image.png";
 	background = "/rules/BeatIt/BeatItImages/Hatsune-Miku-Background.jpg";
+	pregame = "/rules/BeatIt/BeatItImages/Pregame-Screen.jpg";
 	duration = 6200;
   }
   
