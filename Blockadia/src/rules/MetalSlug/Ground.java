@@ -17,18 +17,46 @@ public class Ground {
 	TiltLeft, TiltRight;
   }
   
+  public class GroundInfo{
+	public boolean solid;
+	
+	/**Stair type ground only:*/
+	public StairOrientation orientation;
+	public Vec2[] outerSide;
+	public Vec2[] innerSide;
+	
+	public GroundInfo(Ground ground){
+	  solid = true;
+	  
+	  orientation = ground.getType() == GroundType.Stair ? StairOrientation.TiltLeft : null;
+	  outerSide = orientation == null ? null : new Vec2[2];
+	  innerSide = orientation == null ? null : new Vec2[2];
+	}
+	
+	@Override
+	public String toString(){
+	  String output = "";
+	  output += "solid: " + solid;
+	  output += "\norientation: " + (orientation == null? "null" : orientation.name());
+	  output += "\nouterSide: " + (outerSide == null ? "empty" : "non-empty");
+	  output += "\ninnerSide: " + (innerSide == null ? "empty" : "non-empty");
+	  return output;
+	}
+  }
+  
   private String id;
   private BodyDef bodyDef;
   private FixtureDef fixtureDef;
   private GroundType type;
-  private StairOrientation orientation;
+  private GroundInfo info;
+  //private StairOrientation orientation;
   
   public Ground(){
 	id = OriginalID;
 	bodyDef = new BodyDef();
 	fixtureDef = new FixtureDef();
 	type = GroundType.Side;
-	orientation = null;
+	info = new GroundInfo(this);
   }
   
   public Ground(Shape shape, Vec2 position, float angle){
@@ -42,6 +70,8 @@ public class Ground {
 	fixtureDef.friction = 0f;
 	fixtureDef.restitution = 0.2f;
 	fixtureDef.density = 0f;
+	type = GroundType.Side;
+	info = new GroundInfo(this);
   }
 
   public String getId() {
@@ -76,17 +106,12 @@ public class Ground {
 	this.type = type;
   }
 
-  public StairOrientation getOrientation() {
-	return this.getType() == GroundType.Stair ? this.orientation : null;
+  public GroundInfo getInfo() {
+	return info;
   }
 
-  public void setOrientation(StairOrientation orientation) {
-	if(orientation == null){
-	  this.orientation = orientation;
-	  return;
-	}
-	
-	this.orientation = this.getType() == GroundType.Stair ? orientation : null;
+  public void setInfo(GroundInfo info) {
+	this.info = info;
   }
 
   @Override

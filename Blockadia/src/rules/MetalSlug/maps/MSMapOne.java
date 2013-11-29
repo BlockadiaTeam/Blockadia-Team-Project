@@ -19,9 +19,12 @@ import utility.Log;
  * */
 public class MSMapOne extends MSMap{
 
+  private World world;
+  
   public MSMapOne(World world){
 	super();
-	startPoint = new Vec2(57f, -59f);
+	this.world = world;
+	startPoint = new Vec2(45f, -59f);
 	endPoint = new Vec2(20, 0);
 	checkPoints = new ArrayList<Vec2>();
   }
@@ -77,7 +80,15 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(35.5f, -56.5f),0f);
 	  ground.setId("level1 stair");
 	  ground.setType(GroundType.Stair);
-	  ground.setOrientation(StairOrientation.TiltRight);
+	  ground.getInfo().orientation = StairOrientation.TiltRight;
+	  Vec2[] outer = new Vec2[2];
+	  outer[0] = new Vec2(35.5f, -56.5f).add(vertices[0].clone());
+	  outer[1] = new Vec2(35.5f, -56.5f).add(vertices[3].clone());
+	  Vec2[] inner = new Vec2[2];
+	  inner[0] = new Vec2(35.5f, -56.5f).add(vertices[1].clone());
+	  inner[1] = new Vec2(35.5f, -56.5f).add(vertices[2].clone());
+	  ground.getInfo().outerSide = outer.clone();
+	  ground.getInfo().innerSide = inner.clone();
 	  grounds.put(ground.getId(), ground);
 	  
 	  //TODO: testing, delete later
@@ -85,15 +96,22 @@ public class MSMapOne extends MSMap{
 	  vertices = new Vec2[4];
 	  vertices[0] = new Vec2(0f,0f);
 	  vertices[1] = new Vec2(1f,0f);
-	  vertices[2] = new Vec2(2f,2f);
-	  vertices[3] = new Vec2(3f,2f);
+	  vertices[2] = new Vec2(3f,2f);
+	  vertices[3] = new Vec2(3f,3f);
 	  lv1.set(vertices, 4);
 	  ground = new Ground(lv1,new Vec2(59f,-60f),0f);
 	  ground.setId("level1 stair2");
 	  ground.setType(GroundType.Stair);
-	  ground.setOrientation(StairOrientation.TiltLeft);
+	  ground.getInfo().orientation = StairOrientation.TiltLeft;
+	  outer = new Vec2[2];
+	  outer[0] = new Vec2(59f,-60f).add(vertices[0].clone());
+	  outer[1] = new Vec2(59f,-60f).add(vertices[3].clone());
+	  inner = new Vec2[2];
+	  inner[0] = new Vec2(59f,-60f).add(vertices[1].clone());
+	  inner[1] = new Vec2(59f,-60f).add(vertices[2].clone());
+	  ground.getInfo().outerSide = outer.clone();
+	  ground.getInfo().innerSide = inner.clone();
 	  grounds.put(ground.getId(), ground);
-
 	}
 	//TODO:
   }

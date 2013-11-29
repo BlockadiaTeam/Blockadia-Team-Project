@@ -135,10 +135,12 @@ public class GameConfig extends BuildConfig implements ContactListener{
   }
 
   private void mouseUp(Vec2 pos, MouseEvent e) {
+	mouseWorld.set(pos);
 	rule.mouseUp(pos, e);
   }
 
   private void mouseDown(Vec2 pos, MouseEvent e) {
+	mouseWorld.set(pos);
 	rule.mouseDown(pos, e);
   }
 
@@ -175,7 +177,7 @@ public class GameConfig extends BuildConfig implements ContactListener{
 
   @Override
   public void beginContact(Contact contact) {
-	contact.setEnabled(true);
+	//contact.setEnabled(true);
 	rule.beginContact(contact);
   }
 
