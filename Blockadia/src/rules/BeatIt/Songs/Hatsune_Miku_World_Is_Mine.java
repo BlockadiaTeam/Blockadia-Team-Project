@@ -586,8 +586,8 @@ public class Hatsune_Miku_World_Is_Mine extends Song{
   @Override
   protected void setVariables() {
 	song = "/rules/BeatIt/Music/Hatsune Miku - World Is Mine.wav";
-	pads = "/rules/BeatIt/BeatItImages/GreyStar-Image.png";
-	beats = "/rules/BeatIt/BeatItImages/BlueStar-Image.png";
+	pads = "/rules/BeatIt/BeatItImages/Pad.png";
+	beats = "/rules/BeatIt/BeatItImages/Blue-Star-Beat.png";
 	background = "/rules/BeatIt/BeatItImages/Hatsune-Miku-Background.jpg";
 	pregame = "/rules/BeatIt/BeatItImages/Pregame-Screen.jpg";
 	duration = 6200;

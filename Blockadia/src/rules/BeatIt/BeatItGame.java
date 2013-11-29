@@ -35,7 +35,9 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
+
 import components.BuildConfig;
+
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -49,8 +51,10 @@ public class BeatItGame extends RuleModel{
   private int countDown;
   private int missed;
   private int missedLimit;
+  private float fade;
 
-  private static float ShapeScale = 2.2f;
+  private static float shapeScale = 2.2f;
+  private float componentScale = 6.6f;
   private static BuildConfig config;
   private GameModel model;
   private int passed;
@@ -167,37 +171,37 @@ public class BeatItGame extends RuleModel{
 
 		// Square
 		Vec2 square[] = new Vec2[4];
-		square[0] = new Vec2(ShapeScale, ShapeScale);
-		square[1] = new Vec2(ShapeScale, -ShapeScale);
-		square[2] = new Vec2(-ShapeScale, -ShapeScale);
-		square[3] = new Vec2(-ShapeScale, ShapeScale);
+		square[0] = new Vec2(shapeScale, shapeScale);
+		square[1] = new Vec2(shapeScale, -shapeScale);
+		square[2] = new Vec2(-shapeScale, -shapeScale);
+		square[3] = new Vec2(-shapeScale, shapeScale);
 		squareShape.set(square, 4);
 
 		// Triangle
 		Vec2 triangle[] = new Vec2[3];
-		triangle[0] = new Vec2(0, ShapeScale);
-		triangle[1] = new Vec2(ShapeScale, -ShapeScale);
-		triangle[2] = new Vec2(-ShapeScale, -ShapeScale);
+		triangle[0] = new Vec2(0, shapeScale);
+		triangle[1] = new Vec2(shapeScale, -shapeScale);
+		triangle[2] = new Vec2(-shapeScale, -shapeScale);
 		triangleShape.set(triangle, 3);
 
 		// Diamond
 		Vec2 diamond[] = new Vec2[4];
-		diamond[0] = new Vec2(0, ShapeScale);
-		diamond[1] = new Vec2(ShapeScale, 0); 
-		diamond[2] = new Vec2(0, -ShapeScale);
-		diamond[3] = new Vec2(-ShapeScale, 0);
+		diamond[0] = new Vec2(0, shapeScale);
+		diamond[1] = new Vec2(shapeScale, 0); 
+		diamond[2] = new Vec2(0, -shapeScale);
+		diamond[3] = new Vec2(-shapeScale, 0);
 		diamondShape.set(diamond, 4);
 
 		// Circle
-		circleShape.setRadius(ShapeScale);
+		circleShape.setRadius(shapeScale);
 
 		// Pentagon
 		Vec2 pentagon[] = new Vec2[5];
-		pentagon[0] = new Vec2(0, ShapeScale);
-		pentagon[1] = new Vec2(ShapeScale, 0);
-		pentagon[2] = new Vec2(ShapeScale/1.5f, -ShapeScale);
-		pentagon[3] = new Vec2(-ShapeScale/1.5f, -ShapeScale);
-		pentagon[4] = new Vec2(-ShapeScale, 0);
+		pentagon[0] = new Vec2(0, shapeScale);
+		pentagon[1] = new Vec2(shapeScale, 0);
+		pentagon[2] = new Vec2(shapeScale/1.5f, -shapeScale);
+		pentagon[3] = new Vec2(-shapeScale/1.5f, -shapeScale);
+		pentagon[4] = new Vec2(-shapeScale, 0);
 		pentagonShape.set(pentagon, 5);
 	  }
 
@@ -275,7 +279,7 @@ public class BeatItGame extends RuleModel{
 	time++;
 	countDown--;
 	if (!start) {
-	  alpha = alpha + 0.03f;
+	  alpha = alpha + 0.02f;
 	  if (alpha >= 1) {
 		alpha = 1;
 	  }
@@ -457,6 +461,7 @@ public class BeatItGame extends RuleModel{
 	  hitSet.add(beat);
 	}
 	points = hitSet.size()*25;
+	drawHit();
   }
 
   private void startMusic() {
@@ -521,8 +526,8 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void customizedPainting() {
-	//drawPregameScreen(alpha);
-	drawHit();
+	drawPregameScreen(alpha);
+	//drawHit();
 
 	if (start){
 	  drawBackground();
@@ -547,11 +552,11 @@ public class BeatItGame extends RuleModel{
   }
 
   private void drawPads(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 3, 3, padImage, 0);
+	renderer.drawImage(body.getWorldCenter(), componentScale, componentScale, padImage, 0);
   }
 
   private void drawBeats(Body body) {
-	renderer.drawImage(body.getWorldCenter(), 3, 3, beatImage, 0);
+	renderer.drawImage(body.getWorldCenter(), componentScale, componentScale, beatImage, 0);
 	if (body.getPosition().y < -5.2) {
 	  config.getWorld().destroyBody(body);
 	  missed++; //TODO: Fix play again function
