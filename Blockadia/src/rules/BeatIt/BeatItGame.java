@@ -35,9 +35,7 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
-
 import components.BuildConfig;
-
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -46,12 +44,13 @@ public class BeatItGame extends RuleModel{
   Queue<Object> used = new LinkedList<Object>();
   Set<Beats> hitSet = new HashSet<Beats>();
 
-  private boolean start;
+  private int gamePhase;
   private static int time;
   private int countDown;
   private int missed;
   private int missedLimit;
   private float fade;
+  private boolean bound;
 
   private static float shapeScale = 2.2f;
   private float componentScale = 6.6f;
@@ -67,15 +66,18 @@ public class BeatItGame extends RuleModel{
   private static CircleShape circleShape = new CircleShape();
   private static PolygonShape pentagonShape = new PolygonShape();
 
-  private AudioPlayer pregame;
+  private String pregameSound;
   private AudioPlayer music; 
-  private String songName;
+  private String gameMusic;
+  private String titleMusic;
 
   private int points;
   private static float velocity;
   private float startOffset;
   private float gapCoef;
   private float alpha = 0;
+  private float beat = 1;
+  private float glow = 1;
 
   private BeatPads square;
   private BeatPads triangle;
@@ -94,11 +96,17 @@ public class BeatItGame extends RuleModel{
   private ImageIcon backgroundImageIcon = null;
   private ImageIcon pregameImageIcon = null;
   private ImageIcon hitImageIcon = null;
+  private ImageIcon titleScreenImageIcon = null;
+  private ImageIcon logoImageIcon = null;
+  private ImageIcon enterImageIcon = null;
   private Image backgroundImage = null;
   private Image beatImage = null;
   private Image padImage = null;
   private Image pregameImage = null;
   private Image hitImage = null;
+  private Image titleScreenImage = null;
+  private Image logoImage = null;
+  private Image enterImage = null;
   private CustomizedRenderer renderer = null;
 
   private Song song;
@@ -111,6 +119,14 @@ public class BeatItGame extends RuleModel{
 	this.config = buildConfig;
 	this.model = model;
 	this.editable = true;
+	bound = false;
+	gamePhase = -1;
+	titleScreenImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Title-Screen-Background.jpg"));
+	titleScreenImage = titleScreenImageIcon.getImage();
+	logoImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Logo.png"));
+	logoImage = logoImageIcon.getImage();
+	enterImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Enter.png"));
+	enterImage = enterImageIcon.getImage();
 	points = 0;
 	countDown = 210;
 	time = 0;
@@ -124,7 +140,7 @@ public class BeatItGame extends RuleModel{
 
   public void setSongAndTheme() {
 	song = new Hatsune_Miku_World_Is_Mine();
-	songName = song.getSong();
+	gameMusic = song.getSong();
 	padImageIcon = new ImageIcon(getClass().getResource(song.getPadImage()));
 	beatImageIcon = new ImageIcon(getClass().getResource(song.getBeatsImage()));
 	backgroundImageIcon = new ImageIcon(getClass().getResource(song.getBackground()));
@@ -160,8 +176,9 @@ public class BeatItGame extends RuleModel{
 
 	  hitImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Hit.png"));
 	  hitImage = hitImageIcon.getImage();
-	  pregame = new AudioPlayer("/rules/BeatIt/Music/pregame.wav");
-	  pregame.start();
+	  pregameSound = "/rules/BeatIt/Music/pregame.wav";
+	  titleMusic = "/rules/BeatIt/Music/Title Screen Music.wav";
+	  loopMusic(titleMusic);
 
 	}
 
@@ -276,25 +293,49 @@ public class BeatItGame extends RuleModel{
   @Override
   public void step() {
 
-	time++;
-	countDown--;
-	if (!start) {
-	  alpha = alpha + 0.02f;
-	  if (alpha >= 1) {
-		alpha = 1;
+	if (gamePhase == -1) {
+	  // Logo pulse rate
+	  if (beat >= 1 && beat < 1.15) {
+		beat = beat + 0.006f;
+	  } else if (beat > 1.15){
+		beat = 1;
 	  }
-	} 
-	System.out.println(alpha);
+	  // Enter glow rate
+	  if(glow <= 1 && !bound) {
+		glow = glow - 0.02f;
+		if (glow <= 0.3) {
+		  bound = true;
+		}
+	  } else if (bound) {
+		glow = glow + 0.02f;
+		if (glow >= 1) {
+		  bound = false;
+		}
+	  }
+	  
+	  
+	} else if (gamePhase != -1) {
+	  time++;
+	  countDown--;
+	  if (gamePhase == 0) {
+		alpha = alpha + 0.05f;
+		if (alpha >= 1) {
+		  alpha = 1;
+		}
+	  } 
+	  //System.out.println(alpha);
 
-	if (countDown%30 == 0 && countDown > 0) {
-	  System.out.println((countDown/30));
-	}
-	if (countDown == 0) {
-	  System.out.println("GO!");
-	  startMusic();
-	}
+	  if (countDown%30 == 0 && countDown > 0) {
+		System.out.println((countDown/30));
+	  }
+	  if (countDown == 0) {
+		System.out.println("GO!");
+		startMusic(gameMusic);
+		gamePhase = 1;
+	  }
 
-	gameOver();
+	  gameOver();
+	}
 
   }
 
@@ -331,51 +372,62 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void keyPressed(char c, int code) {
-	if (model.getKeys()['h']) {
-	  System.out.println(time);
+	if (gamePhase == -1) {
+	  if (model.getKeys()['q']) {
+		System.out.println("Title Screen");
+	  } else if (model.getCodedKeys()[10]) { //enter key
+		gamePhase = 0;
+		stopMusic();
+		startMusic(pregameSound);
+	  }
 	}
-	if (!keyFlag) {
-	  keyFlag = true;
+	else if (gamePhase == 0) {
+	  if (model.getKeys()['q']) {
+		System.out.println("Pregame Screen");
+	  }
+	}
+	else if (gamePhase == 1) {
+	  if (model.getKeys()['q']) {
+		System.out.println("Game Screen");
+	  }
+	  if (!keyFlag) {
+		keyFlag = true;
 
-	  final AABB hittableBounds = new AABB();
-	  final TestPointCallback contacted = new TestPointCallback();
-	  hittableBounds.upperBound.set(30f, -3.5f);
-	  hittableBounds.lowerBound.set(-30f, -5.5f);
-	  for (Beats beat : beatsQueue) {
-		contacted.point.set(beat.getBeatsBody().getPosition());
-		contacted.fixture = null;
-		model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
+		final AABB hittableBounds = new AABB();
+		final TestPointCallback contacted = new TestPointCallback();
+		hittableBounds.upperBound.set(30f, -3.5f);
+		hittableBounds.lowerBound.set(-30f, -5.5f);
+		for (Beats beat : beatsQueue) {
+		  contacted.point.set(beat.getBeatsBody().getPosition());
+		  contacted.fixture = null;
+		  model.getCurrConfig().getWorld().queryAABB(contacted, hittableBounds);
 
-		if (contacted.fixture != null) {
+		  if (contacted.fixture != null) {
 
-		  if (beat.getPosition().equals(Position.A)) {
-			if (model.getKeys()['a']) {
-			  processHit(beat);
-			  System.out.println("You hit A");
+			if (beat.getPosition().equals(Position.A)) {
+			  if (model.getKeys()['a']) {
+				processHit(beat);
+			  }
 			}
-		  }
-		  else if (beat.getPosition().equals(Position.S)) {
-			if (model.getKeys()['s']) {
-			  processHit(beat);
-			  System.out.println("You hit S");
+			else if (beat.getPosition().equals(Position.S)) {
+			  if (model.getKeys()['s']) {
+				processHit(beat);
+			  }
 			}
-		  }
-		  else if (beat.getPosition().equals(Position.SPACE)) {
-			if (model.getCodedKeys()[32]) {
-			  processHit(beat);
-			  System.out.println("You hit SPACE");
+			else if (beat.getPosition().equals(Position.SPACE)) {
+			  if (model.getCodedKeys()[32]) {
+				processHit(beat);
+			  }
 			}
-		  }
-		  else if (beat.getPosition().equals(Position.K)) {
-			if (model.getKeys()['k']) {
-			  processHit(beat);
-			  System.out.println("You hit K");
+			else if (beat.getPosition().equals(Position.K)) {
+			  if (model.getKeys()['k']) {
+				processHit(beat);
+			  }
 			}
-		  }
-		  else if (beat.getPosition().equals(Position.L)) {
-			if (model.getKeys()['l']) {
-			  processHit(beat);
-			  System.out.println("You hit L");
+			else if (beat.getPosition().equals(Position.L)) {
+			  if (model.getKeys()['l']) {
+				processHit(beat);
+			  }
 			}
 		  }
 		}
@@ -423,7 +475,7 @@ public class BeatItGame extends RuleModel{
 	passed = hitSet.size() + missed;
 	//System.out.println("Hit: " + hitSet.size() + "\tMissed: " + missed + "\tPassed: " + passed);
 	// If you miss too many times, you lose or if game is over
-	System.out.println(points);
+	//System.out.println(points);
 	JFrame frame = null;
 	String gameOverMessage;
 	//	if (missed == missedLimit) {
@@ -461,12 +513,21 @@ public class BeatItGame extends RuleModel{
 	  hitSet.add(beat);
 	}
 	points = hitSet.size()*25;
-	drawHit();
+	System.out.println("You Hit " + beat.getPosition());
+	//drawHit();
+  }
+  
+  private void stopMusic() {
+	music.stop();
+  }
+  
+  private void loopMusic(String song) {
+	music = new AudioPlayer(song);
+	music.loopMusic();
   }
 
-  private void startMusic() {
-	start = true;
-	music = new AudioPlayer(songName);
+  private void startMusic(String song) {
+	music = new AudioPlayer(song);
 	music.start();
   }
 
@@ -494,9 +555,9 @@ public class BeatItGame extends RuleModel{
 
   private void stealthMode(boolean mode) { //for when you want to play at work lol
 	if (mode) {
-	  start = true;
+	  mode = true;
 	  song = new Hatsune_Miku_World_Is_Mine();
-	  songName = song.getSong();
+	  gameMusic = song.getSong();
 	  padImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Folder-icon.png"));
 	  beatImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Document-icon.png"));
 	  backgroundImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/zema.png"));
@@ -526,10 +587,12 @@ public class BeatItGame extends RuleModel{
 
   @Override
   public void customizedPainting() {
-	drawPregameScreen(alpha);
-	//drawHit();
 
-	if (start){
+	if (gamePhase == -1) {
+	  drawTitleScreen();
+	} else if (gamePhase == 0) {
+	  drawPregameScreen(alpha);
+	} else if (gamePhase == 1){
 	  drawBackground();
 	  World world = config.getWorld();
 	  for(Body b = world.getBodyList(); b!= null; b = b.getNext()) {
@@ -549,6 +612,12 @@ public class BeatItGame extends RuleModel{
 
   private void drawBackground() {
 	renderer.drawStaticBackgroundImage(backgroundImage);
+  }
+
+  private void drawTitleScreen() {
+	renderer.drawStaticBackgroundImage(titleScreenImage);
+	renderer.drawImage(new Vec2(0, 38), beat*50, beat*20, logoImage, 0);
+	renderer.drawImageWithTransparency(new Vec2(0, 0), 12, 5, enterImage, 0, glow);
   }
 
   private void drawPads(Body body) {
