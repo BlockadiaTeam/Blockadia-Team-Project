@@ -17,6 +17,8 @@ public class Player {
   public static final String OriginalID = "Player-0000";
   public static final int PlayerGroupIndex = -1;
   public static final int PlayerFootSensor = 3;
+  public static final int PlayerMask = Ground.GroundCategory | Ground.StairCategory;
+  public static final int PlayerIgnoreStairMask = ~Ground.StairCategory;
   
   private String id;
   private Body playerBody = null;

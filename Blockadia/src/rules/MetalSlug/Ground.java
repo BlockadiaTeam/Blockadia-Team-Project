@@ -8,6 +8,8 @@ import org.jbox2d.dynamics.FixtureDef;
 public class Ground {
 
   public static final String OriginalID = "Ground-0000";
+  public static final int StairCategory = 0x0002;
+  public static final int GroundCategory = 0x0001;
   
   public static enum GroundType{
 	Ground, Side, Stair, Ladder;

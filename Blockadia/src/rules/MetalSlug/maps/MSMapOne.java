@@ -24,7 +24,7 @@ public class MSMapOne extends MSMap{
   public MSMapOne(World world){
 	super();
 	this.world = world;
-	startPoint = new Vec2(45f, -59f);
+	startPoint = new Vec2(15f, -59f);
 	endPoint = new Vec2(20, 0);
 	checkPoints = new ArrayList<Vec2>();
   }
@@ -80,6 +80,8 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(35.5f, -56.5f),0f);
 	  ground.setId("level1 stair");
 	  ground.setType(GroundType.Stair);
+	  ground.getFixtureDef().filter.categoryBits = Ground.StairCategory;
+	  //ground.getFixtureDef().filter.groupIndex = -2;
 	  ground.getInfo().orientation = StairOrientation.TiltRight;
 	  Vec2[] outer = new Vec2[2];
 	  outer[0] = new Vec2(35.5f, -56.5f).add(vertices[0].clone());
@@ -102,6 +104,7 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(59f,-60f),0f);
 	  ground.setId("level1 stair2");
 	  ground.setType(GroundType.Stair);
+	  ground.getFixtureDef().filter.categoryBits = Ground.StairCategory;
 	  ground.getInfo().orientation = StairOrientation.TiltLeft;
 	  outer = new Vec2[2];
 	  outer[0] = new Vec2(59f,-60f).add(vertices[0].clone());

@@ -66,6 +66,7 @@ public class MetalSlug extends RuleModel{
 
   //Player
   private Player player;
+  private float playerW, playerH, sensorW, sensorH;
   private int numFootContacts;
   private boolean shooting;
   private boolean throwingGrenade;
@@ -97,6 +98,7 @@ public class MetalSlug extends RuleModel{
 	initPlayer();
 	initSettings();
 	initRendering();
+
 	world.setGravity(new Vec2(0, -10f));
 
 	timeStep = 0;
@@ -114,18 +116,20 @@ public class MetalSlug extends RuleModel{
 
   private void initPlayer() {
 	player = new Player();
-	//onTheAir = false;
 	numFootContacts = 0;
 	shooting = false;
 	throwingGrenade = false;
+	playerW = 1f;playerH = 2f;
+	sensorW = 1.4f;sensorH = .2f;
 
 	PolygonShape shape = new PolygonShape();
-	shape.setAsBox(.5f, 1f);
+	shape.setAsBox(playerW/2f, playerH/2f);
 
 	BodyDef bd = new BodyDef();
 	bd.position = mapManager.getMap().getStartPoint();
 	bd.gravityScale = 10f;
 	bd.fixedRotation = true;
+	bd.allowSleep = false;
 	bd.type = BodyType.DYNAMIC;
 	FixtureDef fd = new FixtureDef();
 	fd.shape = shape;
@@ -133,12 +137,13 @@ public class MetalSlug extends RuleModel{
 	fd.restitution = 0f;
 	fd.density = 1f;
 	fd.filter.groupIndex = Player.PlayerGroupIndex;
+	fd.filter.maskBits = Player.PlayerMask;
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
 
 	//foot sensor:
 	PolygonShape senter = new PolygonShape();
-	senter.setAsBox(.7f, 0.1f, new Vec2(0,-1f), 0f);
+	senter.setAsBox(sensorW/2f, sensorH/2f, new Vec2(0,-1f), 0f);
 	fd = new FixtureDef();
 	fd.shape = senter;
 	fd.isSensor = true;
@@ -188,7 +193,7 @@ public class MetalSlug extends RuleModel{
   @Override
   public void step() {
 	if(model.pause) return;
-	
+
 	//check inputs
 	//game logic
 	//box2d
@@ -196,15 +201,16 @@ public class MetalSlug extends RuleModel{
 
 	//check if the player is onStair
 	boolean onStair = false;
-	boolean solidStair = false;
+	//boolean solidStair = false;
 	for(Ground ground : player.getGroundsUnderFoot()){
 	  if(ground.getType() == GroundType.Stair){
 		onStair = true;
-		solidStair = ground.getInfo().solid;
+		//solidStair = ground.getInfo().solid;
 		break;
 	  }
 	}
-	if(onStair && solidStair){
+	//if(onStair && solidStair){
+	if(onStair){
 	  player.getPlayerBody().m_gravityScale = 0f;
 	}
 	else{
@@ -227,7 +233,7 @@ public class MetalSlug extends RuleModel{
 		}
 	  }
 	}
-	
+
 	timeStep++;
   }
 
@@ -377,7 +383,10 @@ public class MetalSlug extends RuleModel{
 
 	if(model.getCodedKeys()[32] && !model.getKeys()['s']){
 	  if(player.getGroundsUnderFoot().size() == 1 && player.getGroundsUnderFoot().get(0).getType() == GroundType.Stair){
-		return;
+		Ground stair = player.getGroundsUnderFoot().get(0);
+		boolean shouldJump = stairShouldBeSolid(player.getPlayerBody().getWorldPoint(new Vec2(0f,-1f)), 
+			stair.getInfo().outerSide[0], stair.getInfo().outerSide[1]);
+		if(!shouldJump) return;
 	  }
 
 	  PlayerEvent playerEvent = new PlayerEvent();
@@ -449,14 +458,7 @@ public class MetalSlug extends RuleModel{
 	  if(userData2 != null && userData2 instanceof Ground){
 		numFootContacts++;
 		player.getGroundsUnderFoot().add((Ground)userData2);
-
-		//		Ground ground = (Ground) userData2;
-		//		if(ground.getType() == GroundType.Stair){
-		//		  boolean solid = true;
-		//		  solid = this.positionOfPointRelativeToStair(contact, ground.getInfo().orientation);
-		//		  ground.getInfo().solid = solid;
-		//		  if(!ground.getInfo().solid) contact.setEnabled(false);
-		//		}
+		return;
 	  }
 	}
 
@@ -466,43 +468,34 @@ public class MetalSlug extends RuleModel{
 	  if(userData2 != null && userData2 instanceof Ground){
 		numFootContacts++;
 		player.getGroundsUnderFoot().add((Ground)userData2);
-
-		Ground ground = (Ground) userData2;
-		if(ground.getType() == GroundType.Stair){
-		  boolean solid = true;
-		  solid = this.shouldCollideWithStair(player.getPlayerBody().getLinearVelocity().clone(), ground.getInfo().orientation);
-		  ground.getInfo().solid = solid;
-		  Log.print("solid: " + solid);
-		  if(!ground.getInfo().solid) contact.setEnabled(false);
-		}
+		return;
 	  }
 	}
 
 	Body body1 = contact.m_fixtureA.getBody();
 	Body body2 = contact.m_fixtureB.getBody();
-	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
-	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
-		Ground ground = (Ground) body2.getUserData();
-		if(ground.getType() == GroundType.Stair){
-		  boolean solid = true;
-		  solid = this.shouldCollideWithStair(contact, ground.getInfo().orientation);
-		  ground.getInfo().solid = solid;
-		  if(!ground.getInfo().solid) contact.setEnabled(false);
-		}
-	  }
-	}
-
-	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
-	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
-		Ground ground = (Ground) body1.getUserData();
-		if(ground.getType() == GroundType.Stair){
-		  boolean solid = true;
-		  solid = this.shouldCollideWithStair(contact, ground.getInfo().orientation);
-		  ground.getInfo().solid = solid;
-		  if(!ground.getInfo().solid) contact.setEnabled(false);
-		}
-	  }
-	}
+	//	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
+	//	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
+	//		Ground ground = (Ground) body2.getUserData();
+	//		if(ground.getType() == GroundType.Stair){
+	//		  boolean solid = true;
+	//		  solid = this.shouldCollideWithStair(contact, ground.getInfo().orientation);
+	//		  ground.getInfo().solid = solid;
+	//		  if(!ground.getInfo().solid) contact.setEnabled(false);
+	//		}
+	//	  }
+	//	}
+	//	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
+	//	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
+	//		Ground ground = (Ground) body1.getUserData();
+	//		if(ground.getType() == GroundType.Stair){
+	//		  boolean solid = true;
+	//		  solid = this.shouldCollideWithStair(contact, ground.getInfo().orientation);
+	//		  ground.getInfo().solid = solid;
+	//		  if(!ground.getInfo().solid) contact.setEnabled(false);
+	//		}
+	//	  }
+	//	}
   }
 
   @Override
@@ -526,60 +519,123 @@ public class MetalSlug extends RuleModel{
 		player.getGroundsUnderFoot().remove(contact.m_fixtureA.getBody().getUserData());
 		Ground ground = (Ground) contact.getFixtureA().getBody().getUserData();
 		ground.getInfo().solid = true;
-		//		TestAABBCallback callback = new MSJumpCallback();
-		//		callback.fixture = null;
-		//		AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
-		//		AABB aabb = new AABB();
-		//		aabb.lowerBound.set(new Vec2(pAABB.lowerBound.x + .1f, pAABB.lowerBound.y + .3f));
-		//		aabb.upperBound.set(new Vec2(pAABB.upperBound.x - .1f, pAABB.upperBound.y - .1f));
-		//		world.queryAABB(callback, aabb);
-		//		//Log.print("aabb: " + aabb.toString() + " player: "+player.getPlayerBody().getFixtureList().getNext().getAABB(0).toString());
-		//		
-		//		Log.print("aabb: width = "+(aabb.upperBound.x - aabb.lowerBound.x)+", height = "+(aabb.upperBound.y - aabb.lowerBound.y));
-		//		
-		//		Log.print("player: width = "+(pAABB.upperBound.x - pAABB.lowerBound.x)+", height = "+(pAABB.upperBound.y - pAABB.lowerBound.y));
-		//		Log.print("");
-		//		if(callback.fixture == null) {
-		//		  ground.getInfo().solid = true;
-		//		}
-		//		else{
-		//		  Log.print(""+AABB.testOverlap(callback.fixture.getAABB(0), aabb));
-		//		}
 	  }
 	}
   }
 
   @Override
   public void preSolve(Contact contact, Manifold oldManifold) {
+
 	Body body1 = contact.m_fixtureA.getBody();
 	Body body2 = contact.m_fixtureB.getBody();
-	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
-	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
-		if(((Ground)body2.getUserData()).getType() == GroundType.Stair){
-		  if(!((Ground)body2.getUserData()).getInfo().solid){
-			contact.setEnabled(false);
-		  }
-		}
-
-		if(((Ground)body2.getUserData()).getType() == GroundType.Ground){
-		}
-	  }
-	}
+	//	if(body1.getUserData() != null && body1.getUserData() instanceof Player){
+	//	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
+	//		if(((Ground)body2.getUserData()).getType() == GroundType.Stair){
+	//		  if(!((Ground)body2.getUserData()).getInfo().solid){
+	//			contact.setEnabled(false);
+	//		  }
+	//		}
+	//
+	//		if(((Ground)body2.getUserData()).getType() == GroundType.Ground){
+	//		}
+	//	  }
+	//	}
+	//	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
+	//	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
+	//		if(((Ground)body1.getUserData()).getType() == GroundType.Stair){
+	//		  if(!((Ground)body1.getUserData()).getInfo().solid){
+	//			contact.setEnabled(false);
+	//		  }
+	//		  else{
+	//		  }
+	//		}
+	//
+	//		if(((Ground)body1.getUserData()).getType() == GroundType.Ground){
+	//
+	//		}
+	//	  }
+	//	}
 
 	if(body2.getUserData() != null && body2.getUserData() instanceof Player){
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
 		if(((Ground)body1.getUserData()).getType() == GroundType.Stair){
-		  if(!((Ground)body1.getUserData()).getInfo().solid){
-			contact.setEnabled(false);
+		  Ground stair = (Ground)body1.getUserData();
+//		  if(!stair.getInfo().solid){
+//			Log.print("not solid");
+//			contact.setEnabled(false);
+//			return;
+//		  }
+		  boolean solid = true;
+		  solid = this.stairShouldBeSolid(player.getPlayerBody().getWorldPoint(new Vec2(0f,-1f)), 
+			  stair.getInfo().outerSide[0],
+			  stair.getInfo().outerSide[1]);
+		  if(solid){
+			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerMask;
 		  }
-		}
+		  else{
+			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerIgnoreStairMask;
+		  }
+		  if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerIgnoreStairMask){
+			contact.setEnabled(false);
+			return;
+		  }
+		  else if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerMask){
+			contact.setEnabled(true);
+			return;
+		  }
 
-		if(((Ground)body1.getUserData()).getType() == GroundType.Ground){
+		  //			AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
+		  //			TestAABBCallback callback = new MSStairCallback();
+		  //			callback.fixture = null;
+		  //			AABB aabb = new AABB();
+		  //			aabb.lowerBound.set(new Vec2(pAABB.lowerBound.x- .25f, pAABB.lowerBound.y - .25f));
+		  //			aabb.upperBound.set(new Vec2(pAABB.upperBound.x+ .25f, pAABB.upperBound.y + .25f));
+		  //			//aabb.lowerBound.set(pAABB.lowerBound.clone());
+		  //			//aabb.upperBound.set(pAABB.upperBound.clone());
+		  ////			renderer.drawSegment(aabb.lowerBound, new Vec2(aabb.lowerBound.x,aabb.upperBound.y), Color.white);
+		  ////			renderer.drawSegment(aabb.upperBound, new Vec2(aabb.lowerBound.x,aabb.upperBound.y), Color.white);
+		  ////			renderer.drawSegment(aabb.upperBound, new Vec2(aabb.upperBound.x,aabb.lowerBound.y), Color.white);
+		  ////			renderer.drawSegment(aabb.lowerBound, new Vec2(aabb.upperBound.x,aabb.lowerBound.y), Color.white);
+		  //			world.queryAABB(callback, aabb);
+		  //			if(callback.fixture != null){
+		  //			  boolean solid = true;
+		  //			  solid = this.stairShouldBeSolid(player.getPlayerBody().getWorldPoint(new Vec2(0f,-1f)), 
+		  //				  ((Ground)callback.fixture.getBody().getUserData()).getInfo().outerSide[0],
+		  //				  ((Ground)callback.fixture.getBody().getUserData()).getInfo().outerSide[1]);
+		  //			  //Log.print("solid? "+ solid);
+		  //			  if(solid){
+		  //				player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerMask;
+		  //				//player.getPlayerBody().getFixtureList().getNext().m_filter.groupIndex = -1;
+		  //			  }
+		  //			  else{
+		  //				player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerIgnoreStairMask;
+		  //				//player.getPlayerBody().getFixtureList().getNext().m_filter.groupIndex = -2;
+		  //			  }
+		  ////			  Log.print("stairCategoryBits: "+ callback.fixture.m_filter.categoryBits);
+		  //			}
+		  //			if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerIgnoreStairMask){
+		  //			  contact.setEnabled(false);
+		  //			  return;
+		  //			}
+		  //			else if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerMask){
+		  //			  contact.setEnabled(true);
+		  //			  return;
+		  //			}
 
 		}
 	  }
 	}
 
+	//bullet hitting ground
+	if(body1.getUserData() != null && body1.getUserData() instanceof Bullet){
+	  if(body2.getUserData() != null && body2.getUserData() instanceof Ground){
+		Ground ground = (Ground) body2.getUserData();
+
+		if(ground.getType() == GroundType.Stair){
+		  contact.setEnabled(false);
+		}
+	  }
+	}
 	if(body2.getUserData() != null && body2.getUserData() instanceof Bullet){
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
 		Ground ground = (Ground) body1.getUserData();
@@ -721,25 +777,58 @@ public class MetalSlug extends RuleModel{
 
 	return true;
   }
-  
-  private boolean shouldCollideWithStair(Vec2 velocity, StairOrientation orientation){
+
+  private boolean stairShouldBeSolid(Vec2 center, Vec2 start, Vec2 end){
+	float distance = 0.0f;
+
+	float slope = (end.y - start.y)/(end.x - start.x);
+	float offset = start.y - (slope * start.x);
+	//	Log.print("Line equation: " + "Y = "+slope + " * X + "+ offset);
+	float slope2 = -1f/slope;
+	float offset2 = center.y - (slope2 * center.x);
+	//	Log.print("Vertical line equation: " + "Y = "+slope2 + " * X + "+ offset2);
+	float intersectX = (offset2 - offset)/(slope - slope2);
+	float intersectY = slope * intersectX + offset;
+	Vec2 intersection = new Vec2(intersectX , intersectY);
+	Vec2 dis = intersection.sub(center);
+	distance = Math.abs(dis.length());
+	boolean shouldBeSolid = false;
+	float minTolerance = 0.0f;
+	float maxTolerance = 0.0f;
+	minTolerance = Math.abs((float) (Math.sin(Math.atan(slope)) * (playerW/2f)));
+	maxTolerance = Math.abs((float) (Math.sin(Math.atan(slope)) * (sensorW/2f)));
+	//Log.print("minTolerance: "+minTolerance + ", maxTolerance" + maxTolerance);
+	if(slope < 0){
+	  if(intersectX >= center.x) distance *= -1f;
+	}
+	else if(slope >= 0){
+	  if(intersectX <= center.x) distance *= -1f;
+	}
+	if(distance >= minTolerance && distance <= maxTolerance){
+	  shouldBeSolid = true;
+	}
+	else{
+	  shouldBeSolid = false;
+	}
+	//Log.print("Distance: " + distance);
+	//Log.print("ShouldJump: " + shouldJump);
+
+	return shouldBeSolid;
+  }
+
+  private boolean shouldCollideWithStair(Vec2 velocity, StairOrientation orientation){//TODO: unfinished
 	if(orientation == StairOrientation.TiltRight){
 	  if(velocity.x == 0 && velocity.y > 0) return false;
 	  if(velocity.x == 0 && velocity.y < 0) return true;
 	  double angle = Math.atan(velocity.y/velocity.x);
-//	  Log.print(""+Math.toDegrees(- Math.PI/4D));
-//	  Log.print(""+Math.toDegrees((3D * Math.PI)/4D));
-//	  Log.print(""+Math.toDegrees(- Math.PI/4D));
-//	  Log.print(""+Math.toDegrees(-(5D * Math.PI)/4D));
-//	  Log.print("angle: "+Math.toDegrees(angle));
 	  if(angle > - Math.PI/4D && angle < (3D * Math.PI)/4D) return false;
 	  if(angle <= - Math.PI/4D &&  angle >= -(5D * Math.PI)/4D) return true;
 	}
-//	else if(orientation == StairOrientation.TiltLeft){
-//	  float slopeOfStair = 1;
-//	  if(contact.m_manifold.localNormal.x < 0 && contact.m_manifold.localNormal.y > 0) return true;
-//	  if(contact.m_manifold.localNormal.x > 0 && contact.m_manifold.localNormal.y < 0) return false;
-//	}
+	//	else if(orientation == StairOrientation.TiltLeft){
+	//	  float slopeOfStair = 1;
+	//	  if(contact.m_manifold.localNormal.x < 0 && contact.m_manifold.localNormal.y > 0) return true;
+	//	  if(contact.m_manifold.localNormal.x > 0 && contact.m_manifold.localNormal.y < 0) return false;
+	//	}
 
 	return true;
   }
