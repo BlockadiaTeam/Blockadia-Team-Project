@@ -81,7 +81,6 @@ public class MSMapOne extends MSMap{
 	  ground.setId("level1 stair");
 	  ground.setType(GroundType.Stair);
 	  ground.getFixtureDef().filter.categoryBits = Ground.StairCategory;
-	  //ground.getFixtureDef().filter.groupIndex = -2;
 	  ground.getInfo().orientation = StairOrientation.TiltRight;
 	  Vec2[] outer = new Vec2[2];
 	  outer[0] = new Vec2(35.5f, -56.5f).add(vertices[0].clone());

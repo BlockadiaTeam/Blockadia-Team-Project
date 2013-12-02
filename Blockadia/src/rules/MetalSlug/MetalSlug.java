@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.DebugDraw;
+import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -41,6 +42,7 @@ import rules.MetalSlug.weapon.HandGunWeapon;
 import rules.MetalSlug.weapon.MachineGunWeapon;
 import utility.ContactPoint;
 import utility.Log;
+import utility.TestAABBCallback;
 
 import components.BuildConfig;
 
@@ -215,6 +217,28 @@ public class MetalSlug extends RuleModel{
 	}
 	else{
 	  player.getPlayerBody().m_gravityScale = 10f;
+	}
+
+	TestAABBCallback cb = new MSStairCallback();
+	cb.fixture = null;
+	AABB aabb = new AABB();
+	AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
+	aabb.lowerBound.set(pAABB.lowerBound.clone()) ;
+	aabb.upperBound.set(pAABB.upperBound.clone());
+	world.queryAABB(cb, aabb);
+	if(cb.fixture != null){
+	  float distance = this.getDistance(player.getPlayerBody().getWorldPoint(new Vec2(0,-1f)), 
+		  ((Ground)cb.fixture.getBody().getUserData()).getInfo().outerSide[0],
+		  ((Ground)cb.fixture.getBody().getUserData()).getInfo().outerSide[0]);
+	  float minTolerance = 0.0f;
+	  //float maxTolerance = 0.0f;
+	  minTolerance = Math.abs((float) (Math.sin(Math.atan(-1)) * (playerW/2f)));
+	  if(distance < minTolerance){
+		player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~0x0002;
+	  }
+	  else{
+		player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits |= 0x0002;
+	  }
 	}
 
 	reloadWeapon();
@@ -560,29 +584,29 @@ public class MetalSlug extends RuleModel{
 	  if(body1.getUserData() != null && body1.getUserData() instanceof Ground){
 		if(((Ground)body1.getUserData()).getType() == GroundType.Stair){
 		  Ground stair = (Ground)body1.getUserData();
-//		  if(!stair.getInfo().solid){
-//			Log.print("not solid");
-//			contact.setEnabled(false);
-//			return;
-//		  }
-		  boolean solid = true;
-		  solid = this.stairShouldBeSolid(player.getPlayerBody().getWorldPoint(new Vec2(0f,-1f)), 
-			  stair.getInfo().outerSide[0],
-			  stair.getInfo().outerSide[1]);
-		  if(solid){
-			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerMask;
-		  }
-		  else{
-			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerIgnoreStairMask;
-		  }
-		  if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerIgnoreStairMask){
-			contact.setEnabled(false);
-			return;
-		  }
-		  else if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerMask){
-			contact.setEnabled(true);
-			return;
-		  }
+		  //		  if(!stair.getInfo().solid){
+		  //			Log.print("not solid");
+		  //			contact.setEnabled(false);
+		  //			return;
+		  //		  }
+		  //		  boolean solid = true;
+		  //		  solid = this.stairShouldBeSolid(player.getPlayerBody().getWorldPoint(new Vec2(0f,-1f)), 
+		  //			  stair.getInfo().outerSide[0],
+		  //			  stair.getInfo().outerSide[1]);
+		  //		  if(solid){
+		  //			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerMask;
+		  //		  }
+		  //		  else{
+		  //			player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits = Player.PlayerIgnoreStairMask;
+		  //		  }
+		  //		  if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerIgnoreStairMask){
+		  //			contact.setEnabled(false);
+		  //			return;
+		  //		  }
+		  //		  else if(player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits == Player.PlayerMask){
+		  //			contact.setEnabled(true);
+		  //			return;
+		  //		  }
 
 		  //			AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
 		  //			TestAABBCallback callback = new MSStairCallback();
@@ -765,6 +789,31 @@ public class MetalSlug extends RuleModel{
 
   }
 
+  private float getDistance(Vec2 center, Vec2 start, Vec2 end) {
+	float distance = 0.0f;
+
+	float slope = (end.y - start.y)/(end.x - start.x);
+	float offset = start.y - (slope * start.x);
+	//	System.out.println("Line equation: " + "Y = "+slope + " * X + "+ offset);
+	float slope2 = -1f/slope;
+	float offset2 = center.y - (slope2 * center.x);
+	//	System.out.println("Vertical line equation: " + "Y = "+slope2 + " * X + "+ offset2);
+	float intersectX = (offset2 - offset)/(slope - slope2);
+	float intersectY = slope * intersectX + offset;
+	Vec2 intersection = new Vec2(intersectX , intersectY);
+	Vec2 dis = intersection.sub(center);
+	distance = Math.abs(dis.length());
+	//System.out.println("minTolerance: "+minTolerance + ", maxTolerance" + maxTolerance);
+	if(slope < 0){
+	  if(intersectX >= center.x) distance *= -1f;
+	}
+	else if(slope >= 0){
+	  if(intersectX <= center.x) distance *= -1f;
+	}
+
+	return distance;
+  }
+  
   private boolean shouldCollideWithStair(Contact contact, StairOrientation orientation){
 	if(orientation == StairOrientation.TiltRight){
 	  if(contact.m_manifold.localNormal.x < 0 && contact.m_manifold.localNormal.y < 0) return false;
