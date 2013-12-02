@@ -35,7 +35,9 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
+
 import components.BuildConfig;
+
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -135,7 +137,6 @@ public class BeatItGame extends RuleModel{
 	stealthMode(false);
 	setSpeed("medium");
 	init();
-	startGame();
   }
 
   public void setSongAndTheme() {
@@ -296,7 +297,7 @@ public class BeatItGame extends RuleModel{
 	if (gamePhase == -1) {
 	  // Logo pulse rate
 	  if (beat >= 1 && beat < 1.15) {
-		beat = beat + 0.006f;
+		beat = beat + 0.0067f;
 	  } else if (beat > 1.15){
 		beat = 1;
 	  }
@@ -336,7 +337,6 @@ public class BeatItGame extends RuleModel{
 
 	  gameOver();
 	}
-
   }
 
 
@@ -379,6 +379,7 @@ public class BeatItGame extends RuleModel{
 		gamePhase = 0;
 		stopMusic();
 		startMusic(pregameSound);
+		startGame();
 	  }
 	}
 	else if (gamePhase == 0) {
@@ -513,7 +514,7 @@ public class BeatItGame extends RuleModel{
 	  hitSet.add(beat);
 	}
 	points = hitSet.size()*25;
-	System.out.println("You Hit " + beat.getPosition());
+	System.out.println(points);
 	//drawHit();
   }
   
