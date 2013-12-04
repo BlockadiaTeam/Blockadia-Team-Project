@@ -8,7 +8,8 @@ import org.jbox2d.dynamics.FixtureDef;
 public class Ground {
 
   public static final String OriginalID = "Ground-0000";
-  public static final int StairCategory = 0x0002;
+  public static final int LV1Stair = 0x0002;
+  public static final int LV2Stair = 0x0004;
   public static final int GroundCategory = 0x0001;
   
   public static enum GroundType{
@@ -20,15 +21,12 @@ public class Ground {
   }
   
   public class GroundInfo{
-	public boolean solid;
-	
 	/**Stair type ground only:*/
 	public StairOrientation orientation;
 	public Vec2[] outerSide;
 	public Vec2[] innerSide;
 	
 	public GroundInfo(Ground ground){
-	  solid = true;
 	  
 	  orientation = ground.getType() == GroundType.Stair ? StairOrientation.TiltLeft : null;
 	  outerSide = orientation == null ? null : new Vec2[2];
@@ -38,7 +36,6 @@ public class Ground {
 	@Override
 	public String toString(){
 	  String output = "";
-	  output += "solid: " + solid;
 	  output += "\norientation: " + (orientation == null? "null" : orientation.name());
 	  output += "\nouterSide: " + (outerSide == null ? "empty" : "non-empty");
 	  output += "\ninnerSide: " + (innerSide == null ? "empty" : "non-empty");

@@ -80,7 +80,7 @@ public class MSMapOne extends MSMap{
 	  ground = new Ground(lv1,new Vec2(35.5f, -56.5f),0f);
 	  ground.setId("level1 stair");
 	  ground.setType(GroundType.Stair);
-	  ground.getFixtureDef().filter.categoryBits = Ground.StairCategory;
+	  ground.getFixtureDef().filter.categoryBits = Ground.LV1Stair;
 	  ground.getInfo().orientation = StairOrientation.TiltRight;
 	  Vec2[] outer = new Vec2[2];
 	  outer[0] = new Vec2(35.5f, -56.5f).add(vertices[0].clone());
@@ -100,20 +100,51 @@ public class MSMapOne extends MSMap{
 	  vertices[2] = new Vec2(3f,2f);
 	  vertices[3] = new Vec2(3f,3f);
 	  lv1.set(vertices, 4);
-	  ground = new Ground(lv1,new Vec2(59f,-60f),0f);
+	  ground = new Ground(lv1,new Vec2(50f,-60f),0f);
 	  ground.setId("level1 stair2");
 	  ground.setType(GroundType.Stair);
-	  ground.getFixtureDef().filter.categoryBits = Ground.StairCategory;
+	  ground.getFixtureDef().filter.categoryBits = Ground.LV1Stair;
 	  ground.getInfo().orientation = StairOrientation.TiltLeft;
 	  outer = new Vec2[2];
-	  outer[0] = new Vec2(59f,-60f).add(vertices[0].clone());
-	  outer[1] = new Vec2(59f,-60f).add(vertices[3].clone());
+	  outer[0] = new Vec2(50f,-60f).add(vertices[0].clone());
+	  outer[1] = new Vec2(50f,-60f).add(vertices[3].clone());
 	  inner = new Vec2[2];
-	  inner[0] = new Vec2(59f,-60f).add(vertices[1].clone());
-	  inner[1] = new Vec2(59f,-60f).add(vertices[2].clone());
+	  inner[0] = new Vec2(50f,-60f).add(vertices[1].clone());
+	  inner[1] = new Vec2(50f,-60f).add(vertices[2].clone());
 	  ground.getInfo().outerSide = outer.clone();
 	  ground.getInfo().innerSide = inner.clone();
 	  grounds.put(ground.getId(), ground);
+	}
+	
+	{//1st level to 2nd level
+	  PolygonShape lv2 = new PolygonShape();
+	  lv2.setAsBox(11f,1f);
+	  Ground floor = new Ground(lv2,new Vec2(49f, -41f),0f);
+	  floor.setId("level2 horizontal");
+	  floor.setType(GroundType.Ground);
+	  grounds.put(floor.getId(), floor);
+	  
+	  lv2 = new PolygonShape();
+	  Vec2[] vertices = new Vec2[4];
+	  vertices[0] = new Vec2(0f,0f);
+	  vertices[1] = new Vec2(2f,0f);
+	  vertices[2] = new Vec2(10f,8f);
+	  vertices[3] = new Vec2(10f,10f);
+	  lv2.set(vertices, 4);
+	  floor = new Ground(lv2,new Vec2(28f,-50f),0f);
+	  floor.setId("level2 stair");
+	  floor.setType(GroundType.Stair);
+	  floor.getFixtureDef().filter.categoryBits = Ground.LV2Stair;
+	  floor.getInfo().orientation = StairOrientation.TiltLeft;
+	  Vec2[] outer = new Vec2[2];
+	  outer[0] = new Vec2(28f,-50f).add(vertices[0].clone());
+	  outer[1] = new Vec2(28f,-50f).add(vertices[3].clone());
+	  Vec2[] inner = new Vec2[2];
+	  inner[0] = new Vec2(28f,-50f).add(vertices[1].clone());
+	  inner[1] = new Vec2(28f,-50f).add(vertices[2].clone());
+	  floor.getInfo().outerSide = outer.clone();
+	  floor.getInfo().innerSide = inner.clone();
+	  grounds.put(floor.getId(), floor);
 	}
 	//TODO:
   }
