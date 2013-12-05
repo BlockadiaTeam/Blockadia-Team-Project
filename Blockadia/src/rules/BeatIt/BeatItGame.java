@@ -35,9 +35,7 @@ import rules.BeatIt.Beats.Position;
 import rules.BeatIt.Songs.Hatsune_Miku_World_Is_Mine;
 import rules.BeatIt.Songs.Song;
 import utility.TestPointCallback;
-
 import components.BuildConfig;
-
 import framework.GameModel;
 
 public class BeatItGame extends RuleModel{
@@ -80,7 +78,21 @@ public class BeatItGame extends RuleModel{
   private float alpha = 0;
   private float beat = 1;
   private float glow = 1;
+  private float hitFlag = 0;
+  private float missFlag = 0;
 
+  private float hitA = 0;
+  private float hitS = 0;
+  private float hitSpace = 0;
+  private float hitK = 0;
+  private float hitL = 0;
+  private float hitNotification = 0;
+  private float missNotification = 0;
+  private float hitRiser = 10f;
+  private float missRiser = 10f;
+  private float hitNotificationDuration = 0;
+  private float missNotificationDuration = 0;
+  
   private BeatPads square;
   private BeatPads triangle;
   private BeatPads diamond;
@@ -101,6 +113,8 @@ public class BeatItGame extends RuleModel{
   private ImageIcon titleScreenImageIcon = null;
   private ImageIcon logoImageIcon = null;
   private ImageIcon enterImageIcon = null;
+  private ImageIcon hitNotificationImageIcon = null;
+  private ImageIcon missNotificationImageIcon = null;
   private Image backgroundImage = null;
   private Image beatImage = null;
   private Image padImage = null;
@@ -109,6 +123,8 @@ public class BeatItGame extends RuleModel{
   private Image titleScreenImage = null;
   private Image logoImage = null;
   private Image enterImage = null;
+  private Image hitNotificationImage = null;
+  private Image missNotificationImage = null;
   private CustomizedRenderer renderer = null;
 
   private Song song;
@@ -175,8 +191,12 @@ public class BeatItGame extends RuleModel{
 		renderer = GameModel.getGamePanel().getCustomizedRenderer(); 	//Turn on the customized rendering 
 	  }
 
-	  hitImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Hit.png"));
+	  hitImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Hit-Pad.png"));
 	  hitImage = hitImageIcon.getImage();
+	  hitNotificationImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Hit.png"));
+	  hitNotificationImage = hitNotificationImageIcon.getImage();
+	  missNotificationImageIcon = new ImageIcon(getClass().getResource("/rules/BeatIt/BeatItImages/Miss.png"));
+	  missNotificationImage = missNotificationImageIcon.getImage();
 	  pregameSound = "/rules/BeatIt/Music/pregame.wav";
 	  titleMusic = "/rules/BeatIt/Music/Title Screen Music.wav";
 	  loopMusic(titleMusic);
@@ -313,8 +333,8 @@ public class BeatItGame extends RuleModel{
 		  bound = false;
 		}
 	  }
-	  
-	  
+
+	// Loading Screen
 	} else if (gamePhase != -1) {
 	  time++;
 	  countDown--;
@@ -324,6 +344,90 @@ public class BeatItGame extends RuleModel{
 		  alpha = 1;
 		}
 	  } 
+	  // Game Screen
+	  else if (gamePhase == 1) {
+		// Controls beat pad hit opacity
+		if (hitA > 0) {
+		  hitA = hitA - 0.1f;
+		  if (hitA < 0.2) {
+			hitA = 0;
+		  }
+		} else if (hitS > 0) {
+		  hitS = hitS - 0.1f;
+		  if (hitS < 0.2) {
+			hitS = 0;
+		  } 
+		} else if (hitSpace > 0) {
+		  hitSpace = hitSpace - 0.1f;
+		  if (hitSpace < 0.2) {
+			hitSpace = 0;
+		  } 
+		} else if (hitK > 0) {
+		  hitK = hitK - 0.1f;
+		  if (hitK < 0.2) {
+			hitK = 0;
+		  } 
+		} else if (hitL > 0) {
+		  hitK = hitK - 0.1f;
+		  if (hitK < 0.2) {
+			hitK = 0;
+		  } 
+		}
+		
+		// Controls properties of hit notifications
+		// 4 States: 0 - Inactive, 1 - Appear, 2 - stay duration, 3 - Disappear
+		if (hitFlag == 1) {
+		  hitNotification = hitNotification + 0.1f; 
+		  hitRiser = hitRiser + 0.1f;
+		  if (hitNotification > 0.95) {
+			hitFlag = 2;
+			hitNotification = 1;
+		  }
+		} else if (hitFlag == 2) {
+		  hitNotificationDuration++;
+		  if (hitNotificationDuration >= 10) {
+			hitFlag = 3;
+			hitNotificationDuration = 0;
+		  }
+		} else if (hitFlag == 3) {
+		  hitNotification = hitNotification - 0.1f;
+		  if (hitNotification < 0.05) {
+			hitNotification = 0;
+			hitFlag = 0;
+			hitRiser = 10f;
+			hitFlag = 0;
+		  } 
+		} else {
+			hitNotification = 0;
+		  }
+		
+		// Controls properties of miss notifications
+		if (missFlag == 1) {
+		  missNotification = missNotification + 0.1f; 
+		  missRiser = missRiser + 0.1f;
+		  if (missNotification > 0.95) {
+			missFlag = 2;
+			missNotification = 1;
+		  }
+		} else if (missFlag == 2) {
+		  missNotificationDuration++;
+		  if (missNotificationDuration >= 10) {
+			missFlag = 3;
+			missNotificationDuration = 0;
+		  }
+		} else if (missFlag == 3) {
+		  missNotification = missNotification - 0.1f;
+		  if (missNotification < 0.05) {
+			missNotification = 0;
+			missFlag = 0;
+			missRiser = 10f;
+		  }
+		} else {
+		  missNotification = 0;
+		}
+		
+	  }
+
 	  //System.out.println(alpha);
 
 	  if (countDown%30 == 0 && countDown > 0) {
@@ -511,17 +615,48 @@ public class BeatItGame extends RuleModel{
   private void processHit(Beats beat) {
 	config.getWorld().destroyBody(beat.getBeatsBody());
 	if (!hitSet.contains(beat)) {
+	  activateHit();
 	  hitSet.add(beat);
+	  switch (beat.getPosition()) {
+	  case A:
+		hitA = 1;
+		break;
+	  case S:
+		hitS = 1;
+		break;
+	  case SPACE:
+		hitSpace = 1;
+		break;
+	  case K:
+		hitK = 1;
+		break;
+	  case L: 
+		hitL = 1;
+		break;
+	  default:
+		break;
+	  }
 	}
 	points = hitSet.size()*25;
 	System.out.println(points);
-	//drawHit();
+  }
+  
+  private void activateHit() {
+	missFlag = 0;
+	hitFlag = 1;
+	hitRiser = 10f;
+  }
+
+  private void activateMiss() {
+	hitFlag = 0;
+	missFlag = 1;
+	missRiser = 10f;
   }
   
   private void stopMusic() {
 	music.stop();
   }
-  
+
   private void loopMusic(String song) {
 	music = new AudioPlayer(song);
 	music.loopMusic();
@@ -592,7 +727,7 @@ public class BeatItGame extends RuleModel{
 	if (gamePhase == -1) {
 	  drawTitleScreen();
 	} else if (gamePhase == 0) {
-	  drawPregameScreen(alpha);
+	  drawPregameScreen();
 	} else if (gamePhase == 1){
 	  drawBackground();
 	  World world = config.getWorld();
@@ -604,11 +739,18 @@ public class BeatItGame extends RuleModel{
 		  drawBeats(b);
 		}
 	  }
+	  drawAHit();
+	  drawSHit();
+	  drawSpaceHit();
+	  drawKHit();
+	  drawLHit();
+	  drawHitNotification();
+	  drawMissNotification();
 	}
   }
 
-  private void drawPregameScreen(float transition) {
-	renderer.drawStaticBackgroundImageWithTransparency(pregameImage, transition);
+  private void drawPregameScreen() {
+	renderer.drawStaticBackgroundImageWithTransparency(pregameImage, alpha);
   }
 
   private void drawBackground() {
@@ -630,11 +772,36 @@ public class BeatItGame extends RuleModel{
 	if (body.getPosition().y < -5.2) {
 	  config.getWorld().destroyBody(body);
 	  missed++; //TODO: Fix play again function
+	  activateMiss();
 	}
   }
 
-  private void drawHit() {
-	renderer.drawImage(new Vec2(0, 0), 15, 5, hitImage, 0);
+  private void drawAHit() {
+	renderer.drawImageWithTransparency(new Vec2(-20.0f,-3.0f), componentScale, componentScale, hitImage, 0, hitA);
+  }
+
+  private void drawSHit() {
+	renderer.drawImageWithTransparency(new Vec2(-10.0f,-3.0f), componentScale, componentScale, hitImage, 0, hitS);
+  }
+
+  private void drawSpaceHit() {
+	renderer.drawImageWithTransparency(new Vec2(0.0f,-3.0f), componentScale, componentScale, hitImage, 0, hitSpace);
+  }
+
+  private void drawKHit() {
+	renderer.drawImageWithTransparency(new Vec2(20.0f,-3.0f), componentScale, componentScale, hitImage, 0, hitK);
+  }
+
+  private void drawLHit() {
+	renderer.drawImageWithTransparency(new Vec2(20.0f,-3.0f), componentScale, componentScale, hitImage, 0, hitL);
+  }
+  
+  private void drawHitNotification() {
+	renderer.drawImageWithTransparency(new Vec2(0.0f,hitRiser), componentScale, componentScale, hitNotificationImage, 0, hitNotification);
+  }
+  
+  private void drawMissNotification() {
+	renderer.drawImageWithTransparency(new Vec2(0.0f,missRiser), componentScale, componentScale, missNotificationImage, 0, missNotification);
   }
 
 }
