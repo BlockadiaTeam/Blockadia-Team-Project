@@ -135,7 +135,7 @@ public abstract class BuildConfig {
 	  rule = new BeatItGame(this, model);
 	  //	  rule = new BeatItCustomGame(this, model);
 	  break;
-	case MetalSlug:
+	case MetalArmy:
 	  rule = new MetalSlug(this, model);
 	  break;
 	default:

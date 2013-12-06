@@ -19,6 +19,10 @@ public class Player {
   public static final int PlayerFootSensor = 3;
   public static final int PlayerMask = Ground.GroundCategory | Ground.LV1Stair;
   public static final int PlayerIgnoreStairMask = ~Ground.LV1Stair;
+  public static final float PlayerWidth = 1f;
+  public static final float PlayerHeight = 2f;
+  public static final float FootSensorWidth = 1.4f;
+  public static final float FootSensorHeight = .2f;
   
   private String id;
   private Body playerBody = null;

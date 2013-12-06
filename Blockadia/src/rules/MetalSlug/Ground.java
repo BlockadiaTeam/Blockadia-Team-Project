@@ -8,56 +8,50 @@ import org.jbox2d.dynamics.FixtureDef;
 public class Ground {
 
   public static final String OriginalID = "Ground-0000";
+  public static final int GroundFloor = 0x0001;
   public static final int LV1Stair = 0x0002;
   public static final int LV2Stair = 0x0004;
+  public static final int LV3Stair = 0x0008;
   public static final int GroundCategory = 0x0001;
-  
+
   public static enum GroundType{
 	Ground, Side, Stair, Ladder;
   }
-  
+
   public static enum StairOrientation{
 	TiltLeft, TiltRight;
   }
-  
+
   public class GroundInfo{
 	/**Stair type ground only:*/
 	public StairOrientation orientation;
 	public Vec2[] outerSide;
 	public Vec2[] innerSide;
-	
+
 	public GroundInfo(Ground ground){
-	  
+
 	  orientation = ground.getType() == GroundType.Stair ? StairOrientation.TiltLeft : null;
 	  outerSide = orientation == null ? null : new Vec2[2];
 	  innerSide = orientation == null ? null : new Vec2[2];
 	}
-	
-	@Override
-	public String toString(){
-	  String output = "";
-	  output += "\norientation: " + (orientation == null? "null" : orientation.name());
-	  output += "\nouterSide: " + (outerSide == null ? "empty" : "non-empty");
-	  output += "\ninnerSide: " + (innerSide == null ? "empty" : "non-empty");
-	  return output;
-	}
   }
-  
+
   private String id;
   private BodyDef bodyDef;
   private FixtureDef fixtureDef;
   private GroundType type;
   private GroundInfo info;
-  //private StairOrientation orientation;
-  
+  private int level;
+
   public Ground(){
 	id = OriginalID;
 	bodyDef = new BodyDef();
 	fixtureDef = new FixtureDef();
 	type = GroundType.Side;
 	info = new GroundInfo(this);
+	level = 0;
   }
-  
+
   public Ground(Shape shape, Vec2 position, float angle){
 	id = OriginalID;
 	bodyDef = new BodyDef();
@@ -71,6 +65,7 @@ public class Ground {
 	fixtureDef.density = 0f;
 	type = GroundType.Side;
 	info = new GroundInfo(this);
+	level = 0;
   }
 
   public String getId() {
@@ -96,7 +91,7 @@ public class Ground {
   public void setFixtureDef(FixtureDef fixtureDef) {
 	this.fixtureDef = fixtureDef;
   }
-  
+
   public GroundType getType() {
 	return type;
   }
@@ -113,6 +108,14 @@ public class Ground {
 	this.info = info;
   }
 
+  public int getLevel() {
+	return level;
+  }
+
+  public void setLevel(int level) {
+	this.level = level;
+  }
+
   @Override
   public boolean equals(Object obj){
 	if(obj == null) return false;
@@ -122,7 +125,7 @@ public class Ground {
 	if(!otherGround.getId().equals(getId())) return false;
 	return true;
   }
-  
+
   @Override
   public Ground clone(){
 	Ground newGround = new Ground(this.fixtureDef.shape, this.bodyDef.position.clone(), this.bodyDef.angle);

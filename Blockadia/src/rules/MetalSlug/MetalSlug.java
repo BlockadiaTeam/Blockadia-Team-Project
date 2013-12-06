@@ -139,8 +139,10 @@ public class MetalSlug extends RuleModel{
 	fd.restitution = 0f;
 	fd.density = 1f;
 	fd.filter.groupIndex = Player.PlayerGroupIndex;
-	fd.filter.maskBits &= ~Ground.LV1Stair;
-	fd.filter.maskBits &= ~Ground.LV2Stair;
+	fd.filter.maskBits &= ~Ground.LV1Stair;		//ignore lv1 stairs
+	fd.filter.maskBits &= ~Ground.LV2Stair;		//ignore lv2 stairs
+	fd.filter.maskBits &= ~Ground.LV3Stair;		//ignore lv3 stairs
+	fd.filter.maskBits |= Ground.GroundFloor;	//always stand on ground
 	player.setPlayerBody(world.createBody(bd));
 	player.getPlayerBody().createFixture(fd);
 
@@ -197,49 +199,41 @@ public class MetalSlug extends RuleModel{
   public void step() {
 	if(model.pause) return;
 
-	//check inputs
-	//game logic
-	//box2d
-	//render scence
-
-	MSStairCallback cb = new MSStairCallback();
-	AABB aabb = new AABB();
-	AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
-	aabb.lowerBound.set(pAABB.lowerBound.clone().add(new Vec2(-1f,-1f))) ;
-	aabb.upperBound.set(pAABB.upperBound.clone().add(new Vec2(1f, 1f)));
-	world.queryAABB(cb, aabb);
-	if(cb.stairsMap.size() != 0){
-	  for(Map.Entry<String, Fixture> entry: cb.stairsMap.entrySet()){
-		float distance =  this.getDistance(player.getPlayerBody().getWorldPoint(new Vec2(0,-1f)), 
-			((Ground)entry.getValue().getBody().getUserData()).getInfo().outerSide[0],
-			((Ground)entry.getValue().getBody().getUserData()).getInfo().outerSide[1]);
-		int category = entry.getValue().m_filter.categoryBits;
-		float minTolerance = 0.0f;
-		minTolerance = this.getMinTolerance(((Ground)entry.getValue().getBody().getUserData()).getInfo().orientation);
-//		if(category == Ground.LV1Stair) Log.print("distance to lv1: "+distance);
-//		if(category == Ground.LV2Stair) Log.print("distance to lv2: "+distance);
-		if(model.getKeys()['s']){
-		  if(distance < minTolerance){
-			
-		  }
-		  else if(distance >= minTolerance){
-			
-		  }
-		  if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV1Stair;
-		  if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV2Stair;
-		}
-		else{
-		  if(distance < minTolerance){
-			if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV1Stair;
-			if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV2Stair;
-		  }
-		  else if(distance >= minTolerance){
-			if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits |= Ground.LV1Stair;
-			if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits |= Ground.LV2Stair;
-		  }
-		}
-	  }
-	}
+//	MSStairCallback cb = new MSStairCallback();
+//	AABB aabb = new AABB();
+//	AABB pAABB = player.getPlayerBody().getFixtureList().getNext().getAABB(0);
+//	aabb.lowerBound.set(pAABB.lowerBound.clone().add(new Vec2(-1f,-1f))) ;
+//	aabb.upperBound.set(pAABB.upperBound.clone().add(new Vec2(1f, 1f)));
+//	world.queryAABB(cb, aabb);
+//	if(cb.stairsMap.size() != 0){
+//	  for(Map.Entry<String, Fixture> entry: cb.stairsMap.entrySet()){
+//		float distance =  this.getDistance(player.getPlayerBody().getWorldPoint(new Vec2(0,-1f)), 
+//			((Ground)entry.getValue().getBody().getUserData()).getInfo().outerSide[0],
+//			((Ground)entry.getValue().getBody().getUserData()).getInfo().outerSide[1]);
+//		//Log.print("distance: "+distance);
+//		int category = entry.getValue().m_filter.categoryBits;
+//		float minTolerance = 0.0f;
+//		minTolerance = this.getMinTolerance(((Ground)entry.getValue().getBody().getUserData()).getInfo().orientation);
+//		//		if(category == Ground.LV1Stair) Log.print("distance to lv1: "+distance);
+//		//		if(category == Ground.LV2Stair) Log.print("distance to lv2: "+distance);
+//		if(model.getKeys()['s']){
+//		  if(distance >= minTolerance && distance < this.getMaxTolerance(StairOrientation.TiltLeft)){
+//			if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV1Stair;
+//			if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV2Stair;
+//		  }
+//		}
+//		else{
+//		  if(distance < minTolerance){
+//			if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV1Stair;
+//			if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits &= ~Ground.LV2Stair;
+//		  }
+//		  else if(distance >= minTolerance){
+//			if(category == Ground.LV1Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits |= Ground.LV1Stair;
+//			if(category == Ground.LV2Stair) player.getPlayerBody().getFixtureList().getNext().m_filter.maskBits |= Ground.LV2Stair;
+//		  }
+//		}
+//	  }
+//	}
 
 	avoidSlidingDown();
 	reloadWeapon();
@@ -592,12 +586,10 @@ public class MetalSlug extends RuleModel{
   @Override
   public void postSolve(Contact contact, ContactImpulse impulse) {
 
-
   }
 
   @Override
   public void keyTyped(char c, int code) {
-
 
   }
 
@@ -608,12 +600,6 @@ public class MetalSlug extends RuleModel{
 
   @Override
   public void keyPressed(char c, int code) {
-	if(c == 'w'){
-
-	}
-	if(c == 's'){
-
-	}
 
 	if(c == '1'){
 	  if(player != null && player.getCurrWeapon() != null && !(player.getCurrWeapon() instanceof MachineGunWeapon)){
@@ -656,7 +642,8 @@ public class MetalSlug extends RuleModel{
 	  }
 	}
 
-	Vec2 offset = new Vec2((panel.getWidth()/2)/config.getCachedCameraScale(), -(float)(3* panel.getHeight()/4)/config.getCachedCameraScale());	
+	Vec2 offset = new Vec2((panel.getWidth()/2)/config.getCachedCameraScale(),
+		-(float)(3* panel.getHeight()/4)/config.getCachedCameraScale());	
 	Vec2 newCenter = player.getPlayerBody().getWorldCenter().clone().sub(offset);
 	d.getViewportTranform().setCenter(newCenter);
 
@@ -790,7 +777,7 @@ public class MetalSlug extends RuleModel{
 	else{
 	  shouldJump = false;
 	}
-	
+
 	return shouldJump;
   }
 
