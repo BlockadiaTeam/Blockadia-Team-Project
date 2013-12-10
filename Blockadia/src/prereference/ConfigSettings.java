@@ -44,7 +44,8 @@ public class ConfigSettings extends Settings {
   @Override
   protected void populateDefaultSettings(){
 	addSetting(new Setting(ConfigName, "HelloWorld"));
-	addSetting(new Setting(ConfigRule, ConfigType.BeatIt));//TODO: Change back to customized later
+	//addSetting(new Setting(ConfigRule, ConfigType.BeatIt));//TODO: Change back to customized later
+	addSetting(new Setting(ConfigRule, ConfigType.MetalArmy));
 	
 	//Display options:
 	addSetting(new Setting(EnableZoom, true));
