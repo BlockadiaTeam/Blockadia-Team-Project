@@ -133,7 +133,7 @@ public abstract class BuildConfig {
 	  break;
 	case BeatIt:
 	  rule = new BeatItGame(this, model);
-	  //	  rule = new BeatItCustomGame(this, model);
+	  //rule = new BeatItCustomGame(this, model);
 	  break;
 	case MetalArmy:
 	  rule = new MetalSlug(this, model);

@@ -61,6 +61,7 @@ public class Beats {
 
   public void setBeatsBody(Body beatsBody) {
 	this.beatsBody = beatsBody;
+	this.beatsBody.setUserData(this);
   }
 
   public void setPosition(String position) {
@@ -119,7 +120,7 @@ public class Beats {
   public void print() {
 	//System.out.println("Timing: " + timing + "\tPosition" + position);
 	System.out.println( "beat = new Beats(" + timing + ", Position." + position + ");" + 
-						"\nbeatsQueue.add(beat);");
+						"\nsteps.add(beat);");
   }
 
 }

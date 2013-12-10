@@ -35,6 +35,10 @@ public class AudioPlayer {
 	}
 
   }
+  
+  public void loopMusic(){
+	clip.loop(clip.LOOP_CONTINUOUSLY);
+  }
 
   public void start() {
 	clip.start();
