@@ -144,6 +144,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 
 	private void addListeners() {
 		colorButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
 						newShapeWindow,
@@ -158,6 +159,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		});
 
 		resolution.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				//1. Check if the resolution is changed, eg: 3x3 changed to 3x3
 				//	 Yes- proceed
@@ -167,7 +169,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 				// 		 		Yes - change the resolution(create new buildShape) and clear the painted shape
 				//				No - Stay here
 				//   No- change the resolution 
-				if(buildPanel.getGridResolution().equals((Vec2)resolution.getSelectedItem())){
+				if(buildPanel.getGridResolution().equals(resolution.getSelectedItem())){
 					return;
 				}
 				buildPanel.updateIsDirty();
@@ -197,6 +199,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		});
 
 		saveButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				buildPanel.updateIsDirty();
 				if(buildPanel.getIsDirty()){
@@ -251,6 +254,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		});
 		
 		closeButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				buildPanel.updateIsDirty();
 				//Close button is similar to WindowClosing event handler
@@ -306,6 +310,7 @@ public class NewShapeWindowSidePanel extends JPanel{
 		});
 		
 		clearButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				//1. Check if the buildPanel is dirty
 				//	 Yes- Message(Y/N)
